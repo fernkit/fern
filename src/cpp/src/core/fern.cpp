@@ -7,6 +7,60 @@
 namespace Fern {
     static std::function<void()> drawCallback = nullptr;
     
+    static std::unique_ptr<uint32_t[]> managedBuffer = nullptr;
+    static bool usingManagedBuffer = false;
+    static int lastWidth = 800;
+    static int lastHeight = 600;
+
+    int getWidth() {
+        return lastWidth;
+    }
+    
+    int getHeight() {
+        return lastHeight;
+    }
+    
+    Point getCanvasSize() {
+        return Point(lastWidth, lastHeight);
+    }
+    
+    void initialize() {
+        int width, height;
+        
+        EM_ASM({
+            var container = document.getElementById('canvas-container') || document.body;
+            var availWidth = container.clientWidth || window.innerWidth;
+            var availHeight = container.clientHeight || window.innerHeight;
+            
+            setValue($0, availWidth, 'i32');
+            setValue($1, availHeight, 'i32');
+            
+            console.log("Fern C++: Auto-detected canvas size: " + availWidth + "x" + availHeight);
+        }, &width, &height);
+        
+        initialize(std::max(320, width), std::max(240, height));
+    }
+    
+    void initialize(int width, int height) {
+        managedBuffer.reset(new uint32_t[width * height]);
+        usingManagedBuffer = true;
+        lastWidth = width;
+        lastHeight = height;
+        
+        initialize(managedBuffer.get(), width, height);
+        
+        EM_ASM({
+            window.addEventListener('resize', function() {
+                var container = document.getElementById('canvas-container') || document.body;
+                var availWidth = container.clientWidth || window.innerWidth;
+                var availHeight = container.clientHeight || window.innerHeight;
+                
+                _fernHandleResize(availWidth, availHeight);
+            });
+        });
+    }
+
+    // overload for backward compatibility
     void initialize(uint32_t* pixelBuffer, int width, int height) {
         globalCanvas = new Canvas(pixelBuffer, width, height);
         
@@ -92,5 +146,15 @@ extern "C" {
     EMSCRIPTEN_KEEPALIVE
     void fernUpdateMouseButton(int down) {
         Fern::Input::updateMouseButton(down != 0);
+    }
+
+    EMSCRIPTEN_KEEPALIVE
+    void fernHandleResize(int width, int height) {
+        if (Fern::usingManagedBuffer && (width != Fern::lastWidth || height != Fern::lastHeight)) {
+            Fern::managedBuffer.reset(new uint32_t[width * height]);
+            Fern::globalCanvas = new Fern::Canvas(Fern::managedBuffer.get(), width, height);
+            Fern::lastWidth = width;
+            Fern::lastHeight = height;
+        }
     }
 }

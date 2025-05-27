@@ -1,27 +1,43 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en-us">
 <head>
     <meta charset="utf-8">
-    <title>Fern Graphics Demo</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Fern Application</title>
     <style>
-        body { 
-            background-color: #222; 
-            color: #eee;
-            font-family: Arial, sans-serif;
+        body {
             margin: 0;
-            padding: 20px;
-            text-align: center;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #333;
         }
-        h1 { margin-bottom: 20px; }
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+        }
     </style>
 </head>
 <body>
-  <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
-    <script>
-      var Module = {
-        canvas: document.getElementById('canvas')
-      };
+    <div id="canvas-container">
+        <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    </div>
+    <script type='text/javascript'>
+        var Module = {
+            canvas: document.getElementById('canvas')
+        };
     </script>
     {{{ SCRIPT }}}
 </body>
-</html> 
+</html>

@@ -42,6 +42,10 @@ namespace Fern
             }
         }
 
+        void clear() {
+            widgets_.clear();
+        }
+
     private:
         WidgetManager() = default;
         std::vector<std::shared_ptr<Widget>> widgets_;    
