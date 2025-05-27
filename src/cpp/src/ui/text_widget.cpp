@@ -7,7 +7,9 @@ namespace Fern {
         : position_(position), text_(text), scale_(scale), color_(color) {}
         
     void TextWidget::render() {
-        DrawText::drawText(text_.c_str(), position_.x, position_.y, scale_, color_);
+        // don't use positions!! 
+        // the position of each widget is now maintaine by the parent class!
+        DrawText::drawText(text_.c_str(), x_, y_, scale_, color_);
     }
     
     bool TextWidget::handleInput(const InputState& input) {
@@ -19,7 +21,8 @@ namespace Fern {
     }
     
     void TextWidget::setPosition(const Point& position) {
-        position_ = position;
+        Widget::setPosition(position.x, position.y);  // update base x_, y_ fields
+        position_ = Point(position.x, position.y);    // update internal position_ field
     }
     
     void TextWidget::setScale(int scale) {
@@ -31,9 +34,9 @@ namespace Fern {
     }
     
     std::shared_ptr<TextWidget> Text(Point position, const std::string& text, 
-                                     int scale, uint32_t color) {
+                                     int scale, uint32_t color, bool addToManager) {
         auto widget = std::make_shared<TextWidget>(position, text, scale, color);
-        addWidget(widget);
+        if(addToManager){addWidget(widget);}
         return widget;
     }
 }

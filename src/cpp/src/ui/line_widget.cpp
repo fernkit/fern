@@ -31,9 +31,11 @@ namespace Fern {
         color_ = color;
     }
     
-    std::shared_ptr<LineWidget> Line(Point start, Point end, int thickness, uint32_t color) {
+    std::shared_ptr<LineWidget> Line(Point start, Point end, int thickness, uint32_t color, bool addToManager) {
         auto widget = std::make_shared<LineWidget>(start, end, thickness, color);
-        addWidget(widget);
+        if(addToManager){
+            addWidget(widget);
+        }
         return widget;
     }
 }

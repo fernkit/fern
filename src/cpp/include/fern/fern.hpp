@@ -11,6 +11,7 @@
 #include "ui/line_widget.hpp"
 #include "ui/button.hpp"
 #include "core/widget_manager.hpp"
+#include "ui/layout.hpp"
 
 namespace Fern {
     void initialize(uint32_t* pixelBuffer, int width, int height);

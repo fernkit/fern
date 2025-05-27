@@ -4,17 +4,22 @@
 
 namespace Fern {
     CircleWidget::CircleWidget(int radius, Point position, uint32_t color)
-        : radius_(radius), position_(position), color_(color) {}
-        
+        : radius_(radius), position_(position), color_(color) {
+        x_ = position.x;
+        y_ = position.y;
+    }
+    
+    // don't use positions!! 
+    // the position of each widget is now maintaine by the parent class!
     void CircleWidget::render() {
-        Draw::circle(position_.x, position_.y, radius_, color_);
+        Draw::circle(x_ + radius_, y_ + radius_, radius_, color_);
     }
     
     bool CircleWidget::handleInput(const InputState& input) {
         bool wasHovered = isHovered_;
         
-        int dx = input.mouseX - position_.x;
-        int dy = input.mouseY - position_.y;
+        int dx = input.mouseX - x_;
+        int dy = input.mouseY - y_;
         isHovered_ = (dx*dx + dy*dy) <= (radius_ * radius_);
         
         if (wasHovered != isHovered_) {
@@ -33,17 +38,19 @@ namespace Fern {
         radius_ = radius;
     }
     
-    void CircleWidget::setPosition(Point position) {
-        position_ = position;
+    void CircleWidget::setPosition(const Point& position){
+        Widget::setPosition(position.x, position.y);  // update base x_, y_ fields
+        position_.x = position.x;      // update any internal center field
+        position_.y = position.y;
     }
     
     void CircleWidget::setColor(uint32_t color) {
         color_ = color;
     }
     
-    std::shared_ptr<CircleWidget> Circle(int radius, Point position, uint32_t color) {
+    std::shared_ptr<CircleWidget> Circle(int radius, Point position, uint32_t color, bool addToManager) {
         auto widget = std::make_shared<CircleWidget>(radius, position, color);
-        addWidget(widget);
+        if(addToManager){addWidget(widget);}
         return widget;
     }
 }

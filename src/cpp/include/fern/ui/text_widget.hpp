@@ -23,6 +23,13 @@ namespace Fern {
         const Point& getPosition() const { return position_; }
         int getScale() const { return scale_; }
         uint32_t getColor() const { return color_; }
+        int getWidth() const override { 
+            return text_.length() * 8 * scale_; 
+        }
+
+        int getHeight() const override { 
+            return 8 * scale_; 
+        }
         
     private:
         std::string text_;
@@ -32,7 +39,7 @@ namespace Fern {
     };
 
     std::shared_ptr<TextWidget> Text(Point position, const std::string& text, 
-                                     int scale, uint32_t color);
+                                     int scale, uint32_t color, bool addToManager = true);
     
                                               
 }

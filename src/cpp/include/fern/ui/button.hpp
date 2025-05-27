@@ -23,10 +23,18 @@ namespace Fern {
     
     class ButtonWidget : public Widget {
     public:
-        explicit ButtonWidget(const ButtonConfig& config);
+        ButtonWidget(const ButtonConfig& config);
         
         void render() override;
         bool handleInput(const InputState& input) override;
+
+        int getWidth() const override;
+        int getHeight() const override;
+        void setPosition(int x, int y) override;
+        int getX() const override;
+        int getY() const override;
+        void resize(int width, int height) override;
+    
 
         Signal<> onClick;       
         Signal<bool> onHover;   
@@ -38,6 +46,5 @@ namespace Fern {
         bool isPressed_ = false;
     };
     
-    // Factory function for easier creation
-    std::shared_ptr<ButtonWidget> Button(const ButtonConfig& config);
+    std::shared_ptr<ButtonWidget> Button(const ButtonConfig& config, bool addToManager = true);
 }
