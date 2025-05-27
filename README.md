@@ -352,6 +352,7 @@ LinearGradientContainer(
     height(int height),
     gradient(LinearGradient gradient)
 );
+```
 
 #### ButtonWidget
 Creates an interactive button that responds to mouse events.

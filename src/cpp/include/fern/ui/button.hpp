@@ -21,9 +21,9 @@ namespace Fern {
         std::function<void()> onClick; // deprecated
     };
     
-    class Button : public Widget {
+    class ButtonWidget : public Widget {
     public:
-        explicit Button(const ButtonConfig& config);
+        explicit ButtonWidget(const ButtonConfig& config);
         
         void render() override;
         bool handleInput(const InputState& input) override;
@@ -39,5 +39,5 @@ namespace Fern {
     };
     
     // Factory function for easier creation
-    std::shared_ptr<Button> ButtonWidget(const ButtonConfig& config);
+    std::shared_ptr<ButtonWidget> Button(const ButtonConfig& config);
 }

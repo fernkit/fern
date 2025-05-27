@@ -4,7 +4,7 @@
 #include <cstring>
 
 namespace Fern {
-    namespace Text {
+    namespace DrawText {
         void drawChar(char c, int x, int y, int scale, uint32_t color) {
             if (!globalCanvas) return;
             

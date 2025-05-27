@@ -6,10 +6,10 @@
 #include <cstring>
 #include <memory>
 namespace Fern {
-    Button::Button(const ButtonConfig& config)
+    ButtonWidget::ButtonWidget(const ButtonConfig& config)
         : config_(config) {}
     
-    void Button::render() {
+    void ButtonWidget::render() {
         uint32_t buttonColor = config_.normalColor;
         if (isHovered_) {
             buttonColor = isPressed_ ? config_.pressColor : config_.hoverColor;
@@ -22,12 +22,12 @@ namespace Fern {
             int textX = config_.x + (config_.width - textWidth) / 2;
             int textY = config_.y + (config_.height - 8 * config_.textScale) / 2;
             
-            Text::drawText(config_.label.c_str(), textX, textY, config_.textScale, config_.textColor);
+            DrawText::drawText(config_.label.c_str(), textX, textY, config_.textScale, config_.textColor);
         }
     }        const auto& input = Input::getState();
 
     
-    bool Button::handleInput(const InputState& input) {
+    bool ButtonWidget::handleInput(const InputState& input) {
         bool wasHovered = isHovered_;
         bool wasPressed = isPressed_;
 
@@ -54,8 +54,8 @@ namespace Fern {
         return false;
     }
     
-    std::shared_ptr<Button> ButtonWidget(const ButtonConfig& config) {
-        auto button = std::make_shared<Button>(config);
+    std::shared_ptr<ButtonWidget> Button(const ButtonConfig& config) {
+        auto button = std::make_shared<ButtonWidget>(config);
         if (config.onClick) {
             button->onClick.connect(config.onClick);
         }
