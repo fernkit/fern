@@ -4,7 +4,7 @@
 #include <string>
 #include <functional>
 #include <memory>
-#include "../core/signal.hpp"
+#include "../../core/signal.hpp"
 
 namespace Fern {
     struct ButtonConfig {

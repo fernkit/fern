@@ -1,6 +1,7 @@
 #include "fern/ui/layout/layout.hpp"
 #include "fern/core/widget_manager.hpp"
-#include <fern.hpp>
+#include "../../../include/fern/fern.hpp"
+
 
 namespace Fern {
 
@@ -53,7 +54,7 @@ void RowWidget::arrangeChildren() {
     }
 }
 
-std::shared_ptr<RowWidget> Row(const std::vector<std::shared_ptr<Widget>>& children) {
+std::shared_ptr<RowWidget> Row(const std::vector<std::shared_ptr<Widget>>& children, bool addToManager) {
     int screenWidth = Fern::getWidth();
     int screenHeight = Fern::getHeight();
     
@@ -63,7 +64,7 @@ std::shared_ptr<RowWidget> Row(const std::vector<std::shared_ptr<Widget>>& child
         row->addAll(children);
     }
     
-    addWidget(row);
+    if(addToManager){addWidget(row);}
     
     return row;
 }

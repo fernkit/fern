@@ -1,6 +1,6 @@
 #pragma once
-#include "widget.hpp"
-#include "../graphics/primitives.hpp"
+#include "../widgets/widget.hpp"
+#include "../../graphics/primitives.hpp"
 #include <vector>
 #include <memory>
 
@@ -108,8 +108,8 @@ namespace Fern {
     };
 
     std::shared_ptr<CenterWidget> Center(std::shared_ptr<Widget> child);
-    std::shared_ptr<ColumnWidget> Column(const std::vector<std::shared_ptr<Widget>>& children = {});
-    std::shared_ptr<RowWidget> Row(const std::vector<std::shared_ptr<Widget>>& children = {});
+    std::shared_ptr<ColumnWidget> Column(const std::vector<std::shared_ptr<Widget>>& children = {}, bool addToManager = true);
+    std::shared_ptr<RowWidget> Row(const std::vector<std::shared_ptr<Widget>>& children = {}, bool addToManager = true);
     std::shared_ptr<PaddingWidget> Padding(std::shared_ptr<Widget> child, int all);
     std::shared_ptr<PaddingWidget> Padding(std::shared_ptr<Widget> child, 
                                          int left, int top, int right, int bottom);

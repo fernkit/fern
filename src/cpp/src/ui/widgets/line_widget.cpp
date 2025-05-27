@@ -1,6 +1,6 @@
-#include "../../include/fern/ui/widgets/line_widget.hpp"
-#include "../../include/fern/graphics/primitives.hpp"
-#include "../../include/fern/core/widget_manager.hpp"
+#include "../../../include/fern/ui/widgets/line_widget.hpp"
+#include "../../../include/fern/graphics/primitives.hpp"
+#include "../../../include/fern/core/widget_manager.hpp"
 #include <cmath>
 
 namespace Fern {

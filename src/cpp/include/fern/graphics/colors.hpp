@@ -78,16 +78,16 @@ namespace Fern {
         float position;  // 0-1
     };
     
-    class LinearGradient {
-    public:
-        LinearGradient(GradientStop* stops, int stopCount, bool vertical = false);
-        uint32_t colorAt(float position) const;
+    // class LinearGradient {
+    // public:
+    //     LinearGradient(GradientStop* stops, int stopCount, bool vertical = false);
+    //     uint32_t colorAt(float position) const;
         
-        bool isVertical() const { return vertical_; }
+    //     bool isVertical() const { return vertical_; }
         
-    private:
-        GradientStop* stops_;
-        int stopCount_;
-        bool vertical_;
-    };
+    // private:
+    //     GradientStop* stops_;
+    //     int stopCount_;
+    //     bool vertical_;
+    // };
 }

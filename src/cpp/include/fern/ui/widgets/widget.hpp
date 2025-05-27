@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/types.hpp"
+#include "../../core/types.hpp"
 #include <functional>
 
 namespace Fern {

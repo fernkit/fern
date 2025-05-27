@@ -1,5 +1,5 @@
-#include "../../include/fern/ui/layout/layout.hpp"
-#include "../../include/fern/fern.hpp"
+#include "../../../include/fern/ui/layout/layout.hpp"
+#include "../../../include/fern/fern.hpp"
 
 namespace Fern {
     ColumnWidget::ColumnWidget(int x, int y, int width, int height)
@@ -53,7 +53,7 @@ namespace Fern {
         }
     }
     
-    std::shared_ptr<ColumnWidget> Column(const std::vector<std::shared_ptr<Widget>>& children) {
+    std::shared_ptr<ColumnWidget> Column(const std::vector<std::shared_ptr<Widget>>& children, bool addToManager) {
         int screenWidth = Fern::getWidth();
         int screenHeight = Fern::getHeight();
         
@@ -62,7 +62,8 @@ namespace Fern {
         if (!children.empty()) {
             column->addAll(children);
         }
-        addWidget(column);
+        if(addToManager){addWidget(column);}
+
         return column;
     }
 }

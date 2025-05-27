@@ -1,6 +1,6 @@
-#include "../../include/fern/fern.hpp"
-#include "../../include/fern/core/input.hpp"
-#include "../../include/fern/core/widget_manager.hpp"
+#include "../include/fern/fern.hpp"
+#include "../include/fern/core/input.hpp"
+#include "../include/fern/core/widget_manager.hpp"
 #include <emscripten.h>
 #include <functional>
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "widget.hpp"
 #include <memory>
-#include "../core/signal.hpp"
+#include "../../core/signal.hpp"
 
 namespace Fern {
     class CircleWidget : public Widget {

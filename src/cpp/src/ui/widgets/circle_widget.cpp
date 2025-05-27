@@ -1,6 +1,6 @@
-#include "../../include/fern/ui/widgets/circle_widget.hpp"
-#include "../../include/fern/graphics/primitives.hpp"
-#include "../../include/fern/core/widget_manager.hpp"
+#include "../../../include/fern/ui/widgets/circle_widget.hpp"
+#include "../../../include/fern/graphics/primitives.hpp"
+#include "../../../include/fern/core/widget_manager.hpp"
 
 namespace Fern {
     CircleWidget::CircleWidget(int radius, Point position, uint32_t color)

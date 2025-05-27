@@ -1,6 +1,6 @@
-#include "../../include/fern/ui/widgets/text_widget.hpp"
-#include "../../include/fern/text/font.hpp"
-#include "../../include/fern/core/widget_manager.hpp"
+#include "../../../include/fern/ui/widgets/text_widget.hpp"
+#include "../../../include/fern/text/font.hpp"
+#include "../../../include/fern/core/widget_manager.hpp"
 
 namespace Fern {
     TextWidget::TextWidget(Point position, const std::string& text, int scale, uint32_t color)

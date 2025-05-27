@@ -19,20 +19,20 @@ namespace Fern {
         }
     }
     
-    LinearGradient::LinearGradient(GradientStop* stops, int stopCount, bool vertical)
-        : stops_(stops), stopCount_(stopCount), vertical_(vertical) {}
+    // LinearGradient::LinearGradient(GradientStop* stops, int stopCount, bool vertical)
+    //     : stops_(stops), stopCount_(stopCount), vertical_(vertical) {}
     
-    uint32_t LinearGradient::colorAt(float position) const {
-        if (position <= stops_[0].position) return stops_[0].color;
-        if (position >= stops_[stopCount_-1].position) return stops_[stopCount_-1].color;
+    // uint32_t LinearGradient::colorAt(float position) const {
+    //     if (position <= stops_[0].position) return stops_[0].color;
+    //     if (position >= stops_[stopCount_-1].position) return stops_[stopCount_-1].color;
         
-        for (int i = 0; i < stopCount_ - 1; i++) {
-            if (position >= stops_[i].position && position <= stops_[i+1].position) {
-                float local_pos = (position - stops_[i].position) / 
-                                 (stops_[i+1].position - stops_[i].position);
-                return Colors::blendColors(stops_[i].color, stops_[i+1].color, local_pos);
-            }
-        }
-        return 0xFF000000;
-    }
+    //     for (int i = 0; i < stopCount_ - 1; i++) {
+    //         if (position >= stops_[i].position && position <= stops_[i+1].position) {
+    //             float local_pos = (position - stops_[i].position) / 
+    //                              (stops_[i+1].position - stops_[i].position);
+    //             return Colors::blendColors(stops_[i].color, stops_[i+1].color, local_pos);
+    //         }
+    //     }
+    //     return 0xFF000000;
+    // }
 }
