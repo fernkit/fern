@@ -1,4 +1,4 @@
-#include "../../include/fern/ui/circle_widget.hpp"
+#include "../../include/fern/ui/widgets/circle_widget.hpp"
 #include "../../include/fern/graphics/primitives.hpp"
 #include "../../include/fern/core/widget_manager.hpp"
 

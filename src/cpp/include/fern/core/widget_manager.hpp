@@ -1,5 +1,5 @@
 #pragma once
-#include "../ui/widget.hpp"
+#include "../ui/widgets/widget.hpp"
 #include "../core/input.hpp"
 #include <vector>
 #include <memory>

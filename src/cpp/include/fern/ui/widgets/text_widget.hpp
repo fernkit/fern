@@ -4,7 +4,6 @@
 #include <memory>
 
 namespace Fern {
-    // First, define the class BEFORE using it with shared_ptr
     class TextWidget : public Widget {
     public:
         TextWidget(Point position, const std::string& text, int scale, uint32_t color);
@@ -12,13 +11,11 @@ namespace Fern {
         void render() override;
         bool handleInput(const InputState& input) override;
         
-        // Text-specific methods
         void setText(const std::string& text);
         void setPosition(const Point& position);
         void setScale(int scale);
         void setColor(uint32_t color);
         
-        // Getters
         const std::string& getText() const { return text_; }
         const Point& getPosition() const { return position_; }
         int getScale() const { return scale_; }

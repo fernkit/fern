@@ -1,4 +1,4 @@
-#include "../../include/fern/ui/text_widget.hpp"
+#include "../../include/fern/ui/widgets/text_widget.hpp"
 #include "../../include/fern/text/font.hpp"
 #include "../../include/fern/core/widget_manager.hpp"
 
