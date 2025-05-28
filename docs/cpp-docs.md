@@ -494,7 +494,7 @@ void setupUI() {
 - Make sure the parent/root layout is added to the widget manager (addToManager = true)
 - Check widget size calculations (getWidth/getHeight)
 - Verify that the layout dimensions are properly set
-```
+
 
 #### Issues with Expanded Widgets
 
