@@ -192,8 +192,107 @@ auto column = Column({
     Text(Point(0, 0), "Bottom Text", 2, Colors::Green, false)
 });
 ```
+### Row Layout
 
-Other layout widgets are not yet implemented.
+Arranges widgets horizontally:
+
+```cpp
+auto row = Row({
+    Text(Point(0, 0), "LEFT", 2, Colors::White, false),
+    Circle(30, Point(0, 0), Colors::Blue, false),
+    Text(Point(0, 0), "RIGHT", 2, Colors::Green, false)
+}, false, MainAxisAlignment::SpaceBetween);
+```
+
+### Expanded Layout
+
+Makes a child widget expand to fill available space:
+
+```cpp
+auto layout = Row({
+    // Fixed width container
+    Container(Colors::Red, 0, 0, 100, 0, false),
+    
+    // This will expand to fill remaining space
+    Expanded(
+        Container(Colors::Blue, 0, 0, 0, 0, false),
+        1  // Flex factor
+    ),
+    
+    // This will take twice as much space as the previous expanded widget
+    Expanded(
+        Container(Colors::Green, 0, 0, 0, 0, false),
+        2  // Flex factor (2x)
+    )
+}, false);
+```
+
+### Padding Layout
+
+Adds padding around a child widget:
+
+```cpp
+auto paddedText = Padding(
+    Text(Point(0, 0), "PADDED TEXT", 2, Colors::White, false),
+    15,  // 15 pixels of padding on all sides
+    false
+);
+```
+### Responsive Layout Example
+
+```cpp
+// Create a responsive layout with expanded sections
+void setupResponsiveUI() {
+    int width = Fern::getWidth();
+    int height = Fern::getHeight();
+    
+    addWidget(
+        Container(
+            Colors::Black,
+            0, 0, width, height,
+            false,
+            Column({
+                // Fixed height header
+                Container(
+                    Colors::DarkBlue,
+                    0, 0, 0, 80,
+                    false,
+                    Center(Text(Point(0, 0), "HEADER", 2, Colors::White, false), false)
+                ),
+                
+                // Content area takes all remaining vertical space
+                Expanded(
+                    Row({
+                        // Sidebar takes 1 part of horizontal space
+                        Expanded(
+                            Container(Colors::DarkGray, 0, 0, 0, 0, false),
+                            1
+                        ),
+                        
+                        // Main content takes 3 parts of horizontal space
+                        Expanded(
+                            Container(Colors::Black, 0, 0, 0, 0, false),
+                            3
+                        )
+                    }, false),
+                    1
+                ),
+                
+                // Fixed height footer
+                Container(
+                    Colors::DarkGray,
+                    0, 0, 0, 60,
+                    false,
+                    Center(Text(Point(0, 0), "FOOTER", 2, Colors::White, false), false)
+                )
+            }, false)
+        )
+    );
+}
+
+```
+
+
 
 ### Creating Responsive UIs
 
@@ -333,6 +432,16 @@ void setupUI() {
 - Check if positions are within the visible canvas area
 - Verify that the draw callback is properly registered
 - Make sure the widget's color has appropriate alpha value (not transparent)
+
+#### Issues with Expanded Widgets
+
+**Problem**: Expanded widgets not taking up the expected space or causing layout issues.
+
+**Solutions**:
+- Ensure the parent widget has a defined size or is itself in an Expanded widget
+- Check that flex factors are properly set (default is 1)
+- Verify that child widgets of Expanded have flexible dimensions (usually 0)
+- When nesting Expanded widgets, ensure each level has proper constraints
 
 #### Layout Issues
 
@@ -494,7 +603,7 @@ We welcome contributions to the Fern Graphics library! Here's how to get involve
 
 The Fern Graphics team is actively working on these upcoming features:
 
-- Additional layout options (Grid, Stack, etc.)
+- Additional layout options (Grid, Stack. already implemented Row, Column, and Expanded)
 - Animation system for transitions and effects
 - Theme support for consistent styling
 - Advanced input handling (multi-touch, gestures)
