@@ -97,8 +97,8 @@ namespace Fern {
     
     std::shared_ptr<ContainerWidget> Container(
         uint32_t color, int x, int y, int width, int height, 
-        bool addToManager, 
-        std::shared_ptr<Widget> child) {
+         
+        std::shared_ptr<Widget> child, bool addToManager) {
         
         auto container = std::make_shared<ContainerWidget>(color, x, y, width, height);
         

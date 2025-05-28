@@ -46,5 +46,5 @@ namespace Fern {
         bool isPressed_ = false;
     };
     
-    std::shared_ptr<ButtonWidget> Button(const ButtonConfig& config, bool addToManager = true);
+    std::shared_ptr<ButtonWidget> Button(const ButtonConfig& config, bool addToManager = false);
 }

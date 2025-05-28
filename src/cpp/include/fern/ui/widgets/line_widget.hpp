@@ -30,5 +30,5 @@ namespace Fern {
     };
     
     // Factory function
-    std::shared_ptr<LineWidget> Line(Point start, Point end, int thickness, uint32_t color, bool addToManager = true);
+    std::shared_ptr<LineWidget> Line(Point start, Point end, int thickness, uint32_t color, bool addToManager = false);
 }

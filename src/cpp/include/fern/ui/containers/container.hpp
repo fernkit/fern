@@ -69,18 +69,17 @@ namespace Fern {
 
     // Factory functions
     std::shared_ptr<ContainerWidget> Container(
-        uint32_t color, int x, int y, int width, int height, 
-        bool addToManager = true, 
-        std::shared_ptr<Widget> child = nullptr);
+        uint32_t color, int x, int y, int width, int height,         
+        std::shared_ptr<Widget> child = nullptr, bool addToManager = false);
     
     std::shared_ptr<CenteredContainerWidget> CenteredContainer(
         uint32_t color, int width, int height,
-        bool addToManager = true,
+        bool addToManager = false,
         std::shared_ptr<Widget> child = nullptr);
     
     std::shared_ptr<GradientContainerWidget> GradientContainer(
         int x, int y, int width, int height,
         const LinearGradient& gradient, 
-        bool addToManager = true,
+        bool addToManager = false,
         std::shared_ptr<Widget> child = nullptr);
 }

@@ -12,21 +12,20 @@ void setupUI() {
         Container(
             0xFF1E1E1E,        
             0, 0, width, height,
-            false,              
             
             Column({
              Column({
                 Text(Point(0, 0), "END TEXT", 2, Colors::White, false),
-                Container(Colors::Red, 0, 0, 100, 40, false),
-                Container(Colors::Green, 0, 0, 100, 40, false),
-                Container(Colors::Blue, 0, 0, 100, 40, false)
+                Container(Colors::Red, 0, 0, 100, 40),
+                Container(Colors::Green, 0, 0, 100, 40),
+                Container(Colors::Blue, 0, 0, 100, 40)
             }, false, MainAxisAlignment::Center, CrossAxisAlignment::End),
 
             Row({
                 Text(Point(0, 0), "SPACED TEXT", 2, Colors::White, false),
-                Container(Colors::Red, 0, 0, 100, 40, false),
-                Container(Colors::Green, 0, 0, 100, 40, false),
-                Container(Colors::Blue, 0, 0, 100, 40, false)
+                Container(Colors::Red, 0, 0, 100, 40),
+                Container(Colors::Green, 0, 0, 100, 40),
+                Container(Colors::Blue, 0, 0, 100, 40)
             }, false, MainAxisAlignment::SpaceBetween)
 
             }, false)

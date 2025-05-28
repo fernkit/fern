@@ -10,13 +10,11 @@ void setupUI() {
         Container(
             Colors::Black,
             0, 0, width, height,
-            false,
             Column({
                 Container(
                     Colors::DarkBlue,
                     0, 0, 0, 80,
-                    false,
-                    Center(Text(Point(0, 0), "HEADER", 2, Colors::White, false), false)
+                    Center(Text(Point(0, 0), "HEADER", 2, Colors::White))
                 ),
                 
                 Expanded(
@@ -26,8 +24,7 @@ void setupUI() {
                                 Container(
                                     Colors::Red,
                                     0, 0, 0, 0,
-                                    false,
-                                    Center(Text(Point(0, 0), "1", 3, Colors::White, false), false)
+                                    Center(Text(Point(0, 0), "1", 3, Colors::White))
                                 ), 10, false
                             ),
                             1
@@ -37,9 +34,8 @@ void setupUI() {
                             Padding(Container(
                                 Colors::Green,
                                 0, 0, 0, 0,
-                                false,
-                                Center(Text(Point(0, 0), "2", 3, Colors::White, false), false)
-                            ), 10, false),
+                                Center(Text(Point(0, 0), "2", 3, Colors::White))
+                            ), 10),
                             2
                         ),
                         
@@ -48,9 +44,8 @@ void setupUI() {
                                 Container(
                                     Colors::Blue,
                                     0, 0, 0, 0,
-                                    false,
-                                    Center(Text(Point(0, 0), "1", 3, Colors::White, false), false)
-                            ), 10, false
+                                    Center(Text(Point(0, 0), "1", 3, Colors::White))
+                            ), 10
                             ),
                             1
                         )
@@ -63,9 +58,8 @@ void setupUI() {
                                 Container(
                                     Colors::Red,
                                     0, 0, 0, 0,
-                                    false,
-                                    Center(Text(Point(0, 0), "1", 3, Colors::White, false), false)
-                            ), 10, false
+                                    Center(Text(Point(0, 0), "1", 3, Colors::White))
+                            ), 10
                             ),
                             1
                         ),
@@ -75,9 +69,8 @@ void setupUI() {
                                 Container(
                                     Colors::Green,
                                     0, 0, 0, 0,
-                                    false,
-                                    Center(Text(Point(0, 0), "1", 3, Colors::White, false), false)
-                            ), 10, false
+                                    Center(Text(Point(0, 0), "1", 3, Colors::White))
+                            ), 10
                             ),
                             1
                         ),
@@ -87,9 +80,8 @@ void setupUI() {
                                 Container(
                                     Colors::Blue,
                                     0, 0, 0, 0,
-                                    false,
-                                    Center(Text(Point(0, 0), "1", 3, Colors::White, false), false)
-                            ), 10, false
+                                    Center(Text(Point(0, 0), "1", 3, Colors::White))
+                            ), 10
                             ),
                             1
                         )
@@ -101,10 +93,9 @@ void setupUI() {
                 Container(
                     Colors::DarkGray,
                     0, 0, 0, 80,
-                    false,
-                    Center(Text(Point(0, 0), "FOOTER", 2, Colors::White, false), false)
+                    Center(Text(Point(0, 0), "FOOTER", 2, Colors::White))
                 )
-            }, false)
+            })
         )
     );
 }

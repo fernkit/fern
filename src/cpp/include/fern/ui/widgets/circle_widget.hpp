@@ -30,5 +30,5 @@ namespace Fern {
         bool isHovered_ = false;
     };
     
-    std::shared_ptr<CircleWidget> Circle(int radius, Point position, uint32_t color, bool addToManager = true);
+    std::shared_ptr<CircleWidget> Circle(int radius, Point position, uint32_t color, bool addToManager = false);
 }

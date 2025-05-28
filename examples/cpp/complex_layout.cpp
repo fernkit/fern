@@ -8,7 +8,6 @@ std::shared_ptr<Widget> createControlButton(uint32_t color, const std::string& l
     return Container(
         Colors::Transparent,
         0, 0, 80, 50,
-        false,
         Center(Text(Point(0, 0), label, scale, color, false), false)
     );
 }
@@ -23,7 +22,6 @@ void setupUI() {
         Container(
             Colors::Black,
             0, 0, width, height,
-            false,
             Padding(
                 Column({                   
                     SizedBox(0, 30, false),
@@ -33,7 +31,6 @@ void setupUI() {
                         Container(
                             Colors::DarkBlue, // Album color
                             0, 0, 280, 280,
-                            false,
                             Center(Text(Point(0, 0), "MUSIC", 6, Colors::SkyBlue, false), false)
                         ),
                         false
@@ -55,9 +52,8 @@ void setupUI() {
                         Container(
                             Colors::DarkGray,
                             0, 0, 0, 4,
-                            false,
                             Row({
-                                Container(Colors::SkyBlue, 0, 0, width * 0.35, 4, false)
+                                Container(Colors::SkyBlue, 0, 0, width * 0.35, 4)
                             }, false)
                         ),
                         
@@ -93,8 +89,7 @@ void setupUI() {
                         Container(
                             Colors::DarkGray,
                             0, 0, 100, 4,
-                            false,
-                            Container(Colors::White, 0, 0, 65, 4, false)
+                            Container(Colors::White, 0, 0, 65, 4)
                         ),
                         
                         SizedBox(0, 0, false), // Spacer
@@ -109,13 +104,11 @@ void setupUI() {
                     Container(
                         Colors::Charcoal,
                         0, 0, 0, 60,
-                        false,
                         Padding(
                             Row({
                                 Container(
                                     Colors::DarkBlue,
-                                    0, 0, 40, 40,
-                                    false
+                                    0, 0, 40, 40                                   
                                 ),
                                 
                                 SizedBox(15, 0, false),

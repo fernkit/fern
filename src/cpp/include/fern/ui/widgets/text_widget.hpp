@@ -36,7 +36,7 @@ namespace Fern {
     };
 
     std::shared_ptr<TextWidget> Text(Point position, const std::string& text, 
-                                     int scale, uint32_t color, bool addToManager = true);
+                                     int scale, uint32_t color, bool addToManager = false);
     
                                               
 }

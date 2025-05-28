@@ -117,7 +117,49 @@ All UI elements inherit from the Widget base class, which provides:
 - Input handling capabilities
 - Rendering functionality
 
+### Widget Management
+
+> **Important Change**: By default, widgets are NOT automatically added to the WidgetManager unless explicitly requested. This design choice optimizes performance and better reflects how widgets are typically used in layout hierarchies.
+
+```cpp
+// Root widget: add to widget manager with true
+auto rootContainer = Container(Colors::Black, 0, 0, width, height, nullptr, true);
+
+// Child widgets: use default (false) as they're managed by their parent
+auto childText = Text(Point(0, 0), "CHILD TEXT", 2, Colors::White);
+rootContainer->setChild(childText);
+```
+
+When to use `addToManager = true`:
+- For root/standalone widgets that aren't children of other widgets
+- When you need direct access to a widget through the WidgetManager
+
+When to use `addToManager = false` (default):
+- For any widget that is a child of another widget
+- When building complex layouts (most use cases)
+
 ### Available Widgets
+
+#### Container Widget
+
+```cpp
+// Create a container with color, position, size, child widget, and widget management flag
+auto container = Container(
+    Colors::DarkBlue,        // Container color
+    100, 100,                // Position (x, y)
+    300, 200,                // Size (width, height)
+    nullptr,                 // Child widget (optional)
+    false                    // Add to widget manager (defaults to false)
+);
+
+// Add a child later
+container->setChild(Text(Point(0, 0), "HELLO WORLD", 2, Colors::White));
+```
+
+The Container widget can hold a single child widget and provides:
+- Background color or gradient
+- Automatic sizing of child widgets to match container dimensions
+- Layout management for child layout widgets
 
 #### Text Widget
 
@@ -186,22 +228,31 @@ Fern provides a powerful layout system inspired by Flutter for creating responsi
 Arranges widgets vertically:
 
 ```cpp
+// Default is not to add to widget manager (addToManager = false)
 auto column = Column({
-    Text(Point(0, 0), "TITLE", 3, Colors::White, false),
-    Circle(50, Point(0, 0), Colors::Blue, false),
-    Text(Point(0, 0), "Bottom Text", 2, Colors::Green, false)
+    Text(Point(0, 0), "TITLE", 3, Colors::White),
+    Circle(50, Point(0, 0), Colors::Blue),
+    Text(Point(0, 0), "Bottom Text", 2, Colors::Green)
 });
+
+// To add the column to widget manager directly:
+auto managedColumn = Column({
+    Text(Point(0, 0), "TITLE", 3, Colors::White),
+    Circle(50, Point(0, 0), Colors::Blue),
+    Text(Point(0, 0), "Bottom Text", 2, Colors::Green)
+}, true);  // explicitly set addToManager = true
 ```
+
 ### Row Layout
 
 Arranges widgets horizontally:
 
 ```cpp
 auto row = Row({
-    Text(Point(0, 0), "LEFT", 2, Colors::White, false),
-    Circle(30, Point(0, 0), Colors::Blue, false),
-    Text(Point(0, 0), "RIGHT", 2, Colors::Green, false)
-}, false, MainAxisAlignment::SpaceBetween);
+    Text(Point(0, 0), "LEFT", 2, Colors::White),
+    Circle(30, Point(0, 0), Colors::Blue),
+    Text(Point(0, 0), "RIGHT", 2, Colors::Green)
+}, false, MainAxisAlignment::SpaceBetween);  // false is default, shown for clarity
 ```
 
 ### Expanded Layout
@@ -428,10 +479,22 @@ void setupUI() {
 **Problem**: You've created widgets but they don't show up on screen.
 
 **Solutions**:
-- Ensure widgets are added to the WidgetManager (the default constructor parameter)
+- Remember that widgets are NOT added to the WidgetManager by default (addToManager = false)
+- For root widgets, make sure to set addToManager = true
 - Check if positions are within the visible canvas area
 - Verify that the draw callback is properly registered
 - Make sure the widget's color has appropriate alpha value (not transparent)
+
+#### Layout Issues
+
+**Problem**: Widgets in layouts aren't positioning correctly.
+
+**Solutions**:
+- Remember that child widgets in layouts should use the default addToManager = false
+- Make sure the parent/root layout is added to the widget manager (addToManager = true)
+- Check widget size calculations (getWidth/getHeight)
+- Verify that the layout dimensions are properly set
+```
 
 #### Issues with Expanded Widgets
 
@@ -442,16 +505,6 @@ void setupUI() {
 - Check that flex factors are properly set (default is 1)
 - Verify that child widgets of Expanded have flexible dimensions (usually 0)
 - When nesting Expanded widgets, ensure each level has proper constraints
-
-#### Layout Issues
-
-**Problem**: Widgets in layouts aren't positioning correctly.
-
-**Solutions**:
-- Use `false` for the `addToManager` parameter when adding widgets to layouts
-- Make sure the parent layout is added to the widget manager
-- Check widget size calculations (getWidth/getHeight)
-- Verify that the layout dimensions are properly set
 
 #### Performance Issues
 

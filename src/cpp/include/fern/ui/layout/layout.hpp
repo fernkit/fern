@@ -164,19 +164,19 @@ namespace Fern {
     );
     std::shared_ptr<RowWidget> Row(
         const std::vector<std::shared_ptr<Widget>>& children, 
-        bool addToManager = true,
+        bool addToManager = false,
         MainAxisAlignment mainAlignment = MainAxisAlignment::Start,
         CrossAxisAlignment crossAlignment = CrossAxisAlignment::Center
     );
 
     std::shared_ptr<ColumnWidget> Column(
         const std::vector<std::shared_ptr<Widget>>& children, 
-        bool addToManager = true,
+        bool addToManager = false,
         MainAxisAlignment mainAlignment = MainAxisAlignment::Start,
         CrossAxisAlignment crossAlignment = CrossAxisAlignment::Center
     );
     std::shared_ptr<PaddingWidget> Padding(std::shared_ptr<Widget> child, int all, bool addToManager = false);
     std::shared_ptr<PaddingWidget> Padding(std::shared_ptr<Widget> child, 
                                          int left, int top, int right, int bottom, bool addToManager = false);
-    std::shared_ptr<SpacingWidget> SizedBox(int width, int height, bool addToManager = true);
+    std::shared_ptr<SpacingWidget> SizedBox(int width, int height, bool addToManager = false);
 }
