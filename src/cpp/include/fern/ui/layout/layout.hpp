@@ -5,6 +5,23 @@
 #include <memory>
 
 namespace Fern {
+
+    enum class MainAxisAlignment {
+        Start,
+        Center,
+        End,
+        SpaceBetween,
+        SpaceAround,
+        SpaceEvenly
+    };
+
+    enum class CrossAxisAlignment {
+        Start,
+        Center,
+        End,
+        Stretch
+    };
+
     class LayoutWidget : public Widget {
     public:
         LayoutWidget(int x, int y, int width, int height) {
@@ -65,20 +82,32 @@ namespace Fern {
     };
 
     class ColumnWidget : public LayoutWidget {
+    private:
+        MainAxisAlignment mainAxisAlignment_ = MainAxisAlignment::Start;
+        CrossAxisAlignment crossAxisAlignment_ = CrossAxisAlignment::Center;
     public:
-        ColumnWidget(int x, int y, int width, int height);
+        ColumnWidget(int x, int y, int width, int height, 
+                 MainAxisAlignment mainAlignment = MainAxisAlignment::Start,
+                 CrossAxisAlignment crossAlignment = CrossAxisAlignment::Center);
         
         void add(std::shared_ptr<Widget> child);
         void addAll(const std::vector<std::shared_ptr<Widget>>& children);
+        void setMainAxisAlignment(MainAxisAlignment alignment);
+        void setCrossAxisAlignment(CrossAxisAlignment alignment);
         
     protected:
         void arrangeChildren() override;
     };
 
     class RowWidget : public LayoutWidget {
+    private:
+        MainAxisAlignment mainAxisAlignment_ = MainAxisAlignment::Start;
+        CrossAxisAlignment crossAxisAlignment_ = CrossAxisAlignment::Center;
     public:
-        RowWidget(int x, int y, int width, int height);
-        
+        RowWidget(int x, int y, int width, int height, MainAxisAlignment mainAlignment = MainAxisAlignment::Start,
+              CrossAxisAlignment crossAlignment = CrossAxisAlignment::Center);
+        void setMainAxisAlignment(MainAxisAlignment alignment);
+        void setCrossAxisAlignment(CrossAxisAlignment alignment);
         void add(std::shared_ptr<Widget> child);
         void addAll(const std::vector<std::shared_ptr<Widget>>& children);
         
@@ -108,10 +137,21 @@ namespace Fern {
     };
 
     std::shared_ptr<CenterWidget> Center(std::shared_ptr<Widget> child);
-    std::shared_ptr<ColumnWidget> Column(const std::vector<std::shared_ptr<Widget>>& children = {}, bool addToManager = true);
-    std::shared_ptr<RowWidget> Row(const std::vector<std::shared_ptr<Widget>>& children = {}, bool addToManager = true);
+    std::shared_ptr<RowWidget> Row(
+        const std::vector<std::shared_ptr<Widget>>& children, 
+        bool addToManager = true,
+        MainAxisAlignment mainAlignment = MainAxisAlignment::Start,
+        CrossAxisAlignment crossAlignment = CrossAxisAlignment::Center
+    );
+
+    std::shared_ptr<ColumnWidget> Column(
+        const std::vector<std::shared_ptr<Widget>>& children, 
+        bool addToManager = true,
+        MainAxisAlignment mainAlignment = MainAxisAlignment::Start,
+        CrossAxisAlignment crossAlignment = CrossAxisAlignment::Center
+    );
     std::shared_ptr<PaddingWidget> Padding(std::shared_ptr<Widget> child, int all);
     std::shared_ptr<PaddingWidget> Padding(std::shared_ptr<Widget> child, 
                                          int left, int top, int right, int bottom);
-    std::shared_ptr<SpacingWidget> SizedBox(int width, int height);
+    std::shared_ptr<SpacingWidget> SizedBox(int width, int height, bool addToManager = true);
 }
