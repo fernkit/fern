@@ -1,4 +1,5 @@
 #include "fern/ui/containers/container.hpp"
+#include "fern/ui/layout/layout.hpp"
 #include "fern/graphics/primitives.hpp"
 #include "fern/core/canvas.hpp"
 #include "fern/core/widget_manager.hpp"
@@ -61,6 +62,7 @@ namespace Fern {
         Draw::rect(x_, y_, width_, height_, color_);
         
         if (child_) {
+            child_->setPosition(x_, y_);
             child_->render();
         }
     }
@@ -76,16 +78,21 @@ namespace Fern {
     void ContainerWidget::setChild(std::shared_ptr<Widget> child) {
         child_ = child;
         
-        if (child_) {
-            child_->setPosition(x_, y_);
-            
-            if (child_->getWidth() <= 0) {
-                child_->resize(width_, child_->getHeight());
+            if (child_) {
+                child_->setPosition(x_, y_);
+                
+                if (child_->getWidth() <= 0) {
+                    child_->resize(width_, child_->getHeight());
+                }
+                if (child_->getHeight() <= 0) {
+                    child_->resize(child_->getWidth(), height_);
+                }
+                
+                auto layoutWidget = std::dynamic_pointer_cast<LayoutWidget>(child_);
+                if (layoutWidget) {
+                    layoutWidget->updateLayout();
+                }
             }
-            if (child_->getHeight() <= 0) {
-                child_->resize(child_->getWidth(), height_);
-            }
-        }
     }
     
     std::shared_ptr<ContainerWidget> Container(

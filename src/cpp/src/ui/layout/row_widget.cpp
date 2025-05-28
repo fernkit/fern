@@ -27,11 +27,9 @@ void RowWidget::arrangeChildren() {
     int totalFixedWidth = 0;
     int expandableCount = 0;
     
-    // First pass: calculate total width
     for (auto& child : children_) {
-        // Special case for SizedBox
         if (std::dynamic_pointer_cast<SpacingWidget>(child) && child->getWidth() == 0) {
-            totalFixedWidth += child->getHeight();  // Use height for horizontal spacing
+            totalFixedWidth += child->getHeight();  
             continue;
         }
         
@@ -47,14 +45,12 @@ void RowWidget::arrangeChildren() {
         expandableWidth = (width_ - totalFixedWidth) / expandableCount;
     }
     
-    // Calculate spacing based on alignment
     int startX = x_;
     int spacing = 0;
     int remainingSpace = width_ - totalFixedWidth;
     
     switch (mainAxisAlignment_) {
         case MainAxisAlignment::Start:
-            // Default - start at x_
             break;
             
         case MainAxisAlignment::Center:
@@ -86,22 +82,18 @@ void RowWidget::arrangeChildren() {
             break;
     }
     
-    // Position children with the calculated alignment
     int currentX = startX;
     
     for (auto& child : children_) {
-        // Special case for SizedBox
         if (std::dynamic_pointer_cast<SpacingWidget>(child) && child->getWidth() == 0) {
-            currentX += child->getHeight();  // Use height for horizontal spacing
+            currentX += child->getHeight();
             continue;
         }
         
         int childWidth = child->getWidth() > 0 ? child->getWidth() : expandableWidth;
         
-        // Calculate Y position based on cross axis alignment
         int childY = y_;
         
-        // Apply cross axis alignment
         switch (crossAxisAlignment_) {
             case CrossAxisAlignment::Start:
                 childY = y_;
@@ -120,14 +112,12 @@ void RowWidget::arrangeChildren() {
                 break;
                 
             case CrossAxisAlignment::Stretch:
-                // For stretch, we'll set the height in the resize call
                 childY = y_;
                 break;
         }
         
         child->setPosition(currentX, childY);
         
-        // Handle sizing based on cross axis alignment
         if (crossAxisAlignment_ == CrossAxisAlignment::Stretch) {
             child->resize(childWidth, height_);
         } else if (child->getHeight() <= 0) {

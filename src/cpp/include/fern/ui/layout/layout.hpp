@@ -39,6 +39,10 @@ namespace Fern {
             }
         }
         
+        void updateLayout() {
+            arrangeChildren();
+        }
+
         bool handleInput(const InputState& input) override {
             for (auto it = children_.rbegin(); it != children_.rend(); ++it) {
                 if ((*it)->handleInput(input)) {
@@ -136,7 +140,10 @@ namespace Fern {
         bool handleInput(const InputState& input) override;
     };
 
-    std::shared_ptr<CenterWidget> Center(std::shared_ptr<Widget> child);
+    std::shared_ptr<CenterWidget> Center(
+        std::shared_ptr<Widget> child, 
+        bool addToManager = false
+    );
     std::shared_ptr<RowWidget> Row(
         const std::vector<std::shared_ptr<Widget>>& children, 
         bool addToManager = true,
@@ -150,8 +157,8 @@ namespace Fern {
         MainAxisAlignment mainAlignment = MainAxisAlignment::Start,
         CrossAxisAlignment crossAlignment = CrossAxisAlignment::Center
     );
-    std::shared_ptr<PaddingWidget> Padding(std::shared_ptr<Widget> child, int all);
+    std::shared_ptr<PaddingWidget> Padding(std::shared_ptr<Widget> child, int all, bool addToManager = false);
     std::shared_ptr<PaddingWidget> Padding(std::shared_ptr<Widget> child, 
-                                         int left, int top, int right, int bottom);
+                                         int left, int top, int right, int bottom, bool addToManager = false);
     std::shared_ptr<SpacingWidget> SizedBox(int width, int height, bool addToManager = true);
 }

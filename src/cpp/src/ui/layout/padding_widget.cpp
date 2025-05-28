@@ -31,12 +31,13 @@ void PaddingWidget::arrangeChildren() {
     child->resize(childWidth, childHeight);
 }
 
-std::shared_ptr<PaddingWidget> Padding(std::shared_ptr<Widget> child, int all) {
-    return Padding(child, all, all, all, all);
+
+std::shared_ptr<PaddingWidget> Padding(std::shared_ptr<Widget> child, int all, bool addToManager) {
+    return Padding(child, all, all, all, all, addToManager);
 }
 
 std::shared_ptr<PaddingWidget> Padding(std::shared_ptr<Widget> child,
-                                     int left, int top, int right, int bottom) {
+                                     int left, int top, int right, int bottom, bool addToManager) {
     int screenWidth = Fern::getWidth();
     int screenHeight = Fern::getHeight();
     
@@ -47,7 +48,7 @@ std::shared_ptr<PaddingWidget> Padding(std::shared_ptr<Widget> child,
         padding->add(child);
     }
     
-    addWidget(padding);
+    if(addToManager){addWidget(padding);}
     
     return padding;
 }

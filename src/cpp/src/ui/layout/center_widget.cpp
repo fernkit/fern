@@ -18,23 +18,34 @@ void CenterWidget::arrangeChildren() {
     
     auto& child = children_[0];
     
-    int childX = x_ + (width_ - child->getWidth()) / 2;
-    int childY = y_ + (height_ - child->getHeight()) / 2;
+    // Calculate centered position
+    int childX = x_;
+    int childY = y_;
+    
+    // Only center if we have positive dimensions and child has known dimensions
+    if (width_ > 0 && child->getWidth() > 0) {
+        childX = x_ + (width_ - child->getWidth()) / 2;
+    }
+    
+    if (height_ > 0 && child->getHeight() > 0) {
+        childY = y_ + (height_ - child->getHeight()) / 2;
+    }
     
     child->setPosition(childX, childY);
 }
 
-std::shared_ptr<CenterWidget> Center(std::shared_ptr<Widget> child) {
-    int screenWidth = Fern::getWidth();
-    int screenHeight = Fern::getHeight();
-    
-    auto center = std::make_shared<CenterWidget>(0, 0, screenWidth, screenHeight);
+std::shared_ptr<CenterWidget> Center(std::shared_ptr<Widget> child, bool addToManager) {
+    // Create center widget with default dimensions - will inherit from parent
+    auto center = std::make_shared<CenterWidget>(0, 0, 0, 0);
     
     if (child) {
         center->add(child);
     }
     
-    addWidget(center);
+    // Only add to manager if specified
+    if (addToManager) {
+        addWidget(center);
+    }
     
     return center;
 }
