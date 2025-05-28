@@ -18,11 +18,18 @@ void CenterWidget::arrangeChildren() {
     
     auto& child = children_[0];
     
-    // Calculate centered position
+    if (child->getWidth() <= 0 || child->getHeight() <= 0) {
+        if (width_ > 0 && child->getWidth() <= 0) {
+            child->resize(width_, child->getHeight());
+        }
+        if (height_ > 0 && child->getHeight() <= 0) {
+            child->resize(child->getWidth(), height_);
+        }
+    }
+    
     int childX = x_;
     int childY = y_;
     
-    // Only center if we have positive dimensions and child has known dimensions
     if (width_ > 0 && child->getWidth() > 0) {
         childX = x_ + (width_ - child->getWidth()) / 2;
     }

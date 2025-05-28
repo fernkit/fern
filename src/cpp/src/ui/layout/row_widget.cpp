@@ -25,55 +25,51 @@ void RowWidget::arrangeChildren() {
     if (children_.empty()) return;
     
     int totalFixedWidth = 0;
-    int expandableCount = 0;
-    
+    int totalFlex = 0;
+    int spacingWidgetsWidth = 0;
+
     for (auto& child : children_) {
-        if (std::dynamic_pointer_cast<SpacingWidget>(child) && child->getWidth() == 0) {
-            totalFixedWidth += child->getHeight();  
+         auto expanded = std::dynamic_pointer_cast<ExpandedWidget>(child);
+        auto spacing = std::dynamic_pointer_cast<SpacingWidget>(child);
+
+        if (spacing && child->getWidth() == 0) {
+            spacingWidgetsWidth += child->getHeight();
             continue;
         }
-        
-        if (child->getWidth() > 0) {
+
+        if (expanded) {
+            totalFlex += expanded->getFlex();
+        } else if (child->getWidth() > 0) {
             totalFixedWidth += child->getWidth();
-        } else {
-            expandableCount++;
         }
     }
     
-    int expandableWidth = 0;
-    if (expandableCount > 0) {
-        expandableWidth = (width_ - totalFixedWidth) / expandableCount;
-    }
+    int availableWidth = width_ - totalFixedWidth - spacingWidgetsWidth;
+    if (availableWidth < 0) availableWidth = 0;
     
     int startX = x_;
     int spacing = 0;
-    int remainingSpace = width_ - totalFixedWidth;
-    
+    int remainingSpace = width_ - totalFixedWidth - spacingWidgetsWidth;
+
     switch (mainAxisAlignment_) {
         case MainAxisAlignment::Start:
             break;
-            
         case MainAxisAlignment::Center:
             startX = x_ + remainingSpace / 2;
             break;
-            
         case MainAxisAlignment::End:
             startX = x_ + remainingSpace;
             break;
-            
         case MainAxisAlignment::SpaceBetween:
-            if (children_.size() > 1) {
+            if (children_.size() > 1)
                 spacing = remainingSpace / (children_.size() - 1);
-            }
             break;
-            
         case MainAxisAlignment::SpaceAround:
             if (children_.size() > 0) {
                 spacing = remainingSpace / children_.size();
                 startX = x_ + spacing / 2;
             }
             break;
-            
         case MainAxisAlignment::SpaceEvenly:
             if (children_.size() + 1 > 0) {
                 spacing = remainingSpace / (children_.size() + 1);
@@ -84,40 +80,44 @@ void RowWidget::arrangeChildren() {
     
     int currentX = startX;
     
-    for (auto& child : children_) {
-        if (std::dynamic_pointer_cast<SpacingWidget>(child) && child->getWidth() == 0) {
+        for (auto& child : children_) {
+        auto expanded = std::dynamic_pointer_cast<ExpandedWidget>(child);
+        auto spacingWidget = std::dynamic_pointer_cast<SpacingWidget>(child);
+
+        if (spacingWidget && child->getWidth() == 0) {
             currentX += child->getHeight();
             continue;
         }
-        
-        int childWidth = child->getWidth() > 0 ? child->getWidth() : expandableWidth;
-        
+
+        int childWidth = 0;
+        if (expanded) {
+            childWidth = (totalFlex > 0) ? (availableWidth * expanded->getFlex()) / totalFlex : 0;
+        } else {
+            childWidth = child->getWidth() > 0 ? child->getWidth() : 0;
+        }
+
         int childY = y_;
-        
         switch (crossAxisAlignment_) {
             case CrossAxisAlignment::Start:
                 childY = y_;
                 break;
-                
             case CrossAxisAlignment::Center:
                 if (child->getHeight() > 0 && child->getHeight() < height_) {
                     childY = y_ + (height_ - child->getHeight()) / 2;
                 }
                 break;
-                
             case CrossAxisAlignment::End:
                 if (child->getHeight() > 0) {
                     childY = y_ + height_ - child->getHeight();
                 }
                 break;
-                
             case CrossAxisAlignment::Stretch:
                 childY = y_;
                 break;
         }
-        
+
         child->setPosition(currentX, childY);
-        
+
         if (crossAxisAlignment_ == CrossAxisAlignment::Stretch) {
             child->resize(childWidth, height_);
         } else if (child->getHeight() <= 0) {
@@ -125,7 +125,7 @@ void RowWidget::arrangeChildren() {
         } else {
             child->resize(childWidth, child->getHeight());
         }
-        
+
         currentX += childWidth + spacing;
     }
 }

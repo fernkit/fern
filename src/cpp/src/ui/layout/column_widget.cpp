@@ -29,29 +29,31 @@ void ColumnWidget::arrangeChildren() {
     if (children_.empty()) return;
     
     int totalFixedHeight = 0;
-    int numExpandable = 0;
+    int totalFlex = 0;
+    int spacingWidgetsHeight = 0;
     
     for (auto& child : children_) {
-        if (std::dynamic_pointer_cast<SpacingWidget>(child) && child->getHeight() == 0) {
-            totalFixedHeight += child->getWidth(); 
+        auto expanded = std::dynamic_pointer_cast<ExpandedWidget>(child);
+        auto spacingWidget = std::dynamic_pointer_cast<SpacingWidget>(child); // Renamed to spacingWidget
+
+        if (spacingWidget && child->getHeight() == 0) {
+            spacingWidgetsHeight += child->getWidth(); 
             continue;
         }
-        
-        if (child->getHeight() > 0) {
+
+        if (expanded) {
+            totalFlex += expanded->getFlex();
+        } else if (child->getHeight() > 0) {
             totalFixedHeight += child->getHeight();
-        } else {
-            numExpandable++;
         }
     }
     
-    int expandableHeight = 0;
-    if (numExpandable > 0) {
-        expandableHeight = (height_ - totalFixedHeight) / numExpandable;
-    }
+    int availableHeight = height_ - totalFixedHeight - spacingWidgetsHeight;
+    if (availableHeight < 0) availableHeight = 0;
     
     int startY = y_;
-    int spacing = 0;
-    int remainingSpace = height_ - totalFixedHeight;
+    int spacingBetween = 0; 
+    int remainingSpace = height_ - totalFixedHeight - spacingWidgetsHeight;
     
     switch (mainAxisAlignment_) {
         case MainAxisAlignment::Start:
@@ -67,21 +69,21 @@ void ColumnWidget::arrangeChildren() {
             
         case MainAxisAlignment::SpaceBetween:
             if (children_.size() > 1) {
-                spacing = remainingSpace / (children_.size() - 1);
+                spacingBetween = remainingSpace / (children_.size() - 1);
             }
             break;
             
         case MainAxisAlignment::SpaceAround:
             if (children_.size() > 0) {
-                spacing = remainingSpace / children_.size();
-                startY = y_ + spacing / 2;
+                spacingBetween = remainingSpace / children_.size();
+                startY = y_ + spacingBetween / 2;
             }
             break;
             
         case MainAxisAlignment::SpaceEvenly:
             if (children_.size() + 1 > 0) {
-                spacing = remainingSpace / (children_.size() + 1);
-                startY = y_ + spacing;
+                spacingBetween = remainingSpace / (children_.size() + 1);
+                startY = y_ + spacingBetween;
             }
             break;
     }
@@ -89,15 +91,22 @@ void ColumnWidget::arrangeChildren() {
     int currentY = startY;
     
     for (auto& child : children_) {
-        if (std::dynamic_pointer_cast<SpacingWidget>(child) && child->getHeight() == 0) {
-            currentY += child->getWidth();  
+        auto expanded = std::dynamic_pointer_cast<ExpandedWidget>(child);
+        auto spacingWidget = std::dynamic_pointer_cast<SpacingWidget>(child); 
+
+        if (spacingWidget && child->getHeight() == 0) {
+            currentY += child->getWidth();
             continue;
         }
         
-        int childHeight = child->getHeight() > 0 ? child->getHeight() : expandableHeight;
+        int childHeight = 0;
+        if (expanded) {
+            childHeight = (totalFlex > 0) ? (availableHeight * expanded->getFlex()) / totalFlex : 0;
+        } else {
+            childHeight = child->getHeight() > 0 ? child->getHeight() : 0;
+        }
         
         int childX = x_;
-        
         switch (crossAxisAlignment_) {
             case CrossAxisAlignment::Start:
                 childX = x_;
@@ -130,7 +139,7 @@ void ColumnWidget::arrangeChildren() {
             child->resize(child->getWidth(), childHeight);
         }
         
-        currentY += childHeight + spacing;
+        currentY += childHeight + spacingBetween; 
     }
 }
 

@@ -112,10 +112,10 @@ namespace Fern {
                 
                 for (var i = 0; i < size; i++) {
                     var pixel = HEAP32[buffer/4 + i];
-                    var r = pixel & 0xFF;
-                    var g = (pixel >> 8) & 0xFF;
-                    var b = (pixel >> 16) & 0xFF;
-                    var a = (pixel >> 24) & 0xFF;
+                    var b = pixel & 0xFF;         
+                    var g = (pixel >> 8) & 0xFF;    
+                    var r = (pixel >> 16) & 0xFF;   
+                    var a = (pixel >> 24) & 0xFF;   
                     var j = i * 4;
                     data[j + 0] = r;
                     data[j + 1] = g;

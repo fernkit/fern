@@ -119,6 +119,24 @@ namespace Fern {
         void arrangeChildren() override;
     };
 
+    class ExpandedWidget : public LayoutWidget {
+    public:
+        ExpandedWidget(std::shared_ptr<Widget> child, int flex = 1);
+        int getFlex() const { return flex_; }
+        
+        void render() override;
+        
+    protected:
+        void arrangeChildren() override;
+        int flex_; 
+    };
+    
+    std::shared_ptr<ExpandedWidget> Expanded(
+        std::shared_ptr<Widget> child, 
+        int flex = 1,
+        bool addToManager = false
+    );
+
     class PaddingWidget : public LayoutWidget {
     public:
         PaddingWidget(int x, int y, int width, int height, 
