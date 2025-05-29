@@ -1,0 +1,40 @@
+#include "fern/platform/renderer.hpp"
+
+#ifdef __EMSCRIPTEN__
+#include "web_renderer.cpp"
+#include <emscripten.h>
+#elif defined(__linux__)
+#include "linux_renderer.cpp"
+#endif
+
+namespace Fern {
+    std::unique_ptr<PlatformRenderer> createRenderer() {
+#ifdef __EMSCRIPTEN__
+        return std::make_unique<WebRenderer>();
+#elif defined(__linux__)
+        return std::make_unique<LinuxRenderer>();
+#else
+        #error "Only Web and Linux platforms supported currently"
+#endif
+    }
+}
+
+// Define extern "C" functions ONLY here for web
+#ifdef __EMSCRIPTEN__
+extern "C" {
+    EMSCRIPTEN_KEEPALIVE
+    void webRendererMouseMove(Fern::WebRenderer* renderer, int x, int y) {
+        renderer->onMouseMove(x, y);
+    }
+    
+    EMSCRIPTEN_KEEPALIVE
+    void webRendererMouseClick(Fern::WebRenderer* renderer, bool down) {
+        renderer->onMouseClick(down);
+    }
+    
+    EMSCRIPTEN_KEEPALIVE
+    void webRendererResize(Fern::WebRenderer* renderer, int width, int height) {
+        renderer->onResize(width, height);
+    }
+}
+#endif
