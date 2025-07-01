@@ -171,6 +171,49 @@ auto myText = Text(Point(100, 100), "HELLO WORLD", 2, Colors::White);
 myText->setText("UPDATED TEXT");
 ```
 
+##### TTF Font Support (Experimental)
+
+Fern Graphics C++ now includes experimental support for TrueType Font (TTF) rendering, allowing you to use custom fonts in your applications.
+
+**⚠️ Note**: TTF font support is currently experimental and may have limitations. For production applications, consider using the default bitmap font system.
+
+```cpp
+// Load a TTF font
+bool fontLoaded = TTF::load("myFont", "path/to/font.ttf");
+if (fontLoaded) {
+    TTF::setDefault("myFont");
+}
+
+// Create text with TTF font
+auto ttfText = Text(Point(100, 100), "Custom Font Text", 48, Colors::Blue, true, FontType::TTF);
+
+// Or specify font explicitly
+auto ttfText2 = Text(Point(100, 200), "Another Text", 32, Colors::Red, true, FontType::TTF);
+```
+
+**TTF Font Loading**:
+- Use `TTF::load(name, path)` to load a font file
+- Set a default TTF font with `TTF::setDefault(name)`
+- Supports .ttf font files with simple glyph outlines
+- Font files should be accessible at runtime (use `--embed-file` with Emscripten)
+
+**Text Rendering with TTF**:
+- Add `FontType::TTF` parameter to Text constructor
+- Font size is specified in points (typical values: 12, 16, 24, 48, etc.)
+- All standard colors and positioning work as expected
+
+**Current Limitations**:
+- Composite glyphs are not yet supported
+- Complex scripts and advanced typography features are not implemented
+- Performance is not optimized for large amounts of text
+- Font hinting and subpixel rendering are not available
+
+**WebAssembly Font Embedding**:
+When building for WebAssembly, embed font files using:
+```bash
+fern --cpp --embed-file fonts yourapp.cpp
+```
+
 #### Button Widget
 
 ```cpp

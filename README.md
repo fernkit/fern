@@ -28,6 +28,7 @@ Fern is a minimalist graphics library designed for simplicity, performance, and 
 - WebAssembly-powered rendering for near-native performance
 - Available in both C (stable) and C++ (feature-rich) implementations
 - Support for shapes, lines, gradients, text, and pixel manipulation
+- TTF (TrueType Font) support for custom fonts (experimental, C++ only)
 - Interactive UI elements with event handling
 - Mouse input capture and processing
 - Layout system for responsive design (C++ only)
@@ -42,9 +43,9 @@ Fern is a minimalist graphics library designed for simplicity, performance, and 
 - [**Read the C documentation**](docs/c-docs.md)
 
 ### C++ Implementation
-- **Advantages**: Layout system, responsive design, event system, OOP design
-- **Best for**: Larger applications, UI-heavy projects, responsive designs
-- **Features**: Widget hierarchy, signal/slots, smart pointers, easy positioning
+- **Advantages**: Layout system, responsive design, event system, OOP design, TTF font support
+- **Best for**: Larger applications, UI-heavy projects, responsive designs, custom fonts
+- **Features**: Widget hierarchy, signal/slots, smart pointers, easy positioning, experimental TTF rendering
 - [**Read the C++ documentation**](docs/cpp-docs.md)
 
 ## Installation
@@ -110,8 +111,13 @@ int main() {
 using namespace Fern;
 
 void setupUI() {
+    // Load custom TTF font (experimental)
+    TTF::load("customFont", "fonts/MyFont.ttf");
+    TTF::setDefault("customFont");
+    
     auto mainLayout = Column({
         Text(Point(0, 0), "FERN C++ DEMO", 3, Colors::White, false),
+        Text(Point(0, 0), "Custom TTF Font", 24, Colors::Blue, true, FontType::TTF),
         Circle(50, Point(0, 0), Colors::Blue, false),
         Button({
             .width = 200,
@@ -167,6 +173,7 @@ fern [options] <source_file>
 | `--port <number>` | Specify server port (default: 8080) |
 | `--out <directory>` | Specify output directory (default: ./build) |
 | `--assets <directory>` | Include assets from specified directory |
+| `--embed-file <directory>` | Embed files/directories into WebAssembly (useful for fonts) |
 | `--template <file>` | Use custom HTML template file |
 | `--help` | Show help information |
 
@@ -190,6 +197,11 @@ fern --release --no-serve --out ./dist main.c
 #### Include assets directory
 ```bash
 fern --assets ./images game.c
+```
+
+#### Embed fonts for TTF support (C++ only)
+```bash
+fern --cpp --embed-file fonts font_demo.cpp
 ```
 
 #### Use a custom port
