@@ -13,7 +13,7 @@ void setupUI() {
             Column({
                 Container(
                     Colors::DarkBlue,
-                    0, 0, 0, 80,
+                    0, 0, width, 80,
                     Center(Text(Point(0, 0), "HEADER", 2, Colors::White))
                 ),
                 

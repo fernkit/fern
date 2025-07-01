@@ -1,42 +1,43 @@
 #pragma once
-#include "widget.hpp"
 #include <string>
-#include <memory>
+#include "widget.hpp"          
+#include "../../core/input.hpp"
+#include "../../core/types.hpp"
+#include "../../font/font.hpp"
 
 namespace Fern {
+    
     class TextWidget : public Widget {
     public:
-        TextWidget(Point position, const std::string& text, int scale, uint32_t color);
+        TextWidget(Point position, const std::string& text, int size, uint32_t color, 
+                  bool addToManager = true, FontType fontType = FontType::Bitmap);
         
         void render() override;
-        bool handleInput(const InputState& input) override;
+        bool handleInput(const InputState& input) override { return false; }
         
         void setText(const std::string& text);
-        void setPosition(const Point& position);
-        void setScale(int scale);
+        void setSize(int size);
         void setColor(uint32_t color);
+        void setFontType(FontType type) { fontType_ = type; }
+        void renderTTF();
+        void renderBitmap();
         
         const std::string& getText() const { return text_; }
-        const Point& getPosition() const { return position_; }
-        int getScale() const { return scale_; }
+        int getSize() const { return size_; }
         uint32_t getColor() const { return color_; }
-        int getWidth() const override { 
-            return text_.length() * 8 * scale_; 
-        }
-
-        int getHeight() const override { 
-            return 8 * scale_; 
-        }
+        FontType getFontType() const { return fontType_; }
         
     private:
         std::string text_;
-        Point position_;
-        int scale_;
+        int size_;
         uint32_t color_;
+        FontType fontType_;
+        
+        void updateDimensions();
     };
-
-    std::shared_ptr<TextWidget> Text(Point position, const std::string& text, 
-                                     int scale, uint32_t color, bool addToManager = false);
     
-                                              
+    // Helper function
+    std::shared_ptr<TextWidget> Text(Point position, const std::string& text, 
+                                    int size, uint32_t color, bool addToManager = true,
+                                    FontType fontType = FontType::Bitmap);
 }

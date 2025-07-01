@@ -35,7 +35,7 @@ void draw() {
 }
 
 int main() {
-    Fern::initialize(pixels, 800, 600);
+    Fern::initialize();
     setupUI();
     Fern::setDrawCallback(draw);
     Fern::startRenderLoop();

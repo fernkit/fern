@@ -453,7 +453,9 @@ compile_app() {
             $std_flag $include_path \
             -s WASM=1 \
             -s EXPORTED_RUNTIME_METHODS=['cwrap','HEAPU8'] \
-            -s ALLOW_MEMORY_GROWTH=1
+            -s ALLOW_MEMORY_GROWTH=1 \
+            -s NO_DISABLE_EXCEPTION_CATCHING \
+            --embed-file fonts
     else
         echo -e "${YELLOW}Compiling $source_file with C implementation...${NC}"
         
@@ -462,7 +464,8 @@ compile_app() {
             $std_flag $include_path \
             -s WASM=1 \
             -s EXPORTED_RUNTIME_METHODS=['cwrap','HEAPU8'] \
-            -s ALLOW_MEMORY_GROWTH=1
+            -s ALLOW_MEMORY_GROWTH=1 \
+            -s NO_DISABLE_EXCEPTION_CATCHING
     fi   
 
     if [[ $? -eq 0 ]]; then
