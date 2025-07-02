@@ -36,5 +36,20 @@ extern "C" {
     void webRendererResize(Fern::WebRenderer* renderer, int width, int height) {
         renderer->onResize(width, height);
     }
+    
+    EMSCRIPTEN_KEEPALIVE
+    void webRendererKeyEvent(Fern::WebRenderer* renderer, int keyCode, bool isPressed) {
+        renderer->onKeyEvent(keyCode, isPressed);
+    }
+    
+    EMSCRIPTEN_KEEPALIVE
+    void webRendererTextInput(Fern::WebRenderer* renderer, int charCode) {
+        char text[2] = {0};
+        if (charCode >= 32 && charCode <= 126) {
+            text[0] = static_cast<char>(charCode);
+            text[1] = '\0';
+            renderer->onTextInput(text);
+        }
+    }
 }
 #endif

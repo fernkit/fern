@@ -72,6 +72,18 @@ namespace Fern {
             Input::updateMouseButton(down);
         });
         
+        renderer->setKeyCallback([](KeyCode key, bool isPressed) {
+            if (isPressed) {
+                Input::updateKeyPress(key);
+            } else {
+                Input::updateKeyRelease(key);
+            }
+        });
+        
+        renderer->setTextInputCallback([](const std::string& text) {
+            Input::updateTextInput(text);
+        });
+        
         renderer->setResizeCallback([](int width, int height) {
             if (usingManagedBuffer && (width != lastWidth || height != lastHeight)) {
                 managedBuffer.reset(new uint32_t[width * height]);

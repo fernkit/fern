@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_r# Emscripten-specific settings
+if(EMSCRIPTEN)
+    set_target_properties(fern PROPERTIES
+        LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='[_main, _fernUpdateMousePosition, _fernUpdateMouseButton, _webRendererKeyEvent, _webRendererTextInput, _webRendererMouseMove, _webRendererMouseClick, _webRendererResize, _malloc, _free]' -s EXPORTED_RUNTIME_METHODS='[ccall, cwrap, stringToUTF8]'")
+endif()ed(VERSION 3.10)
 project(FernCpp)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -16,5 +20,5 @@ add_library(fern STATIC ${SOURCES} ${HEADERS})
 # Emscripten-specific settings
 if(EMSCRIPTEN)
     set_target_properties(fern PROPERTIES
-        LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='[_main, _fernUpdateMousePosition, _fernUpdateMouseButton]' -s EXPORTED_RUNTIME_METHODS='[ccall, cwrap]'")
+        LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='[_main, _fernUpdateMousePosition, _fernUpdateMouseButton, _webRendererMouseMove, _webRendererMouseClick, _webRendererResize, _webRendererKeyEvent, _webRendererTextInput]' -s EXPORTED_RUNTIME_METHODS='[ccall, cwrap]'")
 endif()

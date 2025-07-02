@@ -12,6 +12,8 @@ namespace Fern {
         std::function<void(int, int)> mouseCallback_;
         std::function<void(bool)> clickCallback_;
         std::function<void(int, int)> resizeCallback_;
+        std::function<void(KeyCode, bool)> keyCallback_;
+        std::function<void(const std::string&)> textInputCallback_;
         
     public:
         void initialize(int width, int height) override {
@@ -85,6 +87,14 @@ namespace Fern {
             resizeCallback_ = callback;
         }
         
+        void setKeyCallback(std::function<void(KeyCode, bool)> callback) override {
+            keyCallback_ = callback;
+        }
+        
+        void setTextInputCallback(std::function<void(const std::string&)> callback) override {
+            textInputCallback_ = callback;
+        }
+        
         void setSize(int width, int height) override {
             width_ = width;
             height_ = height;
@@ -116,12 +126,22 @@ namespace Fern {
             }
         }
         
+        void onKeyEvent(int keyCode, bool isPressed) {
+            KeyCode key = static_cast<KeyCode>(keyCode);
+            if (keyCallback_) keyCallback_(key, isPressed);
+        }
+        
+        void onTextInput(const char* text) {
+            if (textInputCallback_) textInputCallback_(std::string(text));
+        }
+        
     private:
         void setupEventListeners() {
             EM_ASM({
                 var canvas = document.getElementById('canvas');
                 var renderer = canvas.fernRenderer;
                 
+                // Mouse events
                 canvas.addEventListener('mousemove', function(e) {
                     var rect = canvas.getBoundingClientRect();
                     var x = Math.floor((e.clientX - rect.left) * (canvas.width / rect.width));
@@ -130,6 +150,7 @@ namespace Fern {
                 });
                 
                 canvas.addEventListener('mousedown', function(e) {
+                    canvas.focus(); // Ensure canvas has focus for keyboard events
                     Module._webRendererMouseClick(renderer, 1);
                 });
                 
@@ -137,6 +158,61 @@ namespace Fern {
                     Module._webRendererMouseClick(renderer, 0);
                 });
                 
+                // Keyboard events - listen on both canvas and document
+                canvas.setAttribute('tabindex', '0'); // Make canvas focusable
+                canvas.style.outline = 'none'; // Remove focus outline
+                
+                // Canvas keyboard events (when canvas has focus)
+                canvas.addEventListener('keydown', function(e) {
+                    console.log('Canvas keydown:', e.keyCode);
+                    Module._webRendererKeyEvent(renderer, e.keyCode, 1);
+                    
+                    // Prevent default for special keys
+                    if (e.keyCode === 8 || e.keyCode === 9 || e.keyCode === 13 || 
+                        e.keyCode === 27 || (e.keyCode >= 37 && e.keyCode <= 40)) {
+                        e.preventDefault();
+                    }
+                });
+                
+                canvas.addEventListener('keyup', function(e) {
+                    console.log('Canvas keyup:', e.keyCode);
+                    Module._webRendererKeyEvent(renderer, e.keyCode, 0);
+                });
+                
+                // Text input events for character input
+                canvas.addEventListener('keypress', function(e) {
+                    console.log('Canvas keypress:', e.charCode);
+                    if (e.charCode >= 32 && e.charCode <= 126) { // Printable ASCII characters
+                        var char = String.fromCharCode(e.charCode);
+                        // Use a simpler approach - pass the character code directly
+                        Module._webRendererTextInput(renderer, e.charCode);
+                    }
+                });
+                
+                // Also listen on document as fallback (but avoid duplicate events)
+                document.addEventListener('keydown', function(e) {
+                    if (document.activeElement === canvas) {
+                        // Don't process if canvas already handled it
+                        return;
+                    }
+                });
+                
+                document.addEventListener('keyup', function(e) {
+                    if (document.activeElement === canvas) {
+                        // Don't process if canvas already handled it  
+                        return;
+                    }
+                });
+                
+                // Text input events for character input
+                document.addEventListener('keypress', function(e) {
+                    if (document.activeElement === canvas) {
+                        // Don't process if canvas already handled it
+                        return;
+                    }
+                });
+                
+                // Window resize
                 window.addEventListener('resize', function() {
                     var container = document.getElementById('canvas-container') || document.body;
                     var availWidth = container.clientWidth || window.innerWidth;

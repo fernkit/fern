@@ -2,6 +2,8 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <string>
+#include "../core/types.hpp"
 
 namespace Fern {
     
@@ -21,6 +23,10 @@ namespace Fern {
         virtual void setMouseCallback(std::function<void(int, int)> callback) = 0;
         virtual void setClickCallback(std::function<void(bool)> callback) = 0;
         virtual void setResizeCallback(std::function<void(int, int)> callback) = 0;
+        
+        // Keyboard callbacks
+        virtual void setKeyCallback(std::function<void(KeyCode, bool)> callback) = 0;
+        virtual void setTextInputCallback(std::function<void(const std::string&)> callback) = 0;
         
         virtual std::string getPlatformName() = 0;
     };

@@ -57,7 +57,7 @@ TTFFontRenderer::RasterizedGlyph TTFFontRenderer::rasterizeGlyph(char character,
     if (!ttfReader_->readGlyphByIndex(glyphIndex, glyph)) {
         // Return fallback glyph for missing characters
         RasterizedGlyph empty;
-        empty.width = fontSize / 2; // Make it more visible
+        empty.width = fontSize / 2;
         empty.height = fontSize;
         empty.advance = fontSize / 2;
         empty.bearingX = 0;
@@ -67,7 +67,7 @@ TTFFontRenderer::RasterizedGlyph TTFFontRenderer::rasterizeGlyph(char character,
         empty.bitmap.resize(empty.width * empty.height, 0);
         for (int y = 2; y < empty.height - 2; y++) {
             for (int x = 2; x < empty.width - 2; x++) {
-                empty.bitmap[y * empty.width + x] = 128; // Half opacity
+                empty.bitmap[y * empty.width + x] = 128;
             }
         }
         
@@ -86,10 +86,8 @@ TTFFontRenderer::RasterizedGlyph TTFFontRenderer::rasterizeGlyph(char character,
 }
 
 void TTFFontRenderer::rasterizeGlyphOutline(const SimpleGlyph& glyph, int fontSize, RasterizedGlyph& output) {
-    // Use the correct unitsPerEm from the font
     float scale = static_cast<float>(fontSize) / static_cast<float>(ttfReader_->getUnitsPerEm());
     
-    // Calculate dimensions from glyph bounds
     int glyphWidth = glyph.header.xMax - glyph.header.xMin;
     int glyphHeight = glyph.header.yMax - glyph.header.yMin;
     
@@ -97,11 +95,10 @@ void TTFFontRenderer::rasterizeGlyphOutline(const SimpleGlyph& glyph, int fontSi
         console.log("🌿 Glyph bounds: width=" + $0 + ", height=" + $1 + ", scale=" + $2 + ", unitsPerEm=" + $3);
     }, glyphWidth, glyphHeight, scale, ttfReader_->getUnitsPerEm());
     
-    // Calculate actual scaled dimensions
+
     int scaledWidth = std::max(2, static_cast<int>(glyphWidth * scale));
     int scaledHeight = std::max(2, static_cast<int>(glyphHeight * scale)); 
     
-    // Add minimal padding
     output.width = scaledWidth + 4;
     output.height = scaledHeight + 4;
     output.bearingX = static_cast<int>(glyph.header.xMin * scale);
@@ -126,10 +123,8 @@ void TTFFontRenderer::rasterizeGlyphOutline(const SimpleGlyph& glyph, int fontSi
         return;
     }
     
-    // Use the same high-quality contour processing as SVG export
     rasterizeGlyphContours(glyph, output, scale);
     
-    // Debug: Count non-zero pixels
     int pixelCount = 0;
     for (uint8_t pixel : output.bitmap) {
         if (pixel > 0) pixelCount++;
@@ -141,7 +136,7 @@ void TTFFontRenderer::rasterizeGlyphOutline(const SimpleGlyph& glyph, int fontSi
 }
 
 void TTFFontRenderer::renderText(Canvas* canvas, const std::string& text, 
-                                int x, int y, int fontSize, uint32_t color) {
+    int x, int y, int fontSize, uint32_t color) {
     int currentX = x;
     
     EM_ASM({
@@ -150,7 +145,7 @@ void TTFFontRenderer::renderText(Canvas* canvas, const std::string& text,
     
     for (char c : text) {
         if (c == ' ') {
-            currentX += fontSize / 2; // Space width
+            currentX += fontSize / 2;
             continue;
         }
         
@@ -199,7 +194,7 @@ int TTFFontRenderer::getTextWidth(const std::string& text, int fontSize) {
     
     for (char c : text) {
         if (c == ' ') {
-            totalWidth += fontSize / 2; // Space width
+            totalWidth += fontSize / 2;
             continue;
         }
         
@@ -247,13 +242,11 @@ uint32_t TTFFontRenderer::blendPixel(uint32_t background, uint32_t foreground, u
     return (outA << 24) | (outR << 16) | (outG << 8) | outB;
 }
 
-// TTFFontManager implementation
 bool TTFFontManager::loadFont(const std::string& name, const std::string& fontPath) {
     try {
         auto renderer = std::make_unique<TTFFontRenderer>(fontPath);
         fonts_[name] = std::move(renderer);
         
-        // Set as default if it's the first font loaded
         if (defaultFontName_.empty()) {
             defaultFontName_ = name;
         }
@@ -302,7 +295,6 @@ void TTFFontRenderer::rasterizeGlyphContours(const SimpleGlyph& glyph, Rasterize
         console.log("🌿 Starting contour rasterization for " + $0 + " contours");
     }, static_cast<int>(glyph.endPtsOfContours.size()));
     
-    // Process each contour separately using the same logic as SVG export
     size_t pointIndex = 0;
     
     for (size_t contour = 0; contour < glyph.endPtsOfContours.size(); contour++) {
@@ -313,20 +305,17 @@ void TTFFontRenderer::rasterizeGlyphContours(const SimpleGlyph& glyph, Rasterize
             console.log("🌿 Processing contour " + $0 + ": points " + $1 + " to " + $2);
         }, static_cast<int>(contour), static_cast<int>(startPt), static_cast<int>(endPt));
         
-        // Generate the contour outline as a series of line segments
         std::vector<Point2D> contourPoints = generateHighQualityContour(glyph, startPt, endPt, scale);
         
         EM_ASM({
             console.log("🌿 Generated " + $0 + " contour points");
         }, static_cast<int>(contourPoints.size()));
         
-        // Rasterize the contour
         rasterizeContourLine(contourPoints, output);
         
         pointIndex = endPt + 1;
     }
     
-    // Fill the interior using scanline algorithm
     fillInterior(output);
 }
 
@@ -337,21 +326,18 @@ std::vector<TTFFontRenderer::Point2D> TTFFontRenderer::generateHighQualityContou
     
     if (startPt > endPt || endPt >= glyph.points.size()) return contourPoints;
     
-    // Transform a TTF point to bitmap coordinates (fixed Y coordinate flip)
     auto transformPoint = [&](const TTFPoint& pt) -> Point2D {
-        float x = (pt.x - glyph.header.xMin) * scale + 2; // +2 for padding
-        float y = (glyph.header.yMax - pt.y) * scale + 2; // Flip Y coordinate back for bitmap
+        float x = (pt.x - glyph.header.xMin) * scale + 2; 
+        float y = (glyph.header.yMax - pt.y) * scale + 2;
         return {x, y};
     };
     
-    // Start with the first point
     const auto& firstPoint = glyph.points[startPt];
     Point2D startPos = transformPoint(firstPoint);
     contourPoints.push_back(startPos);
     
-    // Process each point in the contour using the EXACT same logic as SVG export
     for (size_t i = startPt; i <= endPt; i++) {
-        size_t nextIndex = (i == endPt) ? startPt : i + 1;  // Wrap around at end
+        size_t nextIndex = (i == endPt) ? startPt : i + 1; 
         
         const auto& currentPt = glyph.points[i];
         const auto& nextPt = glyph.points[nextIndex];
@@ -359,10 +345,8 @@ std::vector<TTFFontRenderer::Point2D> TTFFontRenderer::generateHighQualityContou
         Point2D nextPos = transformPoint(nextPt);
         
         if (nextPt.onCurve) {
-            // Straight line to next on-curve point
             contourPoints.push_back(nextPos);
         } else {
-            // Quadratic curve - find the end point (EXACT same logic as SVG)
             size_t endIndex = (nextIndex == endPt) ? startPt : nextIndex + 1;
             if (endIndex > endPt) endIndex = startPt;
             
@@ -370,24 +354,19 @@ std::vector<TTFFontRenderer::Point2D> TTFFontRenderer::generateHighQualityContou
             Point2D endPos;
             
             if (endPoint.onCurve) {
-                // Next point after control is on-curve
                 endPos = transformPoint(endPoint);
-                i++; // Skip the control point in next iteration
+                i++; 
             } else {
-                // Two consecutive off-curve points = implied on-curve point
                 Point2D impliedPoint;
                 impliedPoint.x = (nextPt.x + endPoint.x) / 2.0f;
                 impliedPoint.y = (nextPt.y + endPoint.y) / 2.0f;
                 endPos = transformPoint({static_cast<int16_t>(impliedPoint.x), static_cast<int16_t>(impliedPoint.y), true});
-                // Don't skip - the next off-curve point will be processed next
             }
             
-            // Generate quadratic bezier curve points
             Point2D currentPos = contourPoints.back();
             Point2D controlPos = transformPoint(nextPt);
             
-            // Generate curve with reasonable resolution
-            int resolution = std::max(4, static_cast<int>(scale * 4));
+            int resolution = std::max(6, static_cast<int>(scale * 6));
             for (int j = 1; j <= resolution; j++) {
                 float t = static_cast<float>(j) / resolution;
                 Point2D curvePoint = quadraticBezier(currentPos, controlPos, endPos, t);
@@ -402,32 +381,77 @@ std::vector<TTFFontRenderer::Point2D> TTFFontRenderer::generateHighQualityContou
 void TTFFontRenderer::rasterizeContourLine(const std::vector<Point2D>& points, RasterizedGlyph& output) {
     if (points.size() < 2) return;
     
-    // Draw lines between consecutive points
     for (size_t i = 0; i < points.size() - 1; i++) {
         drawLine(points[i], points[i + 1], output);
     }
     
-    // Close the contour
     if (points.size() > 2) {
         drawLine(points.back(), points.front(), output);
     }
 }
 
 void TTFFontRenderer::fillInterior(RasterizedGlyph& output) {
-    // Improved scanline fill algorithm
     for (int y = 0; y < output.height; y++) {
-        std::vector<int> intersections;
+        std::vector<int> crossings;
         
-        // Find all intersections with outline on this scanline
         for (int x = 0; x < output.width; x++) {
-            if (output.bitmap[y * output.width + x] > 0) {
-                intersections.push_back(x);
+            bool currentPixel = output.bitmap[y * output.width + x] > 0;
+            
+            if (currentPixel) {
+                bool isVerticalCrossing = false;
+                
+                // Check pixel above
+                if (y > 0) {
+                    bool pixelAbove = output.bitmap[(y - 1) * output.width + x] > 0;
+                    if (!pixelAbove) {
+                        isVerticalCrossing = true;
+                    }
+                }
+                
+                // Check pixel below
+                if (y < output.height - 1) {
+                    bool pixelBelow = output.bitmap[(y + 1) * output.width + x] > 0;
+                    if (!pixelBelow) {
+                        isVerticalCrossing = true;
+                    }
+                }
+                
+                if (y == 0 || y == output.height - 1) {
+                    isVerticalCrossing = true;
+                }
+                
+                bool isIsolatedPixel = true;
+                if (x > 0 && output.bitmap[y * output.width + (x - 1)] > 0) {
+                    isIsolatedPixel = false;
+                }
+                if (x < output.width - 1 && output.bitmap[y * output.width + (x + 1)] > 0) {
+                    isIsolatedPixel = false;
+                }
+                
+                if (isVerticalCrossing || isIsolatedPixel) {
+                    crossings.push_back(x);
+                }
             }
         }
         
-        // Fill between pairs of intersections
-        for (size_t i = 0; i + 1 < intersections.size(); i += 2) {
-            for (int x = intersections[i]; x <= intersections[i + 1]; x++) {
+        std::vector<int> filteredCrossings;
+        for (size_t i = 0; i < crossings.size(); i++) {
+            bool isConsecutive = false;
+            if (i > 0 && crossings[i] == crossings[i-1] + 1) {
+                isConsecutive = true;
+            }
+            if (i < crossings.size() - 1 && crossings[i] == crossings[i+1] - 1) {
+                isConsecutive = true;
+            }
+            
+            if (!isConsecutive) {
+                filteredCrossings.push_back(crossings[i]);
+            }
+        }
+        
+        // Fill between pairs of crossings
+        for (size_t i = 0; i + 1 < filteredCrossings.size(); i += 2) {
+            for (int x = filteredCrossings[i] + 1; x < filteredCrossings[i + 1]; x++) {
                 if (x >= 0 && x < output.width) {
                     output.bitmap[y * output.width + x] = 255;
                 }
@@ -474,7 +498,7 @@ void TTFFontRenderer::drawLine(const Point2D& p1, const Point2D& p2, RasterizedG
 }
 
 void TTFFontRenderer::fillContour(RasterizedGlyph& output) {
-    // Simple scanline fill algorithm (kept for compatibility)
+    // Simple scanline fill algorithm 
     for (int y = 0; y < output.height; y++) {
         bool inside = false;
         for (int x = 0; x < output.width; x++) {

@@ -3,7 +3,6 @@
 #include "../../../include/fern/font/font.hpp"
 #include "../../../include/fern/core/widget_manager.hpp"
 
-// Forward declare globalCanvas (it's defined in fern.cpp)
 extern Fern::Canvas* globalCanvas;
 
 namespace Fern {

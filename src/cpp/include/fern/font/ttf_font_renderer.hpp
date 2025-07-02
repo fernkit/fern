@@ -72,11 +72,6 @@ namespace Fern {
         void fillInterior(RasterizedGlyph& output);
         void fillContour(RasterizedGlyph& output); // Legacy method
         
-        // Legacy methods (kept for compatibility)
-        void drawLine(std::vector<uint8_t>& bitmap, int width, int height, 
-                     int x0, int y0, int x1, int y1);
-        void fillGlyph(std::vector<uint8_t>& bitmap, int width, int height);
-        
         // Helper methods
         int getCacheKey(char character, int fontSize) const { 
             return (fontSize << 8) | static_cast<unsigned char>(character); 

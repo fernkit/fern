@@ -10,8 +10,8 @@ namespace Fern {
     class TTFFontRenderer;
     
     enum class FontType {
-        Bitmap,  // Your existing bitmap font
-        TTF      // New TTF support
+        Bitmap,  
+        TTF     
     };
     
     class Font {
