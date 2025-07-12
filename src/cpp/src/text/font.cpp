@@ -11,9 +11,11 @@ namespace Fern {
             int char_index;
             
             if (c >= 'A' && c <= 'Z') {
-                char_index = c - 'A';
+                char_index = c - 'A';  // 0-25 (A-Z)
             } else if (c >= '0' && c <= '9') {
-                char_index = 26 + (c - '0');
+                char_index = 26 + (c - '0');  // 26-35 (0-9)
+            } else if (c >= 'a' && c <= 'z') {
+                char_index = 36 + (c - 'a');  // 36-61 (a-z)
             } else {
                 return;
             }
@@ -45,13 +47,16 @@ namespace Fern {
         void drawText(const char* text, int x, int y, int scale, uint32_t color) {
             int cursor_x = x;
             for (const char* p = text; *p != '\0'; p++) {
-                if (*p == ' ' || ((*p < 'A' || *p > 'Z') && (*p < '0' || *p > '9'))) {
+                if (*p == ' ') {
                     cursor_x += 4 * scale;
                     continue;
+                } else if ((*p >= 'A' && *p <= 'Z') || (*p >= 'a' && *p <= 'z') || (*p >= '0' && *p <= '9')) {
+                    drawChar(*p, cursor_x, y, scale, color);
+                    cursor_x += 8 * scale;
+                } else {
+                    // For unsupported characters, just add some space
+                    cursor_x += 4 * scale;
                 }
-                
-                drawChar(*p, cursor_x, y, scale, color);
-                cursor_x += 8 * scale;
             }
         }
     }

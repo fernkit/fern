@@ -2,7 +2,7 @@
 
 namespace Fern {
     namespace FontData {
-        // This will contain the SIMPLE_FONT array from the original code
-        extern const unsigned char SIMPLE_FONT[36][8];
+        // Extended font data: 26 uppercase + 26 lowercase + 10 digits = 62 characters
+        extern const unsigned char SIMPLE_FONT[62][8];
     }
 }

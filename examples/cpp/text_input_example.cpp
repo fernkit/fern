@@ -10,12 +10,12 @@ static std::shared_ptr<TextWidget> instructionText;
 
 void setupUI() {
     // Title
-    Text(Point(50, 30), "TEXT INPUT DEMO", 3, Colors::White);
+    Text(Point(50, 30), "Text Input Demo", 3, Colors::White);
     
     // Instructions
-    instructionText = Text(Point(50, 80), "CLICK ON THE DEMO AND START TYPING. PRESS ENTER TO SUBMIT", 1, Colors::LightGray);
+    instructionText = Text(Point(50, 80), "Click on the text input below and start typing. Press Enter to submit.", 1, Colors::LightGray);
     
-    // Create text input with custom configuration
+    // Create text input with simple, working configuration
     TextInputConfig config = DefaultTextInputConfig();
     config.x = 50;
     config.y = 130;
@@ -26,17 +26,17 @@ void setupUI() {
     config.focusBorderColor = Colors::Blue;
     config.textColor = Colors::Black;
     config.cursorColor = Colors::Black;
-    config.placeholder = "TYPE SOMETHING HERE";
+    config.placeholder = "Type something here...";
     config.textSize = 2;
-    config.fontType = FontType::Bitmap;
+    config.fontType = FontType::Bitmap;  // Start with bitmap to ensure it works
     config.borderWidth = 2;
     config.padding = 8;
     config.maxLength = 100;
     
     textInput = TextInput(config);
     
-    // Output text to show what was typed
-    outputText = Text(Point(50, 200), "YOUR TEXT WILL APPEAR HERE WHEN YOU ENTER", 2, Colors::Yellow);
+    // Output text
+    outputText = Text(Point(50, 200), "Your text will appear here when you press Enter", 2, Colors::Yellow);
     
     // Connect signals
     textInput->onTextChanged.connect([](const std::string& text) {
@@ -45,11 +45,11 @@ void setupUI() {
     
     textInput->onEnterPressed.connect([](const std::string& text) {
         std::cout << "Enter pressed with text: " << text << std::endl;
-        outputText->setText("YOU TYPED: \"" + text + "\"");
+        outputText->setText("You typed: \"" + text + "\"");
     });
     
     textInput->onFocusChanged.connect([](bool focused) {
-        std::cout << "FOCUS CHANGED: " << (focused ? "focused" : "unfocused") << std::endl;
+        std::cout << "Focus changed: " << (focused ? "focused" : "unfocused") << std::endl;
     });
     
     // Create a clear button
@@ -58,7 +58,7 @@ void setupUI() {
         .normalColor = Colors::Red,
         .hoverColor = Colors::LightRed,
         .pressColor = Colors::DarkRed,
-        .label = "CLEAR",
+        .label = "Clear",
         .textScale = 1,
         .textColor = Colors::White
     };
@@ -66,17 +66,17 @@ void setupUI() {
     auto clearButton = Button(clearButtonConfig);
     clearButton->onClick.connect([]() {
         textInput->clear();
-        outputText->setText("TEXT CLEARED!");
+        outputText->setText("Text cleared!");
         std::cout << "Text input cleared" << std::endl;
     });
     
-    // Create a focus button for testing
+    // Create a focus button
     ButtonConfig focusButtonConfig = {
         .x = 50, .y = 270, .width = 120, .height = 30,
         .normalColor = Colors::Blue,
         .hoverColor = Colors::LightBlue,
         .pressColor = Colors::DarkBlue,
-        .label = "FOCUS INPUT",
+        .label = "Focus Input",
         .textScale = 1,
         .textColor = Colors::White
     };
@@ -88,11 +88,11 @@ void setupUI() {
     });
     
     // Status display
-    Text(Point(50, 320), "STATUS: CLICK INPUT FIELD TO FOCUS, TYPE TEXT, PRESS ENTER TO SUBMIT", 1, Colors::LightGray);
+    Text(Point(50, 320), "Status: Click input field to focus, type text, press Enter to submit", 1, Colors::LightGray);
 }
 
 void draw() {
-    Draw::fill(Colors::DarkGray);
+    Draw::fill(Colors::Gray);
 }
 
 int main() {

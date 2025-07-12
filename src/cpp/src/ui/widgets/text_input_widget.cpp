@@ -67,32 +67,8 @@ namespace Fern {
             int textX = x_ + config_.padding + config_.borderWidth;
             int textY = y_ + config_.padding + config_.borderWidth;
             
-            // Ensure text fits within the widget bounds
-            int maxWidth = config_.width - 2 * (config_.padding + config_.borderWidth);
-            
-            // Calculate visible text (simple scrolling for long text)
-            std::string visibleText = displayText;
-            int textWidth = getTextWidth(visibleText);
-            
-            // If text is too long, show the end part containing the cursor
-            if (textWidth > maxWidth && cursorPosition_ > 0) {
-                size_t startPos = 0;
-                for (size_t i = 0; i < cursorPosition_ && i < displayText.length(); ++i) {
-                    std::string subText = displayText.substr(i);
-                    if (getTextWidth(subText) <= maxWidth) {
-                        startPos = i;
-                        break;
-                    }
-                }
-                visibleText = displayText.substr(startPos);
-            }
-            
-            // Render the text
-            if (config_.fontType == FontType::TTF && Font::hasTTFFont()) {
-                Font::renderTTF(globalCanvas, visibleText, textX, textY, config_.textSize, config_.textColor);
-            } else {
-                DrawText::drawText(visibleText.c_str(), textX, textY, config_.textSize, config_.textColor);
-            }
+            // Simple text rendering without complex scrolling for now
+            DrawText::drawText(displayText.c_str(), textX, textY, config_.textSize, config_.textColor);
         }
     }
     
