@@ -369,9 +369,10 @@ TextInputStyle()
 - Best for: Retro games, pixel art style
 
 **TTF Fonts:**
-- Smooth, scalable typography
+- Smooth, scalable typography with proper baseline alignment
 - Font sizes: Any point size (16-48pt recommended)
 - Full Unicode character support
+- Correct typography positioning (text sits on baseline)
 - Best for: Modern interfaces, professional applications
 - Requires font file embedding in build
 

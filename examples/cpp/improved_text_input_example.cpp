@@ -71,27 +71,3 @@ int main() {
     Fern::startRenderLoop();
     return 0;
 }
-
-/*
-This simplified example demonstrates:
-
-✅ FIXED Issues:
-1. Character mapping corrected (A-Z, 0-9, a-z now work properly)
-2. Text color is now BLACK on WHITE background (visible!)
-3. Cursor is RED/PINK (very visible!)
-4. Simple linear layout (no confusing nesting)
-
-🎨 Better Design:
-- High contrast colors (black text on white/light backgrounds)
-- Colorful, visible cursors 
-- Clean, simple layout
-- Proper font size (2 = good for bitmap font)
-- Good padding and border sizes
-
-� Class-based Config:
-- Much cleaner than structs
-- Fluent interface prevents missing parameters
-- Easy to customize colors and styles
-
-Build with: fern --cpp improved_text_input_example.cpp
-*/

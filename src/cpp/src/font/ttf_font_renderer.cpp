@@ -102,7 +102,7 @@ void TTFFontRenderer::rasterizeGlyphOutline(const SimpleGlyph& glyph, int fontSi
     output.width = scaledWidth + 4;
     output.height = scaledHeight + 4;
     output.bearingX = static_cast<int>(glyph.header.xMin * scale);
-    output.bearingY = static_cast<int>((glyph.header.yMax - glyph.header.yMin) * scale * 0.7f); // Approx 70% of height
+    output.bearingY = static_cast<int>(glyph.header.yMax * scale); // Distance from baseline to top of glyph
     output.advance = std::max(1, static_cast<int>(glyphWidth * scale));
     
     // Create bitmap
