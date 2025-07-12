@@ -262,6 +262,119 @@ myLine->setStart(Point(150, 150));
 myLine->setEnd(Point(350, 250));
 ```
 
+#### Text Input Widget
+
+The text input widget provides interactive text fields for user input with support for both bitmap and TTF fonts.
+
+##### Basic Usage
+
+```cpp
+// Create a basic text input
+auto input = TextInput(TextInputConfig(50, 100, 300, 35)
+    .placeholder("Enter text here...")
+    .maxLength(100));
+
+addWidget(input);
+```
+
+##### Configuration System
+
+Text inputs use a class-based configuration system:
+
+```cpp
+// Complete configuration example
+auto input = TextInput(TextInputConfig(50, 100, 400, 50)
+    .placeholder("Enter your email")
+    .maxLength(100)
+    .style(TextInputStyle()
+        .backgroundColor(Colors::White)
+        .borderColor(Colors::Gray)
+        .focusBorderColor(Colors::Blue)
+        .textColor(Colors::Black)
+        .cursorColor(Colors::Red)
+        .fontSize(2)                    // For bitmap font
+        .borderWidth(2)
+        .padding(8)
+        .useBitmapFont()));
+```
+
+##### TTF Font Support
+
+```cpp
+// Load TTF font first
+TTF::load("roboto", "fonts/RobotoMono-VariableFont_wght.ttf");
+
+// Create TTF input
+auto ttfInput = TextInput(TextInputConfig(50, 100, 400, 50)
+    .style(TextInputStyle()
+        .fontSize(24)                   // Point size for TTF
+        .useTTFFont("roboto")));
+```
+
+##### Event Handling
+
+```cpp
+auto input = TextInput(TextInputConfig(50, 100, 300, 35));
+
+// Text change events
+input->onTextChanged.connect([](const std::string& text) {
+    std::cout << "Text: " << text << std::endl;
+});
+
+// Enter key events
+input->onEnterPressed.connect([](const std::string& text) {
+    std::cout << "Submitted: " << text << std::endl;
+});
+
+// Focus events
+input->onFocusChanged.connect([](bool focused) {
+    std::cout << "Focus: " << (focused ? "gained" : "lost") << std::endl;
+});
+```
+
+##### Styling Options
+
+```cpp
+// High contrast style
+TextInputStyle()
+    .backgroundColor(Colors::White)
+    .borderColor(Colors::Black)
+    .focusBorderColor(Colors::Blue)
+    .textColor(Colors::Black)
+    .cursorColor(Colors::Red);
+
+// Modern style
+TextInputStyle()
+    .backgroundColor(0xF8F9FA)         // Light gray
+    .borderColor(0x6C757D)             // Medium gray
+    .focusBorderColor(0x007BFF)        // Blue
+    .textColor(0x212529)               // Dark gray
+    .cursorColor(0xDC3545);            // Red
+
+// Dark theme style
+TextInputStyle()
+    .backgroundColor(0x343A40)         // Dark gray
+    .borderColor(0x6C757D)             // Medium gray
+    .focusBorderColor(0x28A745)        // Green
+    .textColor(Colors::White)
+    .cursorColor(0xFFC107);            // Yellow
+```
+
+##### Font System Comparison
+
+**Bitmap Fonts:**
+- Fast rendering, consistent pixel appearance
+- Font sizes: 1 (8px), 2 (16px), 3 (24px), 4 (32px)
+- Character support: A-Z, a-z, 0-9, space
+- Best for: Retro games, pixel art style
+
+**TTF Fonts:**
+- Smooth, scalable typography
+- Font sizes: Any point size (16-48pt recommended)
+- Full Unicode character support
+- Best for: Modern interfaces, professional applications
+- Requires font file embedding in build
+
 ## Layout System
 
 Fern provides a powerful layout system inspired by Flutter for creating responsive UIs:
@@ -705,6 +818,3 @@ The Fern Graphics team is actively working on these upcoming features:
 - Advanced input handling (multi-touch, gestures)
 - Enhanced text rendering capabilities
 - More widget types (sliders, dropdowns, etc.)
-
----
-

@@ -8,22 +8,97 @@
 #include <memory>
 
 namespace Fern {
-    struct TextInputConfig {
-        int x;
-        int y;
-        int width;
-        int height;
-        uint32_t backgroundColor;
-        uint32_t borderColor;
-        uint32_t focusBorderColor;
-        uint32_t textColor;
-        uint32_t cursorColor;
-        std::string placeholder;
-        int textSize;
-        FontType fontType;
-        int borderWidth;
-        int padding;
-        size_t maxLength;
+    
+    // Class-based configuration - much better than structs!
+    class TextInputStyle {
+    public:
+        // Constructor with sensible defaults
+        TextInputStyle() 
+            : backgroundColor_(0xFFFFFF)    // White
+            , borderColor_(0x888888)        // Gray  
+            , focusBorderColor_(0x0066CC)   // Blue
+            , textColor_(0x000000)          // Black
+            , cursorColor_(0x000000)        // Black
+            , borderWidth_(1)
+            , padding_(4)
+            , fontSize_(2)                  // Good size for bitmap font
+            , fontType_(FontType::Bitmap)
+            , ttfFontName_("")
+        {}
+        
+        // Fluent interface for easy configuration
+        TextInputStyle& backgroundColor(uint32_t color) { backgroundColor_ = color; return *this; }
+        TextInputStyle& borderColor(uint32_t color) { borderColor_ = color; return *this; }
+        TextInputStyle& focusBorderColor(uint32_t color) { focusBorderColor_ = color; return *this; }
+        TextInputStyle& textColor(uint32_t color) { textColor_ = color; return *this; }
+        TextInputStyle& cursorColor(uint32_t color) { cursorColor_ = color; return *this; }
+        TextInputStyle& borderWidth(int width) { borderWidth_ = width; return *this; }
+        TextInputStyle& padding(int pad) { padding_ = pad; return *this; }
+        TextInputStyle& fontSize(int size) { fontSize_ = size; return *this; }
+        TextInputStyle& useBitmapFont() { fontType_ = FontType::Bitmap; return *this; }
+        TextInputStyle& useTTFFont(const std::string& fontName = "") { 
+            fontType_ = FontType::TTF; 
+            ttfFontName_ = fontName;
+            if (fontSize_ < 16) fontSize_ = 16; // TTF needs larger sizes
+            return *this; 
+        }
+        
+        // Getters
+        uint32_t getBackgroundColor() const { return backgroundColor_; }
+        uint32_t getBorderColor() const { return borderColor_; }
+        uint32_t getFocusBorderColor() const { return focusBorderColor_; }
+        uint32_t getTextColor() const { return textColor_; }
+        uint32_t getCursorColor() const { return cursorColor_; }
+        int getBorderWidth() const { return borderWidth_; }
+        int getPadding() const { return padding_; }
+        int getFontSize() const { return fontSize_; }
+        FontType getFontType() const { return fontType_; }
+        const std::string& getTTFFontName() const { return ttfFontName_; }
+        
+    private:
+        uint32_t backgroundColor_;
+        uint32_t borderColor_;
+        uint32_t focusBorderColor_;
+        uint32_t textColor_;
+        uint32_t cursorColor_;
+        int borderWidth_;
+        int padding_;
+        int fontSize_;
+        FontType fontType_;
+        std::string ttfFontName_;
+    };
+    
+    class TextInputConfig {
+    public:
+        TextInputConfig(int x, int y, int width, int height)
+            : x_(x), y_(y), width_(width), height_(height)
+            , placeholder_("")
+            , maxLength_(256)
+        {}
+        
+        // Fluent interface
+        TextInputConfig& placeholder(const std::string& text) { placeholder_ = text; return *this; }
+        TextInputConfig& maxLength(size_t length) { maxLength_ = length; return *this; }
+        TextInputConfig& style(const TextInputStyle& s) { style_ = s; return *this; }
+        
+        // Getters
+        int getX() const { return x_; }
+        int getY() const { return y_; }
+        int getWidth() const { return width_; }
+        int getHeight() const { return height_; }
+        const std::string& getPlaceholder() const { return placeholder_; }
+        size_t getMaxLength() const { return maxLength_; }
+        const TextInputStyle& getStyle() const { return style_; }
+        
+        // Position/size setters
+        void setPosition(int x, int y) { x_ = x; y_ = y; }
+        void setSize(int width, int height) { width_ = width; height_ = height; }
+        
+    private:
+        int x_, y_, width_, height_;
+        std::string placeholder_;
+        size_t maxLength_;
+        TextInputStyle style_;
     };
     
     class TextInputWidget : public Widget {
@@ -51,7 +126,7 @@ namespace Fern {
         
         // Placeholder
         void setPlaceholder(const std::string& placeholder);
-        const std::string& getPlaceholder() const { return config_.placeholder; }
+        const std::string& getPlaceholder() const { return config_.getPlaceholder(); }
         
         // Signals
         Signal<const std::string&> onTextChanged;
@@ -83,9 +158,13 @@ namespace Fern {
         void renderBackground();
     };
     
-    // Helper function
+    // Helper function with class-based config
     std::shared_ptr<TextInputWidget> TextInput(const TextInputConfig& config, bool addToManager = true);
     
-    // Default config helper
-    TextInputConfig DefaultTextInputConfig();
+    // Preset configurations
+    namespace TextInputPresets {
+        TextInputConfig Default(int x, int y, int width = 200, int height = 30);
+        TextInputConfig Modern(int x, int y, int width = 250, int height = 40);
+        TextInputConfig WithTTF(int x, int y, const std::string& fontName = "", int width = 300, int height = 45);
+    }
 }

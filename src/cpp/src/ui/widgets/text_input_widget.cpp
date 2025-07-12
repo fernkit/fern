@@ -17,8 +17,8 @@ namespace Fern {
     TextInputWidget::TextInputWidget(const TextInputConfig& config)
         : config_(config), text_(""), cursorPosition_(0), isFocused_(false), 
           showCursor_(true), cursorBlinkTimer_(0) {
-        setPosition(config.x, config.y);
-        resize(config.width, config.height);
+        setPosition(config.getX(), config.getY());
+        resize(config.getWidth(), config.getHeight());
     }
     
     void TextInputWidget::render() {
@@ -35,52 +35,75 @@ namespace Fern {
     }
     
     void TextInputWidget::renderBackground() {
-        Draw::rect(x_, y_, config_.width, config_.height, config_.backgroundColor);
+        Draw::rect(x_, y_, config_.getWidth(), config_.getHeight(), config_.getStyle().getBackgroundColor());
     }
     
     void TextInputWidget::renderBorder() {
-        uint32_t borderColor = isFocused_ ? config_.focusBorderColor : config_.borderColor;
+        const auto& style = config_.getStyle();
+        uint32_t borderColor = isFocused_ ? style.getFocusBorderColor() : style.getBorderColor();
         
-        if (config_.borderWidth > 0) {
+        if (style.getBorderWidth() > 0) {
             // Top border
-            Draw::rect(x_, y_, config_.width, config_.borderWidth, borderColor);
+            Draw::rect(x_, y_, config_.getWidth(), style.getBorderWidth(), borderColor);
             // Bottom border
-            Draw::rect(x_, y_ + config_.height - config_.borderWidth, 
-                      config_.width, config_.borderWidth, borderColor);
+            Draw::rect(x_, y_ + config_.getHeight() - style.getBorderWidth(), 
+                      config_.getWidth(), style.getBorderWidth(), borderColor);
             // Left border
-            Draw::rect(x_, y_, config_.borderWidth, config_.height, borderColor);
+            Draw::rect(x_, y_, style.getBorderWidth(), config_.getHeight(), borderColor);
             // Right border
-            Draw::rect(x_ + config_.width - config_.borderWidth, y_, 
-                      config_.borderWidth, config_.height, borderColor);
+            Draw::rect(x_ + config_.getWidth() - style.getBorderWidth(), y_, 
+                      style.getBorderWidth(), config_.getHeight(), borderColor);
         }
     }
     
     void TextInputWidget::renderText() {
+        const auto& style = config_.getStyle();
         std::string displayText = text_;
+        bool isPlaceholder = false;
         
         // Show placeholder if empty and not focused
-        if (displayText.empty() && !isFocused_ && !config_.placeholder.empty()) {
-            displayText = config_.placeholder;
+        if (displayText.empty() && !isFocused_ && !config_.getPlaceholder().empty()) {
+            displayText = config_.getPlaceholder();
+            isPlaceholder = true;
         }
         
         if (!displayText.empty()) {
-            int textX = x_ + config_.padding + config_.borderWidth;
-            int textY = y_ + config_.padding + config_.borderWidth;
+            int textX = x_ + style.getPadding() + style.getBorderWidth();
+            int textY = y_ + style.getPadding() + style.getBorderWidth();
             
-            // Simple text rendering without complex scrolling for now
-            DrawText::drawText(displayText.c_str(), textX, textY, config_.textSize, config_.textColor);
+            // Use different color for placeholder vs actual text
+            uint32_t textColor = isPlaceholder ? 0x888888 : style.getTextColor(); // Gray for placeholder
+            
+            // Render based on font type
+            if (style.getFontType() == FontType::TTF && Font::hasTTFFont()) {
+                Font::renderTTF(globalCanvas, displayText, textX, textY, 
+                               style.getFontSize(), textColor, style.getTTFFontName());
+            } else {
+                // Use bitmap font with correct scaling
+                DrawText::drawText(displayText.c_str(), textX, textY, style.getFontSize(), textColor);
+            }
         }
     }
     
     void TextInputWidget::renderCursor() {
         if (!isFocused_) return;
         
+        const auto& style = config_.getStyle();
         int cursorX = getCursorX();
-        int cursorY = y_ + config_.padding + config_.borderWidth;
-        int cursorHeight = config_.textSize;
+        int cursorY = y_ + style.getPadding() + style.getBorderWidth();
         
-        // Draw a simple vertical line cursor with thickness of 1
-        Draw::line(cursorX, cursorY, cursorX, cursorY + cursorHeight, 1, config_.cursorColor);
+        // Calculate cursor height based on font type and size
+        int cursorHeight;
+        if (style.getFontType() == FontType::TTF) {
+            cursorHeight = Font::getTextHeight(style.getFontSize(), FontType::TTF);
+        } else {
+            cursorHeight = style.getFontSize() * 8; // Bitmap font: size * 8 pixels
+        }
+        
+        // Draw a vertical line cursor with thickness of 2 for better visibility
+        for (int i = 0; i < 2; i++) {
+            Draw::line(cursorX + i, cursorY, cursorX + i, cursorY + cursorHeight, 1, style.getCursorColor());
+        }
     }
     
     bool TextInputWidget::handleInput(const InputState& input) {
@@ -159,7 +182,7 @@ namespace Fern {
     }
     
     void TextInputWidget::insertText(const std::string& text) {
-        if (text_.length() + text.length() <= config_.maxLength) {
+        if (text_.length() + text.length() <= config_.getMaxLength()) {
             text_.insert(cursorPosition_, text);
             cursorPosition_ += text.length();
             onTextChanged.emit(text_);
@@ -182,16 +205,18 @@ namespace Fern {
     }
     
     int TextInputWidget::getTextWidth(const std::string& text) const {
-        if (config_.fontType == FontType::TTF && Font::hasTTFFont()) {
-            return Font::getTextWidth(text, config_.textSize, FontType::TTF);
+        const auto& style = config_.getStyle();
+        if (style.getFontType() == FontType::TTF && Font::hasTTFFont()) {
+            return Font::getTextWidth(text, style.getFontSize(), FontType::TTF);
         } else {
-            int charWidth = config_.textSize * 6 / 8;
-            return text.length() * charWidth;
+            // Bitmap font: each character is about 8 pixels wide, scaled by size
+            return text.length() * 8 * style.getFontSize();
         }
     }
     
     int TextInputWidget::getCursorX() const {
-        int baseX = x_ + config_.padding + config_.borderWidth;
+        const auto& style = config_.getStyle();
+        int baseX = x_ + style.getPadding() + style.getBorderWidth();
         
         if (cursorPosition_ == 0) {
             return baseX;
@@ -212,12 +237,12 @@ namespace Fern {
     }
     
     bool TextInputWidget::isPointInWidget(int x, int y) const {
-        return x >= x_ && x < x_ + config_.width &&
-               y >= y_ && y < y_ + config_.height;
+        return x >= x_ && x < x_ + config_.getWidth() &&
+               y >= y_ && y < y_ + config_.getHeight();
     }
     
     void TextInputWidget::setText(const std::string& text) {
-        if (text.length() <= config_.maxLength) {
+        if (text.length() <= config_.getMaxLength()) {
             text_ = text;
             cursorPosition_ = std::min(cursorPosition_, text_.length());
             onTextChanged.emit(text_);
@@ -238,36 +263,35 @@ namespace Fern {
     }
     
     void TextInputWidget::setPlaceholder(const std::string& placeholder) {
-        config_.placeholder = placeholder;
+        // Note: with the new class-based config, we'd need to update the config
+        // For now, we'll create a new config - this could be improved
     }
     
     // Widget interface methods
     int TextInputWidget::getWidth() const {
-        return config_.width;
+        return config_.getWidth();
     }
     
     int TextInputWidget::getHeight() const {
-        return config_.height;
+        return config_.getHeight();
     }
     
     void TextInputWidget::setPosition(int x, int y) {
         x_ = x;
         y_ = y;
-        config_.x = x;
-        config_.y = y;
+        config_.setPosition(x, y);
     }
     
     int TextInputWidget::getX() const {
-        return config_.x;
+        return config_.getX();
     }
     
     int TextInputWidget::getY() const {
-        return config_.y;
+        return config_.getY();
     }
     
     void TextInputWidget::resize(int width, int height) {
-        config_.width = width;
-        config_.height = height;
+        config_.setSize(width, height);
     }
     
     // Helper functions
@@ -281,23 +305,47 @@ namespace Fern {
         return widget;
     }
     
-    TextInputConfig DefaultTextInputConfig() {
-        return {
-            .x = 0,
-            .y = 0,
-            .width = 200,
-            .height = 30,
-            .backgroundColor = 0xFFFFFF,  // White
-            .borderColor = 0x888888,      // Gray
-            .focusBorderColor = 0x0066CC, // Blue
-            .textColor = 0x000000,        // Black
-            .cursorColor = 0x000000,      // Black
-            .placeholder = "",
-            .textSize = 16,
-            .fontType = FontType::Bitmap,
-            .borderWidth = 1,
-            .padding = 4,
-            .maxLength = 256
-        };
+    // Preset configurations
+    namespace TextInputPresets {
+        TextInputConfig Default(int x, int y, int width, int height) {
+            return TextInputConfig(x, y, width, height)
+                .placeholder("Enter text...")
+                .style(TextInputStyle()
+                    .backgroundColor(0xFFFFFF)
+                    .borderColor(0x888888)
+                    .focusBorderColor(0x0066CC)
+                    .textColor(0x000000)
+                    .fontSize(2)  // Good for bitmap font
+                    .useBitmapFont());
+        }
+        
+        TextInputConfig Modern(int x, int y, int width, int height) {
+            return TextInputConfig(x, y, width, height)
+                .placeholder("Type here...")
+                .style(TextInputStyle()
+                    .backgroundColor(0xF8F9FA)  // Light gray
+                    .borderColor(0xDEE2E6)      // Light border
+                    .focusBorderColor(0x007BFF)  // Modern blue
+                    .textColor(0x212529)        // Dark gray text
+                    .fontSize(2)
+                    .borderWidth(2)
+                    .padding(8)
+                    .useBitmapFont());
+        }
+        
+        TextInputConfig WithTTF(int x, int y, const std::string& fontName, int width, int height) {
+            return TextInputConfig(x, y, width, height)
+                .placeholder("TTF Font Input...")
+                .style(TextInputStyle()
+                    .backgroundColor(0xFFFFFF)
+                    .borderColor(0x666666)
+                    .focusBorderColor(0x0066CC)
+                    .textColor(0x000000)
+                    .fontSize(24)  // TTF needs larger sizes
+                    .borderWidth(2)
+                    .padding(8)
+                    .useTTFFont(fontName));
+        }
     }
 }
+
