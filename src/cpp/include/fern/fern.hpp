@@ -10,6 +10,7 @@
 #include "ui/widgets/line_widget.hpp"
 #include "ui/widgets/button_widget.hpp"
 #include "ui/widgets/text_input_widget.hpp"
+#include "ui/widgets/slider_widget.hpp"
 #include "core/widget_manager.hpp"
 #include "ui/layout/layout.hpp"
 #include "ui/containers/container.hpp"
