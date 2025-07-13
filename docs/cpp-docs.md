@@ -895,6 +895,74 @@ void draw() {
 }
 ```
 
+### Layout with New Widgets
+
+The layout system works seamlessly with all widgets, including the new advanced widgets:
+
+```cpp
+void setupResponsiveControls() {
+    // Create widgets
+    auto volumeSlider = std::make_shared<SliderWidget>();
+    volumeSlider->config()
+        .position(0, 0)
+        .size(200, 30)
+        .range(0.0f, 100.0f)
+        .value(75.0f)
+        .orientation(SliderOrientation::Horizontal)
+        .colors(Colors::DarkGray, Colors::Blue, Colors::White);
+    
+    auto cpuIndicator = std::make_shared<CircularIndicatorWidget>();
+    cpuIndicator->config()
+        .position(0, 0)
+        .size(80, 80)
+        .range(0.0f, 100.0f)
+        .value(45.0f)
+        .colors(Colors::DarkGray, Colors::Orange)
+        .strokeWidth(6);
+    
+    // Use responsive layout
+    addWidget(
+        Container(
+            Colors::Black,
+            0, 0, Fern::getWidth(), Fern::getHeight(),
+            Row({
+                // Left panel (fixed width)
+                Container(
+                    Colors::DarkGray,
+                    0, 0, 250, 0,
+                    Padding(
+                        Column({
+                            Text(Point(0, 0), "CONTROLS", 1.5, Colors::White, false),
+                            SizedBox(0, 20, false),
+                            volumeSlider
+                        }, false),
+                        15, false
+                    )
+                ),
+                
+                // Right panel (expands to fill remaining space)
+                Expanded(
+                    Container(
+                        Colors::DarkBlue,
+                        0, 0, 0, 0,
+                        Center(cpuIndicator, false)
+                    ),
+                    1
+                )
+            }, false)
+        )
+    );
+}
+```
+
+### Layout Best Practices
+
+1. **Use Expanded widgets** for responsive design
+2. **Combine fixed and flexible layouts** appropriately
+3. **Leverage alignment options** for precise positioning
+4. **Use SizedBox** for consistent spacing
+5. **Consider screen size variations** when designing layouts
+
 ## Input Handling
 
 ### Getting Input State
@@ -1174,4 +1242,5 @@ The Fern Graphics team is actively working on these upcoming features:
 - Theme support for consistent styling
 - Advanced input handling (multi-touch, gestures)
 - Enhanced text rendering capabilities
-- More widget types (sliders, dropdowns, etc.)
+- More widget types (additional specialized widgets)
+- Grid and Stack layout containers

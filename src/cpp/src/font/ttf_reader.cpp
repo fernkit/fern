@@ -1,6 +1,8 @@
 #include "../../include/fern/font/ttf_reader.hpp"
 #include <iomanip>
+#ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#endif
 
 TTFReader::TTFReader() {
     littleEndian = isLittleEndian();
