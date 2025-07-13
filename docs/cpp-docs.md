@@ -376,6 +376,362 @@ TextInputStyle()
 - Best for: Modern interfaces, professional applications
 - Requires font file embedding in build
 
+#### Slider Widget
+
+The slider widget provides interactive value selection with draggable thumb controls and supports both bitmap and TTF fonts for value display.
+
+##### Basic Usage
+
+```cpp
+// Create a basic volume slider
+auto volumeSlider = Slider(SliderConfig(50, 150, 300, 25)
+    .range(0.0f, 100.0f)
+    .initialValue(50.0f), true);
+
+// Connect to value changes
+volumeSlider->onValueChanged.connect([](float value) {
+    std::cout << "Volume: " << value << std::endl;
+});
+```
+
+##### Configuration System
+
+Sliders use a class-based configuration system with fluent interface:
+
+```cpp
+// Complete configuration example
+auto customSlider = Slider(SliderConfig(100, 200, 400, 30)
+    .range(-10.0f, 10.0f)           // Custom range
+    .initialValue(0.0f)             // Starting value
+    .style(SliderStyle()
+        .trackColor(Colors::DarkGray)
+        .fillColor(Colors::Blue)
+        .thumbColor(Colors::White)
+        .thumbHoverColor(Colors::LightGray)
+        .thumbRadius(15)
+        .showValue(true)            // Display numeric value
+        .textColor(Colors::Yellow)
+        .textScale(2)), true);
+```
+
+##### Event Handling
+
+Sliders provide multiple signals for interaction feedback:
+
+```cpp
+// Value change events
+slider->onValueChanged.connect([](float value) {
+    updateVolumeLevel(value);
+});
+
+// Drag state events
+slider->onDragging.connect([](bool isDragging) {
+    if (isDragging) {
+        showTooltip("Adjusting value...");
+    } else {
+        hideTooltip();
+    }
+});
+```
+
+##### Preset Configurations
+
+Use predefined slider configurations for common use cases:
+
+```cpp
+// Volume control slider
+auto volumeSlider = Slider(SliderPresets::Volume(50, 100, 250, 25), true);
+
+// Brightness control slider  
+auto brightnessSlider = Slider(SliderPresets::Brightness(50, 150, 250, 25), true);
+
+// Color component (0-255 range)
+auto redSlider = Slider(SliderPresets::ColorComponent(50, 200, 200, 20), true);
+```
+
+##### Methods
+
+```cpp
+// Programmatic value control
+slider->setValue(75.0f);           // Set value
+float current = slider->getValue(); // Get current value
+slider->setRange(0.0f, 200.0f);    // Change range
+
+// Visual updates
+slider->setPosition(100, 150);     // Move slider
+slider->resize(350, 30);           // Resize slider
+```
+
+#### Progress Bar Widget
+
+The progress bar widget displays completion progress with customizable styling and supports both horizontal and vertical orientations.
+
+##### Basic Usage
+
+```cpp
+// Create a basic progress bar
+auto progressBar = ProgressBar(ProgressBarConfig(50, 100, 300, 20)
+    .progress(0.6f)                 // 60% complete
+    .animated(true), true);
+```
+
+##### Configuration System
+
+```cpp
+// Complete configuration example
+auto customProgress = ProgressBar(ProgressBarConfig(100, 150, 400, 25)
+    .progress(0.45f)                // Initial progress (0.0 to 1.0)
+    .animated(true)                 // Smooth animation
+    .style(ProgressBarStyle()
+        .backgroundColor(Colors::DarkGray)
+        .fillColor(Colors::Green)
+        .borderColor(Colors::Black)
+        .borderWidth(2)
+        .showPercentage(true)       // Display percentage text
+        .textColor(Colors::White)
+        .textScale(2)
+        .useBitmapFont()), true);
+```
+
+##### Event Handling
+
+```cpp
+// Progress completion events
+progressBar->onProgressChanged.connect([](float progress) {
+    std::cout << "Progress: " << (progress * 100) << "%" << std::endl;
+});
+
+progressBar->onCompleted.connect([]() {
+    std::cout << "Task completed!" << std::endl;
+});
+```
+
+##### Methods
+
+```cpp
+// Update progress
+progressBar->setProgress(0.75f);        // Set to 75%
+float current = progressBar->getProgress(); // Get current progress
+
+// Animation control
+progressBar->setAnimated(true);         // Enable smooth transitions
+progressBar->animateToProgress(1.0f);   // Animate to completion
+```
+
+#### Circular Indicator Widget
+
+The circular indicator widget displays progress or loading states in a circular format with customizable styling.
+
+##### Basic Usage
+
+```cpp
+// Create a loading spinner
+auto spinner = CircularIndicator(CircularIndicatorConfig(200, 150, 60)
+    .spinning(true), true);
+
+// Create a progress circle
+auto progressCircle = CircularIndicator(CircularIndicatorConfig(200, 250, 80)
+    .progress(0.7f)                 // 70% complete
+    .showPercentage(true), true);
+```
+
+##### Configuration System
+
+```cpp
+// Complete configuration example
+auto customIndicator = CircularIndicator(CircularIndicatorConfig(150, 100, 100)
+    .progress(0.3f)                 // Progress value (0.0 to 1.0)
+    .spinning(false)                // Static progress vs spinning
+    .style(CircularIndicatorStyle()
+        .backgroundColor(Colors::LightGray)
+        .fillColor(Colors::Blue)
+        .strokeWidth(8)
+        .showPercentage(true)
+        .textColor(Colors::Black)
+        .textScale(2)
+        .useBitmapFont()), true);
+```
+
+##### Event Handling
+
+```cpp
+// Progress events
+indicator->onProgressChanged.connect([](float progress) {
+    updateProgressLabel(progress * 100);
+});
+
+indicator->onCompleted.connect([]() {
+    showCompletionMessage();
+});
+```
+
+##### Methods
+
+```cpp
+// Progress control
+indicator->setProgress(0.85f);          // Set progress
+indicator->setSpinning(true);           // Enable spinning mode
+indicator->startSpin();                 // Start spinning animation
+indicator->stopSpin();                  // Stop spinning animation
+
+// Visual updates
+indicator->setRadius(75);               // Change size
+indicator->setPosition(250, 200);       // Move indicator
+```
+
+#### Radio Button Widget
+
+The radio button widget provides single-selection from a group of options with automatic mutual exclusion.
+
+##### Basic Usage
+
+```cpp
+// Create a radio button group
+auto group = std::make_shared<RadioButtonGroup>();
+
+auto option1 = RadioButton(RadioButtonConfig(50, 100, "Option 1")
+    .group(group), true);
+auto option2 = RadioButton(RadioButtonConfig(50, 130, "Option 2")
+    .group(group), true);
+auto option3 = RadioButton(RadioButtonConfig(50, 160, "Option 3")
+    .group(group)
+    .selected(true), true);         // Pre-selected
+```
+
+##### Configuration System
+
+```cpp
+// Complete configuration example
+auto customRadio = RadioButton(RadioButtonConfig(100, 200, "Custom Option")
+    .group(radioGroup)
+    .selected(false)
+    .style(RadioButtonStyle()
+        .circleColor(Colors::White)
+        .selectedColor(Colors::Blue)
+        .borderColor(Colors::Gray)
+        .textColor(Colors::Black)
+        .textScale(2)
+        .circleRadius(8)
+        .textSpacing(10)
+        .useBitmapFont()), true);
+```
+
+##### Event Handling
+
+```cpp
+// Selection change events
+radioButton->onSelectionChanged.connect([](bool selected) {
+    if (selected) {
+        std::cout << "Radio button selected" << std::endl;
+    }
+});
+
+// Group selection events
+group->onSelectionChanged.connect([](const std::string& selectedLabel) {
+    std::cout << "Selected: " << selectedLabel << std::endl;
+});
+```
+
+##### Methods
+
+```cpp
+// Selection control
+radioButton->setSelected(true);         // Select this option
+bool isSelected = radioButton->isSelected(); // Check selection state
+
+// Group management
+group->selectByLabel("Option 2");      // Select by label
+group->clearSelection();               // Deselect all
+std::string current = group->getSelectedLabel(); // Get selected option
+```
+
+#### Dropdown Widget
+
+The dropdown widget provides a collapsible list of selectable options with search filtering and custom styling.
+
+##### Basic Usage
+
+```cpp
+// Create a basic dropdown
+std::vector<std::string> options = {"Apple", "Banana", "Cherry", "Date"};
+auto dropdown = Dropdown(DropdownConfig(50, 100, 200, 30, options)
+    .placeholder("Select fruit..."), true);
+```
+
+##### Configuration System
+
+```cpp
+// Complete configuration example
+std::vector<std::string> countries = {"USA", "Canada", "Mexico", "Brazil"};
+auto countryDropdown = Dropdown(DropdownConfig(100, 150, 250, 35, countries)
+    .placeholder("Choose country")
+    .selectedIndex(0)               // Pre-select first option
+    .maxVisibleItems(5)             // Limit dropdown height
+    .style(DropdownStyle()
+        .backgroundColor(Colors::White)
+        .borderColor(Colors::Gray)
+        .selectedColor(Colors::LightBlue)
+        .hoverColor(Colors::LightGray)
+        .textColor(Colors::Black)
+        .arrowColor(Colors::DarkGray)
+        .textScale(2)
+        .borderWidth(1)
+        .useBitmapFont()), true);
+```
+
+##### Event Handling
+
+```cpp
+// Selection change events
+dropdown->onSelectionChanged.connect([](int index, const std::string& value) {
+    std::cout << "Selected: " << value << " (index: " << index << ")" << std::endl;
+});
+
+// Open/close events
+dropdown->onDropdownToggled.connect([](bool isOpen) {
+    std::cout << "Dropdown " << (isOpen ? "opened" : "closed") << std::endl;
+});
+```
+
+##### Methods
+
+```cpp
+// Selection control
+dropdown->setSelectedIndex(2);         // Select by index
+dropdown->setSelectedValue("Banana");   // Select by value
+int index = dropdown->getSelectedIndex(); // Get selected index
+std::string value = dropdown->getSelectedValue(); // Get selected value
+
+// Options management
+dropdown->addOption("New Item");        // Add option
+dropdown->removeOption(1);             // Remove by index
+dropdown->clearOptions();              // Remove all options
+
+// Visual control
+dropdown->openDropdown();              // Programmatically open
+dropdown->closeDropdown();             // Programmatically close
+```
+
+##### TTF Font Support
+
+All new widgets support TTF fonts:
+
+```cpp
+// Load TTF font
+TTF::load("roboto", "fonts/Roboto-Regular.ttf");
+
+// Use TTF font in widgets
+auto progressBar = ProgressBar(ProgressBarConfig(50, 100, 300, 20)
+    .style(ProgressBarStyle()
+        .useTTFFont("roboto")
+        .fontSize(16)));
+
+auto dropdown = Dropdown(DropdownConfig(50, 150, 200, 30, options)
+    .style(DropdownStyle()
+        .useTTFFont("roboto")
+        .fontSize(14)));
+```
+
 ## Layout System
 
 Fern provides a powerful layout system inspired by Flutter for creating responsive UIs:
