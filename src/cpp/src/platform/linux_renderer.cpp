@@ -195,13 +195,18 @@ namespace Fern {
                 switch (event.type) {
                     case ButtonPress:
                         if (clickCallback_) {
-                            clickCallback_(true);
+                            // X11 button mapping: 1=left, 2=middle, 3=right
+                            if (event.xbutton.button == 1) {
+                                clickCallback_(true);
+                            }
                         }
                         break;
                         
                     case ButtonRelease:
                         if (clickCallback_) {
-                            clickCallback_(false);
+                            if (event.xbutton.button == 1) {
+                                clickCallback_(false);
+                            }
                         }
                         break;
                         
@@ -216,6 +221,17 @@ namespace Fern {
                             KeySym keysym = XLookupKeysym(&event.xkey, 0);
                             KeyCode keycode = translateXKeyToFernKey(keysym);
                             keyCallback_(keycode, true);
+                        }
+                        
+                        // Handle text input for printable characters
+                        if (textInputCallback_) {
+                            char buffer[32];
+                            KeySym keysym;
+                            int len = XLookupString(&event.xkey, buffer, sizeof(buffer), &keysym, nullptr);
+                            if (len > 0) {
+                                buffer[len] = '\0';
+                                textInputCallback_(std::string(buffer));
+                            }
                         }
                         break;
                         
@@ -279,9 +295,17 @@ namespace Fern {
         }
         
         void setSize(int width, int height) override {
+            if (width_ == width && height_ == height) return;
+            
             width_ = width;
             height_ = height;
-            // TODO: Handle window resize
+            
+            if (display_ && window_) {
+                XResizeWindow(display_, window_, width, height);
+                // Recreate pixel buffer with new dimensions
+                setupPixelBuffer();
+                XFlush(display_);
+            }
         }
         
     private:

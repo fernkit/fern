@@ -55,13 +55,15 @@ Fern is a cross-platform UI library designed for creating modern, responsive use
 - **Examples**: Comprehensive example gallery
 - **Documentation**: API documentation and guides
 - **Scene Management**: Multi-scene application support
+- **Dirty Checking**: ✅ **NEW** - Efficient render optimization system
+- **CLI Tooling**: Design guide for modern build tools
 
 ### ⚠️ Known Issues & Limitations
 
 #### 1. **Layout System Issues**
-- **Text Alignment**: Minor centering issues with text in layouts
+- **Text Alignment**: ✅ **FIXED** - Bitmap text centering calculation corrected
 - **Intrinsic Sizing**: Layouts don't always calculate optimal sizes
-- **Infinite Recursion Risk**: Fixed but needs more testing
+- **Infinite Recursion Risk**: Fixed but needs more testing  
 - **Layout Positioning**: Some edge cases in complex nested layouts
 
 #### 2. **Widget Issues**
@@ -70,8 +72,8 @@ Fern is a cross-platform UI library designed for creating modern, responsive use
 - **Widget Lifecycle**: Memory management needs verification
 
 #### 3. **Performance Concerns**
-- **Render Loop**: No dirty-checking, always full redraws
-- **Event Handling**: O(n) widget traversal for events
+- **Render Loop**: ✅ **FIXED** - Implemented dirty checking system for efficient rendering
+- **Event Handling**: O(n) widget traversal for events  
 - **Memory Usage**: No widget pooling or optimization
 
 #### 4. **Platform-Specific Issues**

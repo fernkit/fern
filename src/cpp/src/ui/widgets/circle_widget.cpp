@@ -22,7 +22,9 @@ namespace Fern {
         int dy = input.mouseY - y_;
         isHovered_ = (dx*dx + dy*dy) <= (radius_ * radius_);
         
+        // Mark dirty if hover state changed
         if (wasHovered != isHovered_) {
+            markDirty();
             onHover.emit(isHovered_);
         }
         
@@ -35,7 +37,10 @@ namespace Fern {
     }
     
     void CircleWidget::setRadius(int radius) {
-        radius_ = radius;
+        if (radius_ != radius) {
+            radius_ = radius;
+            markDirty();
+        }
     }
     
     void CircleWidget::setPosition(const Point& position){
@@ -45,7 +50,10 @@ namespace Fern {
     }
     
     void CircleWidget::setColor(uint32_t color) {
-        color_ = color;
+        if (color_ != color) {
+            color_ = color;
+            markDirty();
+        }
     }
     
     std::shared_ptr<CircleWidget> Circle(int radius, Point position, uint32_t color, bool addToManager) {

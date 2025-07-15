@@ -53,21 +53,28 @@ namespace Fern {
         }
         
         void setPosition(int x, int y) override {
-            int deltaX = x - x_;
-            int deltaY = y - y_;
-            
-            x_ = x;
-            y_ = y;
-            
-            for (auto& child : children_) {
-                child->setPosition(child->getX() + deltaX, child->getY() + deltaY);
+            if (x_ != x || y_ != y) {
+                int deltaX = x - x_;
+                int deltaY = y - y_;
+                
+                x_ = x;
+                y_ = y;
+                
+                for (auto& child : children_) {
+                    child->setPosition(child->getX() + deltaX, child->getY() + deltaY);
+                }
+                
+                markDirty();
             }
         }
         
         void resize(int width, int height) override {
-            width_ = width;
-            height_ = height;
-            arrangeChildren();
+            if (width_ != width || height_ != height) {
+                width_ = width;
+                height_ = height;
+                arrangeChildren();
+                markDirty();
+            }
         }
         
         // Add method to access children for recursive event handling

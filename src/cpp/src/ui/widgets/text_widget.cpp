@@ -46,17 +46,26 @@ namespace Fern {
     }
     
     void TextWidget::setText(const std::string& text) {
-        text_ = text;
-        updateDimensions();
+        if (text_ != text) {
+            text_ = text;
+            updateDimensions();
+            markDirty();
+        }
     }
     
     void TextWidget::setSize(int size) {
-        size_ = size;
-        updateDimensions();
+        if (size_ != size) {
+            size_ = size;
+            updateDimensions();
+            markDirty();
+        }
     }
     
     void TextWidget::setColor(uint32_t color) {
-        color_ = color;
+        if (color_ != color) {
+            color_ = color;
+            markDirty();
+        }
     }
     
     void TextWidget::updateDimensions() {
@@ -67,10 +76,18 @@ namespace Fern {
             textWidth = Font::getTextWidth(text_, size_, FontType::TTF);
             textHeight = Font::getTextHeight(size_, FontType::TTF);
         } else {
-            // Use simple bitmap font calculation - ensure minimum width
-            int charWidth = (size_ * 6 + 7) / 8;  // Use ceiling division instead of floor
-            if (charWidth < 1) charWidth = 1;     // Ensure minimum character width
-            textWidth = text_.length() * charWidth;
+            // Use bitmap font calculation - match the actual rendering logic
+            int charWidth = 8 * (size_ > 0 ? size_ : 1);  // 8 pixels per character scaled by size
+            int spaceWidth = 4 * (size_ > 0 ? size_ : 1); // 4 pixels for space scaled by size
+            
+            textWidth = 0;
+            for (char c : text_) {
+                if (c == ' ') {
+                    textWidth += spaceWidth;
+                } else {
+                    textWidth += charWidth;
+                }
+            }
             textHeight = size_ > 0 ? size_ : 1;   // Ensure minimum height
         }
         

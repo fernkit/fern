@@ -16,19 +16,31 @@ namespace Fern {
     }
     
     void LineWidget::setStart(Point start) {
-        start_ = start;
+        if (start_.x != start.x || start_.y != start.y) {
+            start_ = start;
+            markDirty();
+        }
     }
     
     void LineWidget::setEnd(Point end) {
-        end_ = end;
+        if (end_.x != end.x || end_.y != end.y) {
+            end_ = end;
+            markDirty();
+        }
     }
     
     void LineWidget::setThickness(int thickness) {
-        thickness_ = thickness;
+        if (thickness_ != thickness) {
+            thickness_ = thickness;
+            markDirty();
+        }
     }
     
     void LineWidget::setColor(uint32_t color) {
-        color_ = color;
+        if (color_ != color) {
+            color_ = color;
+            markDirty();
+        }
     }
     
     std::shared_ptr<LineWidget> Line(Point start, Point end, int thickness, uint32_t color, bool addToManager) {

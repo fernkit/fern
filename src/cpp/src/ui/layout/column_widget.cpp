@@ -18,11 +18,13 @@ ColumnWidget::ColumnWidget(int x, int y, int width, int height,
 void ColumnWidget::add(std::shared_ptr<Widget> child) {
     children_.push_back(child);
     arrangeChildren();
+    markDirty();
 }
 
 void ColumnWidget::addAll(const std::vector<std::shared_ptr<Widget>>& children) {
     children_.insert(children_.end(), children.begin(), children.end());
     arrangeChildren();
+    markDirty();
 }
 
 void ColumnWidget::arrangeChildren() {

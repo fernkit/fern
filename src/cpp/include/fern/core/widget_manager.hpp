@@ -35,6 +35,8 @@ namespace Fern
          void renderAll() {
             for (auto& widget : widgets_) {
                 widget->render();
+                // Note: We still keep the dirty flag for future optimizations
+                // like layout recalculation, but basic rendering happens every frame
             }
         }
 
