@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Fern CLI - Flutter-like command line interface for Fern framework
+Fern CLI - Command line interface for Fern framework
 Usage: fern [command] [options]
 
 Commands:
-  bloom                    Check system health (like flutter doctor)
+  bloom                    Check system health
   sprout <project_name>    Create new Fern project
   fire [file]             Run single file or project
   prepare <platform>       Build for target platform
@@ -62,7 +62,7 @@ class FernCLI:
             sys.exit(1)
     
     def show_help(self):
-        print_colored("🌿 Fern CLI - Modern UI Framework", Colors.GREEN)
+        print_colored("🌿 Fern CLI", Colors.GREEN)
         print_colored("=" * 40, Colors.CYAN)
         print(__doc__)
         

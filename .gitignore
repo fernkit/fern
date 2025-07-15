@@ -66,3 +66,5 @@ jobs:
 # Build directory
 build/
 .github/copilot-instructions.md
+__pycache__/
+*.pyc

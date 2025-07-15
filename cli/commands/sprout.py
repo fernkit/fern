@@ -1,5 +1,5 @@
 """
-Fern Sprout Command - Create new Fern project (like flutter create)
+Fern Sprout Command - Create new Fern project
 """
 
 import os
@@ -136,7 +136,7 @@ int main() {{
         (project_root / "lib" / "main.cpp").write_text(main_cpp_content)
         
         # Create README.md
-        readme_content = f"""# {project_name}
+        readme_content = """# """ + project_name + """
 
 A new Fern project created with `fern sprout`.
 
@@ -149,25 +149,37 @@ A new Fern project created with `fern sprout`.
 
 2. **Build for web:**
    ```bash
-   fern prepare web
+   fern fire -p web
    ```
 
 3. **Build for Linux:**
    ```bash
-   fern prepare linux
+   fern fire -p linux
    ```
 
 ## Project Structure
 
 ```
-{project_name}/
+""" + project_name + """/
 ├── lib/           # Main source code
 ├── web/           # Web platform specific files
+│   └── template.html  # Customizable HTML template for web builds
 ├── linux/         # Linux platform specific files
 ├── assets/        # Images, fonts, etc.
 ├── examples/      # Example code
 └── fern.yaml      # Project configuration
 ```
+
+## Web Template Customization
+
+The `web/template.html` file is used as the HTML template for web builds. You can customize:
+
+- Page title and meta tags
+- CSS styling and layout
+- Additional JavaScript libraries
+- Canvas container structure
+
+The template uses `{{{ SCRIPT }}}` as a placeholder for the generated JavaScript code.
 
 ## Learn More
 
@@ -176,6 +188,9 @@ A new Fern project created with `fern sprout`.
 """
         
         (project_root / "README.md").write_text(readme_content)
+        
+        # Create web template
+        self._create_web_template(project_root, project_name)
         
         # Create .gitignore
         gitignore_content = """# Build outputs
@@ -207,13 +222,91 @@ Thumbs.db
         print_info("  ├── fern.yaml")
         print_info("  ├── README.md")
         print_info("  ├── .gitignore")
-        print_info("  └── lib/main.cpp")
+        print_info("  ├── lib/main.cpp")
+        print_info("  └── web/template.html")
+    
+    def _create_web_template(self, project_root, project_name):
+        """Create a customizable web template"""
+        try:
+            # Copy the template.html from the main fern directory
+            template_source = Path(__file__).parent.parent.parent / "template.html"
+            template_dest = project_root / "web" / "template.html"
+            
+            if template_source.exists():
+                # Read the template and customize it
+                template_content = template_source.read_text()
+                
+                # Replace title with project name
+                template_content = template_content.replace(
+                    "<title>Fern Application</title>",
+                    "<title>" + project_name + "</title>"
+                )
+                
+                # Write to project web directory
+                template_dest.write_text(template_content)
+                print_info("Created web template: " + str(template_dest))
+            else:
+                # Create a basic template if source doesn't exist
+                template_dest.write_text("""<!doctype html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>""" + project_name + """</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #333;
+        }
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    </div>
+    <script type='text/javascript'>
+        var Module = {
+            canvas: document.getElementById('canvas')
+        };
+    </script>
+    {{{ SCRIPT }}}
+</body>
+</html>""")
+                print_info("Created basic web template: " + str(template_dest))
+        except Exception as e:
+            print_error("Error creating web template: " + str(e))
+            # Create a minimal template as fallback
+            template_dest.write_text("""<!doctype html>
+<html><head><title>""" + project_name + """</title></head>
+<body><canvas id="canvas"></canvas>
+<script>var Module = {canvas: document.getElementById('canvas')};</script>
+{{{ SCRIPT }}}
+</body></html>""")
+            print_info("Created minimal web template: " + str(template_dest))
     
     def _show_next_steps(self, project_name):
         """Show what to do next"""
         print()
         print_header("Next Steps")
-        print_info(f"1. cd {project_name}")
+        print_info("1. cd " + project_name)
         print_info("2. fern fire                 # Run your project")
         print_info("3. fern bloom                # Check system health")
         print_info("4. fern prepare web          # Build for web")

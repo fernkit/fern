@@ -1,5 +1,5 @@
 """
-Fern Bloom Command - System health check (like flutter doctor)
+Fern Bloom Command - System health check
 """
 
 import sys
