@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fern CLI - Command line interface for Fern framework
+Terra - Command line interface for Fern framework
 Usage: fern [command] [options]
 
 Commands:

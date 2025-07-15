@@ -75,9 +75,25 @@ check_dependencies() {
     log_success "All dependencies are installed"
 }
 
-# Install Python CLI
+# Install Python CLI (Terra)
 install_cli() {
-    log_info "Installing Fern CLI..."
+    log_info "Installing Terra CLI..."
+    
+    # Check if Terra CLI is already installed
+    TERRA_DIR="$HOME/.fern/terra"
+    
+    if [ -d "$TERRA_DIR" ]; then
+        log_info "Terra CLI directory exists, updating..."
+        cd "$TERRA_DIR"
+        git pull origin master
+        cd - > /dev/null
+    else
+        log_info "Cloning Terra CLI repository..."
+        mkdir -p "$HOME/.fern"
+        cd "$HOME/.fern"
+        git clone https://github.com/fernkit/terra.git
+        cd - > /dev/null
+    fi
     
     # Create ~/.local/bin directory if it doesn't exist
     mkdir -p "$HOME/.local/bin"
@@ -89,11 +105,11 @@ import sys
 import os
 from pathlib import Path
 
-# Add CLI directory to path
-FERN_CLI_DIR = Path("/home/rishi/git/fern/cli")
-sys.path.insert(0, str(FERN_CLI_DIR))
+# Add Terra CLI directory to path
+TERRA_CLI_DIR = Path.home() / ".fern" / "terra" / "cli"
+sys.path.insert(0, str(TERRA_CLI_DIR))
 
-from fern_cli import main
+from terra_cli import main
 
 if __name__ == "__main__":
     main()
@@ -112,7 +128,7 @@ EOF
         export PATH="$HOME/.local/bin:$PATH"
     fi
     
-    log_success "Fern CLI installed successfully"
+    log_success "Terra CLI installed successfully"
 }
 
 # Install C++ library
@@ -180,6 +196,7 @@ EOF
 main() {
     echo "========================================"
     echo "Fern UI Framework Global Installation"
+    echo "Terra CLI + Fern Core Framework"
     echo "========================================"
     
     check_root
@@ -196,7 +213,7 @@ main() {
     setup_global_config
     
     echo "========================================"
-    log_success "Fern UI Framework installed successfully!"
+    log_success "Fern UI Framework with Terra CLI installed successfully!"
     echo "========================================"
     
     echo ""
@@ -211,10 +228,10 @@ main() {
     # Test installation
     log_info "Testing installation..."
     if command -v fern &> /dev/null; then
-        log_success "Fern CLI is available in PATH"
+        log_success "Terra CLI is available as 'fern' command"
         fern bloom
     else
-        log_warning "Fern CLI might not be in PATH. You may need to restart your terminal."
+        log_warning "Terra CLI might not be in PATH. You may need to restart your terminal."
     fi
 }
 

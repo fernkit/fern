@@ -2,6 +2,7 @@
 
 #include "core/canvas.hpp"
 #include "core/input.hpp"
+#include "core/scene_manager.hpp"
 #include "graphics/primitives.hpp"
 #include "graphics/colors.hpp"
 #include "text/font.hpp"
@@ -16,7 +17,6 @@
 #include "ui/widgets/circular_indicator_widget.hpp"
 #include "ui/widgets/progress_bar_widget.hpp"
 #include "core/widget_manager.hpp"
-#include "core/scene_manager.hpp"
 #include "ui/layout/layout.hpp"
 #include "ui/containers/container.hpp"
 

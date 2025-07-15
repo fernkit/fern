@@ -2,26 +2,78 @@
 #include "../../../include/fern/text/font.hpp"
 #include "../../../include/fern/font/font.hpp"
 #include "../../../include/fern/core/widget_manager.hpp"
+#include "../../../include/fern/graphics/primitives.hpp"
+#include "../../../include/fern/graphics/colors.hpp"
 
 extern Fern::Canvas* globalCanvas;
 
 namespace Fern {
 
-    TextWidget::TextWidget(Point position, const std::string& text, int size, uint32_t color, 
-                        bool addToManager, FontType fontType)
+    // Modern constructor with configuration
+    TextWidget::TextWidget(const TextConfig& config)
         : Widget(),
-        text_(text), size_(size), color_(color), fontType_(fontType) {
+        text_(config.getText()), 
+        size_(config.getStyle().getFontSize()), 
+        color_(config.getStyle().getColor()),
+        fontType_(config.getStyle().getFontType()),
+        config_(config) {
+        
+        setPosition(config.getX(), config.getY());
+        resize(0, 0);  
+        updateDimensions();
+    }
+
+    // Legacy constructor for backward compatibility
+    TextWidget::TextWidget(Point position, const std::string& text, int size, uint32_t color, 
+                        FontType fontType)
+        : Widget(),
+        text_(text), size_(size), color_(color), fontType_(fontType),
+        config_(TextConfig(position.x, position.y, text)
+                .style(TextStyle().color(color).fontSize(size).useBitmapFont())) {
         
         setPosition(position.x, position.y);
         resize(0, 0);  
         updateDimensions();
-        
-        if (addToManager) {
-            addWidget(std::shared_ptr<TextWidget>(this, [](TextWidget*){}));
-        }
     }
         
     void TextWidget::render() {
+        renderBackground();
+        renderShadow();
+        renderMainText();
+    }
+    
+    void TextWidget::renderBackground() {
+        if (config_.getStyle().hasBackground()) {
+            int padding = config_.getStyle().getPadding();
+            Draw::rect(x_ - padding, y_ - padding, 
+                      width_ + 2 * padding, height_ + 2 * padding,
+                      config_.getStyle().getBackgroundColor());
+        }
+    }
+    
+    void TextWidget::renderShadow() {
+        if (config_.getStyle().hasShadow()) {
+            int offset = config_.getStyle().getShadowOffset();
+            switch (fontType_) {
+                case FontType::TTF:
+                    if (Font::hasTTFFont()) {
+                        Font::renderTTF(globalCanvas, text_, x_ + offset, y_ + offset, 
+                                       size_, config_.getStyle().getShadowColor());
+                    } else {
+                        DrawText::drawText(text_.c_str(), x_ + offset, y_ + offset, 
+                                         size_, config_.getStyle().getShadowColor());
+                    }
+                    break;
+                case FontType::Bitmap:
+                default:
+                    DrawText::drawText(text_.c_str(), x_ + offset, y_ + offset, 
+                                     size_, config_.getStyle().getShadowColor());
+                    break;
+            }
+        }
+    }
+    
+    void TextWidget::renderMainText() {
         switch (fontType_) {
             case FontType::TTF:
                 renderTTF();
@@ -59,6 +111,16 @@ namespace Fern {
         color_ = color;
     }
     
+    void TextWidget::setConfig(const TextConfig& config) {
+        config_ = config;
+        text_ = config.getText();
+        size_ = config.getStyle().getFontSize();
+        color_ = config.getStyle().getColor();
+        fontType_ = config.getStyle().getFontType();
+        setPosition(config.getX(), config.getY());
+        updateDimensions();
+    }
+    
     void TextWidget::updateDimensions() {
         int textWidth, textHeight;
         
@@ -76,15 +138,88 @@ namespace Fern {
         resize(textWidth, textHeight);
     }
     
-    std::shared_ptr<TextWidget> Text(Point position, const std::string& text, 
-                                     int size, uint32_t color, bool addToManager,
-                                     FontType fontType) {
-        auto widget = std::make_shared<TextWidget>(position, text, size, color, false, fontType);
+    // Modern factory function with configuration
+    std::shared_ptr<TextWidget> Text(const TextConfig& config, bool addToManager) {
+        auto widget = std::make_shared<TextWidget>(config);
         
         if (addToManager) {
             addWidget(widget);
         }
         
         return widget;
+    }
+    
+    // Legacy factory function for backward compatibility
+    std::shared_ptr<TextWidget> Text(Point position, const std::string& text, 
+                                     int size, uint32_t color, bool addToManager,
+                                     FontType fontType) {
+        auto widget = std::make_shared<TextWidget>(position, text, size, color, fontType);
+        
+        if (addToManager) {
+            addWidget(widget);
+        }
+        
+        return widget;
+    }
+    
+    // Preset configurations
+    namespace TextPresets {
+        TextConfig Title(int x, int y, const std::string& text) {
+            return TextConfig(x, y, text)
+                .style(TextStyle()
+                    .fontSize(4)
+                    .color(Colors::White)
+                    .useBitmapFont());
+        }
+        
+        TextConfig Subtitle(int x, int y, const std::string& text) {
+            return TextConfig(x, y, text)
+                .style(TextStyle()
+                    .fontSize(3)
+                    .color(Colors::LightGray)
+                    .useBitmapFont());
+        }
+        
+        TextConfig Body(int x, int y, const std::string& text) {
+            return TextConfig(x, y, text)
+                .style(TextStyle()
+                    .fontSize(2)
+                    .color(Colors::White)
+                    .useBitmapFont());
+        }
+        
+        TextConfig Caption(int x, int y, const std::string& text) {
+            return TextConfig(x, y, text)
+                .style(TextStyle()
+                    .fontSize(1)
+                    .color(Colors::Gray)
+                    .useBitmapFont());
+        }
+        
+        TextConfig Button(int x, int y, const std::string& text) {
+            return TextConfig(x, y, text)
+                .style(TextStyle()
+                    .fontSize(2)
+                    .color(Colors::White)
+                    .backgroundColor(Colors::Blue)
+                    .padding(8)
+                    .useBitmapFont());
+        }
+        
+        TextConfig Error(int x, int y, const std::string& text) {
+            return TextConfig(x, y, text)
+                .style(TextStyle()
+                    .fontSize(2)
+                    .color(Colors::Red)
+                    .useBitmapFont());
+        }
+        
+        TextConfig Success(int x, int y, const std::string& text) {
+            return TextConfig(x, y, text)
+                .style(TextStyle()
+                    .fontSize(2)
+                    .color(Colors::Green)
+                    .useBitmapFont());
+        }
     }
 }
