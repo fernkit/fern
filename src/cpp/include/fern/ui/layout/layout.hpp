@@ -103,6 +103,7 @@ namespace Fern {
         void addAll(const std::vector<std::shared_ptr<Widget>>& children);
         void setMainAxisAlignment(MainAxisAlignment alignment);
         void setCrossAxisAlignment(CrossAxisAlignment alignment);
+        void calculateIntrinsicSize();
         
     protected:
         void arrangeChildren() override;
