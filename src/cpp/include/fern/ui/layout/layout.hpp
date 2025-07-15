@@ -70,6 +70,11 @@ namespace Fern {
             arrangeChildren();
         }
         
+        // Add method to access children for recursive event handling
+        const std::vector<std::shared_ptr<Widget>>& getChildren() const {
+            return children_;
+        }
+        
     protected:
         virtual void arrangeChildren() = 0;
         std::vector<std::shared_ptr<Widget>> children_;

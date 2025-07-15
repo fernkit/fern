@@ -67,10 +67,11 @@ namespace Fern {
             textWidth = Font::getTextWidth(text_, size_, FontType::TTF);
             textHeight = Font::getTextHeight(size_, FontType::TTF);
         } else {
-            // Use simple bitmap font calculation
-            int charWidth = size_ * 6 / 8;
+            // Use simple bitmap font calculation - ensure minimum width
+            int charWidth = (size_ * 6 + 7) / 8;  // Use ceiling division instead of floor
+            if (charWidth < 1) charWidth = 1;     // Ensure minimum character width
             textWidth = text_.length() * charWidth;
-            textHeight = size_;
+            textHeight = size_ > 0 ? size_ : 1;   // Ensure minimum height
         }
         
         resize(textWidth, textHeight);
