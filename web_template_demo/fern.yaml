@@ -1,0 +1,17 @@
+name: web_template_demo
+version: 1.0.0
+description: A new Fern project
+
+dependencies:
+  fern: ^0.1.0
+
+platforms:
+  web:
+    enabled: true
+    port: 3000
+  linux:
+    enabled: true
+    
+build:
+  incremental: true
+  optimize: false
