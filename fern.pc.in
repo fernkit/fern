@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Fern
+Description: Modern UI Framework for C++
+Version: 0.1.0
+Libs: -L${libdir} -lfern
+Cflags: -I${includedir}
+Requires: x11 xext fontconfig freetype2

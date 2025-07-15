@@ -16,6 +16,7 @@
 #include "ui/widgets/circular_indicator_widget.hpp"
 #include "ui/widgets/progress_bar_widget.hpp"
 #include "core/widget_manager.hpp"
+#include "core/scene_manager.hpp"
 #include "ui/layout/layout.hpp"
 #include "ui/containers/container.hpp"
 

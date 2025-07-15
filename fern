@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+"""
+Fern - Modern UI Framework CLI
+Main executable script
+"""
+
+import sys
+import os
+from pathlib import Path
+
+# Add CLI directory to path
+CLI_DIR = Path(__file__).parent / "cli"
+sys.path.insert(0, str(CLI_DIR))
+
+from fern_cli import main
+
+if __name__ == "__main__":
+    main()

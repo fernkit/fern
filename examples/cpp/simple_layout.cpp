@@ -1,5 +1,4 @@
 #include <fern/fern.hpp>
-#include <emscripten.h>
 
 using namespace Fern;
 
@@ -11,22 +10,12 @@ void setupUI() {
     int height = Fern::getHeight();
     
 
-        EM_ASM({
-        console.log("🌿 TTF Font Example: Starting...");
-    });
     
     // Load TTF font (requires --embed-file fonts when building)
     bool fontLoaded = TTF::load("roboto", "fonts/RobotoMono-VariableFont_wght.ttf");
-    if (fontLoaded) {
         TTF::setDefault("roboto");
-        EM_ASM({
-            console.log("🌿 ✅ TTF Font loaded successfully!");
-        });
-    } else {
-        EM_ASM({
-            console.log("🌿 ❌ TTF Font failed to load");
-        });
-    }
+
+
 
 
     addWidget(

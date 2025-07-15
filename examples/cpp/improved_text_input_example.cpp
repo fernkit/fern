@@ -1,5 +1,4 @@
 #include <fern/fern.hpp>
-#include <emscripten.h>
 
 using namespace Fern;
 
@@ -7,10 +6,7 @@ void setupUI() {
     int width = Fern::getWidth();
     int height = Fern::getHeight();
     
-    EM_ASM({
-        console.log("🌿 Simple Text Input Example: Starting...");
-    });
-    
+
     // Simple layout without complex nesting
     
     // Title
@@ -54,10 +50,6 @@ void setupUI() {
     addWidget(Text(Point(50, 370), "• Type letters and numbers", 1, Colors::Black, false));
     addWidget(Text(Point(50, 390), "• Use arrow keys and backspace", 1, Colors::Black, false));
     addWidget(Text(Point(50, 410), "• Notice the text is NOW VISIBLE!", 1, Colors::Red, false));
-    
-    EM_ASM({
-        console.log("🌿 Simple Text Input Example: UI setup complete");
-    });
 }
 
 void draw() {

@@ -18,13 +18,11 @@ ColumnWidget::ColumnWidget(int x, int y, int width, int height,
 void ColumnWidget::add(std::shared_ptr<Widget> child) {
     children_.push_back(child);
     arrangeChildren();
-    markDirty();
 }
 
 void ColumnWidget::addAll(const std::vector<std::shared_ptr<Widget>>& children) {
     children_.insert(children_.end(), children.begin(), children.end());
     arrangeChildren();
-    markDirty();
 }
 
 void ColumnWidget::arrangeChildren() {
@@ -145,32 +143,6 @@ void ColumnWidget::arrangeChildren() {
     }
 }
 
-void ColumnWidget::calculateIntrinsicSize() {
-    if (children_.empty()) {
-        resize(0, 0);
-        return;
-    }
-    
-    int maxWidth = 0;
-    int totalHeight = 0;
-    
-    for (size_t i = 0; i < children_.size(); i++) {
-        auto& child = children_[i];
-        auto spacingWidget = std::dynamic_pointer_cast<SpacingWidget>(child);
-        
-        if (spacingWidget && child->getHeight() == 0) {
-            // This is a vertical spacing widget
-            totalHeight += child->getWidth(); // SpacingWidget stores spacing in width for vertical
-        } else {
-            // Regular widget
-            maxWidth = std::max(maxWidth, child->getWidth());
-            totalHeight += child->getHeight();
-        }
-    }
-    
-    resize(maxWidth, totalHeight);
-}
-
 std::shared_ptr<ColumnWidget> Column(
     const std::vector<std::shared_ptr<Widget>>& children, 
     bool addToManager,
@@ -181,8 +153,6 @@ std::shared_ptr<ColumnWidget> Column(
     
     if (!children.empty()) {
         column->addAll(children);
-        // Calculate intrinsic size after adding all children
-        column->calculateIntrinsicSize();
     }
     
     if (addToManager) {

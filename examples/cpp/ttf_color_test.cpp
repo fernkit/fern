@@ -1,25 +1,14 @@
 #include <fern/fern.hpp>
-#include <emscripten.h>
 
 using namespace Fern;
 
 void setupUI() {
-    EM_ASM({
-        console.log("🌿 TTF Color Test: Starting...");
-    });
+
     
     // Load TTF font
     bool fontLoaded = TTF::load("roboto", "fonts/RobotoMono-VariableFont_wght.ttf");
-    if (fontLoaded) {
         TTF::setDefault("roboto");
-        EM_ASM({
-            console.log("🌿 TTF Font loaded successfully!");
-        });
-    } else {
-        EM_ASM({
-            console.log("🌿 TTF Font failed to load - this example needs TTF fonts!");
-        });
-    }
+        
     
     // Very simple layout with TTF fonts everywhere
     
@@ -67,10 +56,7 @@ void setupUI() {
     addWidget(Text(Point(50, 600), "• Type ABC123abc to test character mapping", 20, Colors::Black, true, FontType::TTF));
     addWidget(Text(Point(50, 630), "• TTF text should be crisp and scalable", 20, Colors::Black, true, FontType::TTF));
     addWidget(Text(Point(50, 660), "• Notice smooth fonts vs pixelated bitmap", 20, Colors::DarkGreen, true, FontType::TTF));
-    
-    EM_ASM({
-        console.log("🌿 TTF Color Test: UI setup complete");
-    });
+   
 }
 
 void draw() {
@@ -85,34 +71,4 @@ int main() {
     return 0;
 }
 
-/*
-This is a TTF COLOR TEST example with:
 
-🎨 TTF FONTS EVERYWHERE:
-- All titles use TTF fonts (larger sizes like 48, 32, 28)
-- All instructions use TTF fonts (smaller sizes like 20, 24)
-- All text inputs use TTF fonts (24pt for readability)
-- High contrast colors for visibility
-
-🔧 TTF SPECIFIC FEATURES:
-- Proper font sizes for TTF (16-48pt range)
-- Crisp, scalable text rendering
-- Professional typography
-- Better padding for larger text
-
-📝 TEXT INPUT IMPROVEMENTS:
-- Uses .useTTFFont("roboto") for text input
-- Larger font sizes (24pt) for better readability
-- More padding to accommodate larger text
-- Modern color schemes
-
-⚠️ REQUIREMENTS:
-- Must have fonts/ directory with RobotoMono-VariableFont_wght.ttf
-- Build with: fern --cpp --embed-file fonts ttf_color_test.cpp
-- TTF font loading must succeed for proper display
-
-🆚 COMPARISON:
-- Compare with bitmap version to see the difference
-- TTF should be much smoother and more professional looking
-- Better for larger text sizes and modern UIs
-*/

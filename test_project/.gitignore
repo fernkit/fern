@@ -1,0 +1,21 @@
+# Build outputs
+build/
+*.o
+*.a
+*.so
+*.dll
+*.exe
+
+# Platform specific
+web/build/
+linux/build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,5 +1,4 @@
 #include <fern/fern.hpp>
-#include <emscripten.h>
 
 using namespace Fern;
 
@@ -7,22 +6,12 @@ void setupUI() {
     int width = Fern::getWidth();
     int height = Fern::getHeight();
     
-    EM_ASM({
-        console.log("🌿 TTF Font Example: Starting...");
-    });
+
     
     // Load TTF font (requires --embed-file fonts when building)
     bool fontLoaded = TTF::load("roboto", "fonts/RobotoMono-VariableFont_wght.ttf");
-    if (fontLoaded) {
         TTF::setDefault("roboto");
-        EM_ASM({
-            console.log("🌿 ✅ TTF Font loaded successfully!");
-        });
-    } else {
-        EM_ASM({
-            console.log("🌿 ❌ TTF Font failed to load");
-        });
-    }
+
     
     addWidget(
         Container(
@@ -50,9 +39,7 @@ void setupUI() {
         )
     );
     
-    EM_ASM({
-        console.log("🌿 TTF Font Example: UI setup complete");
-    });
+  
 }
 
 void draw() {
@@ -67,18 +54,4 @@ int main() {
     return 0;
 }
 
-/*
-To build and run this example:
 
-1. Make sure you have font files in a 'fonts' directory
-2. Build with font embedding:
-   fern --cpp --embed-file fonts ttf_font_example.cpp
-
-This will:
-- Compile the C++ code
-- Embed the fonts directory into the WebAssembly binary
-- Start a local server to view the result
-
-Note: TTF font support is experimental. For production use,
-consider using the default bitmap font system.
-*/

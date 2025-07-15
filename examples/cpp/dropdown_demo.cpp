@@ -8,7 +8,7 @@ std::shared_ptr<DropdownWidget> languageDropdown;
 std::shared_ptr<DropdownWidget> countryDropdown;
 std::shared_ptr<DropdownWidget> colorDropdown;
 std::shared_ptr<DropdownWidget> fontSizeDropdown;
-
+void setupEventHandlers();
 void setupDropdowns() {
     // Language selection dropdown
     std::vector<DropdownItem> languages = {

@@ -40,11 +40,6 @@ namespace Fern {
         
         isPressed_ = isHovered_ && input.mouseDown;
         
-        // Mark dirty if visual state changed
-        if (wasHovered != isHovered_ || wasPressed != isPressed_) {
-            markDirty();
-        }
-        
         if (wasHovered != isHovered_) {
             onHover.emit(isHovered_);
         }
@@ -82,13 +77,10 @@ namespace Fern {
     }
 
     void ButtonWidget::setPosition(int x, int y) {
-        if (x_ != x || y_ != y) {
-            x_ = x;        
-            y_ = y; 
-            config_.x = x;
-            config_.y = y;
-            markDirty();
-        }
+        x_ = x;        
+        y_ = y; 
+        config_.x = x;
+        config_.y = y;
     }
 
     int ButtonWidget::getX() const {
@@ -100,10 +92,7 @@ namespace Fern {
     }
 
     void ButtonWidget::resize(int width, int height) {
-        if (config_.width != width || config_.height != height) {
-            config_.width = width;
-            config_.height = height;
-            markDirty();
-        }
+        config_.width = width;
+        config_.height = height;
     }
 }

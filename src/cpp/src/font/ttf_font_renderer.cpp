@@ -1,7 +1,9 @@
 #include "../../include/fern/font/ttf_font_renderer.hpp"
 #include <algorithm>
 #include <cmath>
+#ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#endif
 
 namespace Fern {
 
@@ -14,9 +16,7 @@ TTFFontRenderer::TTFFontRenderer(const std::string& fontPath) {
     
     // Load required tables
     if (!ttfReader_->loadHeadTable()) {
-        EM_ASM({
-            console.warn("🌿 Warning: Failed to load head table, using default metrics");
-        });
+
     }
     
     if (!ttfReader_->loadCmapTable()) {
@@ -27,9 +27,6 @@ TTFFontRenderer::TTFFontRenderer(const std::string& fontPath) {
         throw std::runtime_error("Failed to load loca table");
     }
     
-    EM_ASM({
-        console.log("🌿 TTF Font loaded successfully: " + UTF8ToString($0) + " (unitsPerEm: " + $1 + ")");
-    }, fontPath.c_str(), ttfReader_->getUnitsPerEm());
 }
 
 TTFFontRenderer::RasterizedGlyph TTFFontRenderer::rasterizeGlyph(char character, int fontSize) {
@@ -41,16 +38,10 @@ TTFFontRenderer::RasterizedGlyph TTFFontRenderer::rasterizeGlyph(char character,
         return it->second;
     }
     
-    EM_ASM({
-        console.log("🌿 Rasterizing character: '" + String.fromCharCode($0) + "' (code: " + $0 + ") at size " + $1);
-    }, static_cast<int>(character), fontSize);
     
     // Get glyph index for character
     uint16_t glyphIndex = ttfReader_->getGlyphIndex(static_cast<uint32_t>(character));
     
-    EM_ASM({
-        console.log("🌿 Glyph index for character: " + $0);
-    }, glyphIndex);
     
     // Read glyph data
     SimpleGlyph glyph;
@@ -91,9 +82,11 @@ void TTFFontRenderer::rasterizeGlyphOutline(const SimpleGlyph& glyph, int fontSi
     int glyphWidth = glyph.header.xMax - glyph.header.xMin;
     int glyphHeight = glyph.header.yMax - glyph.header.yMin;
     
+#ifdef __EMSCRIPTEN__
     EM_ASM({
         console.log("🌿 Glyph bounds: width=" + $0 + ", height=" + $1 + ", scale=" + $2 + ", unitsPerEm=" + $3);
     }, glyphWidth, glyphHeight, scale, ttfReader_->getUnitsPerEm());
+#endif
     
 
     int scaledWidth = std::max(2, static_cast<int>(glyphWidth * scale));
@@ -108,9 +101,11 @@ void TTFFontRenderer::rasterizeGlyphOutline(const SimpleGlyph& glyph, int fontSi
     // Create bitmap
     output.bitmap.resize(output.width * output.height, 0);
     
+#ifdef __EMSCRIPTEN__
     EM_ASM({
         console.log("🌿 Rasterizing glyph: outputW=" + $0 + ", outputH=" + $1 + ", bearingY=" + $2 + ", advance=" + $3);
     }, output.width, output.height, output.bearingY, output.advance);
+#endif
     
     // If no points, create fallback
     if (glyph.points.empty()) {
@@ -130,18 +125,12 @@ void TTFFontRenderer::rasterizeGlyphOutline(const SimpleGlyph& glyph, int fontSi
         if (pixel > 0) pixelCount++;
     }
     
-    EM_ASM({
-        console.log("🌿 Glyph rasterized: " + $0 + " pixels set out of " + $1 + " total");
-    }, pixelCount, static_cast<int>(output.bitmap.size()));
+
 }
 
 void TTFFontRenderer::renderText(Canvas* canvas, const std::string& text, 
     int x, int y, int fontSize, uint32_t color) {
     int currentX = x;
-    
-    EM_ASM({
-        console.log("🌿 Rendering text '" + UTF8ToString($0) + "' at (" + $1 + ", " + $2 + ") size " + $3);
-    }, text.c_str(), x, y, fontSize);
     
     for (char c : text) {
         if (c == ' ') {
@@ -150,11 +139,7 @@ void TTFFontRenderer::renderText(Canvas* canvas, const std::string& text,
         }
         
         RasterizedGlyph glyph = rasterizeGlyph(c, fontSize);
-        
-        EM_ASM({
-            console.log("🌿 Rendering '" + String.fromCharCode($0) + "' at x=" + $1 + ", bearingX=" + $2 + ", bearingY=" + $3);
-        }, static_cast<int>(c), currentX, glyph.bearingX, glyph.bearingY);
-        
+     
         // Render glyph bitmap to canvas
         int pixelsRendered = 0;
         for (int gy = 0; gy < glyph.height; gy++) {
@@ -181,9 +166,6 @@ void TTFFontRenderer::renderText(Canvas* canvas, const std::string& text,
             }
         }
         
-        EM_ASM({
-            console.log("🌿 Rendered " + $0 + " pixels for '" + String.fromCharCode($1) + "'");
-        }, pixelsRendered, static_cast<int>(c));
         
         currentX += glyph.advance;
     }
@@ -251,14 +233,9 @@ bool TTFFontManager::loadFont(const std::string& name, const std::string& fontPa
             defaultFontName_ = name;
         }
         
-        EM_ASM({
-            console.log("🌿 Font '" + UTF8ToString($0) + "' loaded successfully");
-        }, name.c_str());
         return true;
     } catch (const std::runtime_error& e) {
-        EM_ASM({
-            console.error("🌿 Failed to load font '" + UTF8ToString($0) + "': " + UTF8ToString($1));
-        }, name.c_str(), e.what());
+       
         return false;
     }
 }
@@ -271,9 +248,6 @@ TTFFontRenderer* TTFFontManager::getFont(const std::string& name) {
 void TTFFontManager::setDefaultFont(const std::string& name) {
     if (fonts_.find(name) != fonts_.end()) {
         defaultFontName_ = name;
-        EM_ASM({
-            console.log("🌿 Default font set to: " + UTF8ToString($0));
-        }, name.c_str());
     }
 }
 
@@ -291,25 +265,16 @@ void TTFFontManager::clearAllCaches() {
 }
 
 void TTFFontRenderer::rasterizeGlyphContours(const SimpleGlyph& glyph, RasterizedGlyph& output, float scale) {
-    EM_ASM({
-        console.log("🌿 Starting contour rasterization for " + $0 + " contours");
-    }, static_cast<int>(glyph.endPtsOfContours.size()));
-    
+
     size_t pointIndex = 0;
     
     for (size_t contour = 0; contour < glyph.endPtsOfContours.size(); contour++) {
         size_t startPt = pointIndex;
         size_t endPt = glyph.endPtsOfContours[contour];
         
-        EM_ASM({
-            console.log("🌿 Processing contour " + $0 + ": points " + $1 + " to " + $2);
-        }, static_cast<int>(contour), static_cast<int>(startPt), static_cast<int>(endPt));
-        
+      
         std::vector<Point2D> contourPoints = generateHighQualityContour(glyph, startPt, endPt, scale);
         
-        EM_ASM({
-            console.log("🌿 Generated " + $0 + " contour points");
-        }, static_cast<int>(contourPoints.size()));
         
         rasterizeContourLine(contourPoints, output);
         

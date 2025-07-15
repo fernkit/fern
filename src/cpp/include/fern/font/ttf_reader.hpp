@@ -5,6 +5,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <cstdint>
 
 // TTF Header (Offset Table)
 struct TTFHeader {

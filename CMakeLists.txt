@@ -79,5 +79,44 @@ foreach(EXAMPLE_SOURCE ${EXAMPLE_SOURCES})
 endforeach()
 
 # Install targets
-install(TARGETS fern DESTINATION lib)
-install(DIRECTORY src/cpp/include/ DESTINATION include)
+install(TARGETS fern 
+    EXPORT FernTargets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+# Install headers
+install(DIRECTORY src/cpp/include/ DESTINATION include 
+    FILES_MATCHING PATTERN "*.hpp"
+)
+
+# Install pkg-config file
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/fern.pc.in ${CMAKE_CURRENT_BINARY_DIR}/fern.pc @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fern.pc DESTINATION lib/pkgconfig)
+
+# Install export targets
+install(EXPORT FernTargets
+    FILE FernTargets.cmake
+    DESTINATION lib/cmake/Fern
+)
+
+# Create CMake config files for find_package support
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/FernConfigVersion.cmake"
+    VERSION "0.1.0"
+    COMPATIBILITY SameMajorVersion
+)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/FernConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/FernConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/Fern
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/FernConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/FernConfigVersion.cmake"
+    DESTINATION lib/cmake/Fern
+)
