@@ -4,6 +4,7 @@
 #include "../../../include/fern/core/widget_manager.hpp"
 #include "../../../include/fern/graphics/primitives.hpp"
 #include "../../../include/fern/graphics/colors.hpp"
+#include <iostream>
 
 extern Fern::Canvas* globalCanvas;
 
@@ -129,9 +130,15 @@ namespace Fern {
             textWidth = Font::getTextWidth(text_, size_, FontType::TTF);
             textHeight = Font::getTextHeight(size_, FontType::TTF);
         } else {
-            // Use simple bitmap font calculation
-            int charWidth = size_ * 6 / 8;
-            textWidth = text_.length() * charWidth;
+            // Use bitmap font calculation that matches the actual drawing
+            textWidth = 0;
+            for (char c : text_) {
+                if (c == ' ') {
+                    textWidth += 4 * size_;  // Spaces are 4 * scale pixels
+                } else {
+                    textWidth += 8 * size_;  // Characters are 8 * scale pixels
+                }
+            }
             textHeight = size_;
         }
         

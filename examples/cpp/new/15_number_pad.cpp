@@ -6,6 +6,10 @@ using namespace Fern;
 static std::shared_ptr<TextWidget> displayText;
 
 void setupUI() {
+    // Get canvas dimensions for proper centering
+    int width = Fern::getWidth();
+    int height = Fern::getHeight();
+    
     // Display
     displayText = Text(Point(0, 0), "0", 4, Colors::White);
     
@@ -141,7 +145,11 @@ void setupUI() {
         Column(keypadColumn)
     };
     
-    addWidget(Center(Column(mainColumn)));
+    // Create center widget with proper dimensions
+    auto centerWidget = std::make_shared<CenterWidget>(0, 0, width, height);
+    centerWidget->add(Column(mainColumn));
+    
+    addWidget(centerWidget);
 }
 
 void draw() {
