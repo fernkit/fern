@@ -154,11 +154,34 @@ namespace Fern {
         }
         
         void present(uint32_t* pixelBuffer, int width, int height) override {
-            if (!ximage_ || !pixelBuffer_ || !display_) return;
+            if (!ximage_ || !pixelBuffer_ || !display_) {
+                std::cerr << "Error: Invalid renderer state in present() - ximage_=" << ximage_ 
+                         << ", pixelBuffer_=" << pixelBuffer_ << ", display_=" << display_ << std::endl;
+                return;
+            }
+            
+            // Check input parameters
+            if (!pixelBuffer) {
+                std::cerr << "Error: Input pixelBuffer is null in present()" << std::endl;
+                return;
+            }
+            
+            if (width <= 0 || height <= 0) {
+                std::cerr << "Error: Invalid dimensions in present(): " << width << "x" << height << std::endl;
+                return;
+            }
+            
+            // Check if dimensions match our current buffer
+            if (width != width_ || height != height_) {
+                std::cerr << "Warning: Present called with dimensions " << width << "x" << height 
+                         << " but renderer is " << width_ << "x" << height_ << std::endl;
+                return; // Skip this frame to prevent crashes
+            }
             
             // Step 1: Copy our pixel data to X11's format
             // Note: X11 might have different byte ordering, but we'll keep it simple for now
-            memcpy(pixelBuffer_, pixelBuffer, width * height * sizeof(uint32_t));
+            size_t bufferSize = width * height * sizeof(uint32_t);
+            memcpy(pixelBuffer_, pixelBuffer, bufferSize);
             
             // Step 2: Tell X11 to draw our image to the window
             XPutImage(
@@ -237,10 +260,30 @@ namespace Fern {
                     case ConfigureNotify:
                         // Handle window resize
                         if (event.xconfigure.width != width_ || event.xconfigure.height != height_) {
-                            width_ = event.xconfigure.width;
-                            height_ = event.xconfigure.height;
-                            if (resizeCallback_) {
-                                resizeCallback_(width_, height_);
+                            int newWidth = event.xconfigure.width;
+                            int newHeight = event.xconfigure.height;
+                            
+                            std::cout << "Window resize detected: " << width_ << "x" << height_ 
+                                     << " -> " << newWidth << "x" << newHeight << std::endl;
+                            
+                            // Reallocate pixel buffer and recreate XImage for new dimensions
+                            if (newWidth > 0 && newHeight > 0) {
+                                try {
+                                    resizePixelBuffer(newWidth, newHeight);
+                                    width_ = newWidth;
+                                    height_ = newHeight;
+                                    
+                                    if (resizeCallback_) {
+                                        resizeCallback_(width_, height_);
+                                    }
+                                    
+                                    std::cout << "Window resize completed successfully" << std::endl;
+                                } catch (const std::exception& e) {
+                                    std::cerr << "Error during window resize: " << e.what() << std::endl;
+                                }
+                            } else {
+                                std::cerr << "Warning: Invalid resize dimensions ignored: " 
+                                         << newWidth << "x" << newHeight << std::endl;
                             }
                         }
                         break;
@@ -279,17 +322,35 @@ namespace Fern {
         }
         
         void setSize(int width, int height) override {
-            width_ = width;
-            height_ = height;
-            // TODO: Handle window resize
+            if (width <= 0 || height <= 0) return;
+            
+            // Resize the X11 window
+            if (display_ && window_) {
+                XResizeWindow(display_, window_, width, height);
+                XFlush(display_);
+            }
+            
+            // The actual buffer resize will be handled by the ConfigureNotify event
+            // when X11 confirms the resize
         }
         
     private:
         void setupPixelBuffer() {
             std::cout << "Setting up pixel buffer..." << std::endl;
             
+            // Validate dimensions
+            if (width_ <= 0 || height_ <= 0) {
+                throw std::runtime_error("Invalid window dimensions for pixel buffer");
+            }
+            
             // Allocate our local pixel buffer
-            pixelBuffer_ = new uint32_t[width_ * height_];
+            try {
+                pixelBuffer_ = new uint32_t[width_ * height_];
+                // Initialize buffer to black
+                memset(pixelBuffer_, 0, width_ * height_ * sizeof(uint32_t));
+            } catch (const std::bad_alloc& e) {
+                throw std::runtime_error("Failed to allocate pixel buffer: " + std::string(e.what()));
+            }
             
             // Create XImage structure - this is X11's way of handling image data
             int screen = DefaultScreen(display_);
@@ -307,10 +368,72 @@ namespace Fern {
             );
             
             if (!ximage_) {
+                delete[] pixelBuffer_;
+                pixelBuffer_ = nullptr;
                 throw std::runtime_error("Failed to create XImage");
             }
             
-            std::cout << "Pixel buffer setup complete. Depth: " << DefaultDepth(display_, DefaultScreen(display_)) << " bits" << std::endl;
+            std::cout << "Pixel buffer setup complete. Size: " << width_ << "x" << height_ 
+                     << ", Depth: " << DefaultDepth(display_, DefaultScreen(display_)) << " bits" << std::endl;
+        }
+        
+        void resizePixelBuffer(int newWidth, int newHeight) {
+            std::cout << "Resizing pixel buffer to " << newWidth << "x" << newHeight << std::endl;
+            
+            // Validate dimensions
+            if (newWidth <= 0 || newHeight <= 0) {
+                std::cerr << "Error: Invalid resize dimensions: " << newWidth << "x" << newHeight << std::endl;
+                return;
+            }
+            
+            // Store old values for cleanup
+            XImage* oldXImage = ximage_;
+            uint32_t* oldPixelBuffer = pixelBuffer_;
+            
+            // Allocate new pixel buffer first
+            try {
+                pixelBuffer_ = new uint32_t[newWidth * newHeight];
+            } catch (const std::bad_alloc& e) {
+                std::cerr << "Error: Failed to allocate new pixel buffer: " << e.what() << std::endl;
+                return;
+            }
+            
+            // Create new XImage with new dimensions
+            int screen = DefaultScreen(display_);
+            
+            ximage_ = XCreateImage(
+                display_,                           // X server connection
+                DefaultVisual(display_, screen),    // Color format info
+                DefaultDepth(display_, screen),     // Bits per pixel (usually 24 or 32)
+                ZPixmap,                            // Image format (raw pixels)
+                0,                                  // Offset in data
+                (char*)pixelBuffer_,                // Our pixel data
+                newWidth, newHeight,                // New image dimensions
+                32,                                 // Bitmap padding (32-bit alignment)
+                0                                   // Bytes per line (0 = auto-calculate)
+            );
+            
+            if (!ximage_) {
+                std::cerr << "Error: Failed to create resized XImage" << std::endl;
+                // Restore old state
+                delete[] pixelBuffer_;
+                pixelBuffer_ = oldPixelBuffer;
+                ximage_ = oldXImage;
+                return;
+            }
+            
+            // Now it's safe to clean up old resources
+            if (oldXImage) {
+                // Important: Set data to nullptr so XDestroyImage doesn't free our buffer
+                oldXImage->data = nullptr;
+                XDestroyImage(oldXImage);
+            }
+            
+            if (oldPixelBuffer) {
+                delete[] oldPixelBuffer;
+            }
+            
+            std::cout << "Pixel buffer resize complete." << std::endl;
         }
         
         void cleanup() {
