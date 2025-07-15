@@ -53,33 +53,21 @@ namespace Fern {
         }
         
         void setPosition(int x, int y) override {
-            if (x_ != x || y_ != y) {
-                int deltaX = x - x_;
-                int deltaY = y - y_;
-                
-                x_ = x;
-                y_ = y;
-                
-                for (auto& child : children_) {
-                    child->setPosition(child->getX() + deltaX, child->getY() + deltaY);
-                }
-                
-                markDirty();
+            int deltaX = x - x_;
+            int deltaY = y - y_;
+            
+            x_ = x;
+            y_ = y;
+            
+            for (auto& child : children_) {
+                child->setPosition(child->getX() + deltaX, child->getY() + deltaY);
             }
         }
         
         void resize(int width, int height) override {
-            if (width_ != width || height_ != height) {
-                width_ = width;
-                height_ = height;
-                arrangeChildren();
-                markDirty();
-            }
-        }
-        
-        // Add method to access children for recursive event handling
-        const std::vector<std::shared_ptr<Widget>>& getChildren() const {
-            return children_;
+            width_ = width;
+            height_ = height;
+            arrangeChildren();
         }
         
     protected:
@@ -110,7 +98,6 @@ namespace Fern {
         void addAll(const std::vector<std::shared_ptr<Widget>>& children);
         void setMainAxisAlignment(MainAxisAlignment alignment);
         void setCrossAxisAlignment(CrossAxisAlignment alignment);
-        void calculateIntrinsicSize();
         
     protected:
         void arrangeChildren() override;

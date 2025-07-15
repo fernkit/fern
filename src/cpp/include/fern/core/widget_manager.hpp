@@ -7,9 +7,6 @@
 
 namespace Fern
 {
-    // Forward declaration
-    class LayoutWidget;
-    
     class WidgetManager {
     public: 
         static WidgetManager& getInstance(){
@@ -30,13 +27,18 @@ namespace Fern
         }
 
         // for proper Z handling, the update has been reversed
-        void updateAll(const InputState& input);
+        void updateAll(const InputState& input) {
+            bool inputHandled = false;
+            for (auto it = widgets_.rbegin(); it != widgets_.rend(); ++it) {
+                if (!inputHandled) {
+                    inputHandled = (*it)->handleInput(input);
+                }
+            }
+        }
 
          void renderAll() {
             for (auto& widget : widgets_) {
                 widget->render();
-                // Note: We still keep the dirty flag for future optimizations
-                // like layout recalculation, but basic rendering happens every frame
             }
         }
 
@@ -45,9 +47,7 @@ namespace Fern
         }
 
     private:
-    private:
         WidgetManager() = default;
-        void updateWidget(std::shared_ptr<Widget> widget, const InputState& input, bool& inputHandled);
         std::vector<std::shared_ptr<Widget>> widgets_;    
     };
 

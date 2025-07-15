@@ -2,7 +2,6 @@
 #include "fern/platform/renderer.hpp"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <X11/keysym.h>
 #include <iostream>
 #include <cstring>
 
@@ -18,66 +17,6 @@ namespace Fern {
         uint32_t* pixelBuffer_;     // Our local pixel buffer
         int width_, height_;        // Window dimensions
         bool shouldClose_;          // Application running state
-        Atom wmDeleteMessage_;      // Window manager delete message
-        
-        // Input callbacks
-        std::function<void(int, int)> mouseCallback_;
-        std::function<void(bool)> clickCallback_;
-        std::function<void(int, int)> resizeCallback_;
-        std::function<void(KeyCode, bool)> keyCallback_;
-        std::function<void(const std::string&)> textInputCallback_;
-        
-        // Key translation helper
-        KeyCode translateXKeyToFernKey(KeySym keysym) {
-            switch (keysym) {
-                case XK_Return: return KeyCode::Enter;
-                case XK_Escape: return KeyCode::Escape;
-                case XK_space: return KeyCode::Space;
-                case XK_BackSpace: return KeyCode::Backspace;
-                case XK_Tab: return KeyCode::Tab;
-                case XK_Left: return KeyCode::Left;
-                case XK_Right: return KeyCode::Right;
-                case XK_Up: return KeyCode::Up;
-                case XK_Down: return KeyCode::Down;
-                case XK_a: case XK_A: return KeyCode::A;
-                case XK_b: case XK_B: return KeyCode::B;
-                case XK_c: case XK_C: return KeyCode::C;
-                case XK_d: case XK_D: return KeyCode::D;
-                case XK_e: case XK_E: return KeyCode::E;
-                case XK_f: case XK_F: return KeyCode::F;
-                case XK_g: case XK_G: return KeyCode::G;
-                case XK_h: case XK_H: return KeyCode::H;
-                case XK_i: case XK_I: return KeyCode::I;
-                case XK_j: case XK_J: return KeyCode::J;
-                case XK_k: case XK_K: return KeyCode::K;
-                case XK_l: case XK_L: return KeyCode::L;
-                case XK_m: case XK_M: return KeyCode::M;
-                case XK_n: case XK_N: return KeyCode::N;
-                case XK_o: case XK_O: return KeyCode::O;
-                case XK_p: case XK_P: return KeyCode::P;
-                case XK_q: case XK_Q: return KeyCode::Q;
-                case XK_r: case XK_R: return KeyCode::R;
-                case XK_s: case XK_S: return KeyCode::S;
-                case XK_t: case XK_T: return KeyCode::T;
-                case XK_u: case XK_U: return KeyCode::U;
-                case XK_v: case XK_V: return KeyCode::V;
-                case XK_w: case XK_W: return KeyCode::W;
-                case XK_x: case XK_X: return KeyCode::X;
-                case XK_y: case XK_Y: return KeyCode::Y;
-                case XK_z: case XK_Z: return KeyCode::Z;
-                case XK_0: return KeyCode::Number0;
-                case XK_1: return KeyCode::Number1;
-                case XK_2: return KeyCode::Number2;
-                case XK_3: return KeyCode::Number3;
-                case XK_4: return KeyCode::Number4;
-                case XK_5: return KeyCode::Number5;
-                case XK_6: return KeyCode::Number6;
-                case XK_7: return KeyCode::Number7;
-                case XK_8: return KeyCode::Number8;
-                case XK_9: return KeyCode::Number9;
-                default: return KeyCode::Unknown;
-            }
-        }
         
     public:
         LinuxRenderer() : display_(nullptr), window_(0), gc_(nullptr), 
@@ -127,26 +66,16 @@ namespace Fern {
             // Step 4: Set window properties
             XStoreName(display_, window_, "Fern Application - Linux");
             
-            // Step 5: Enable input events
-            XSelectInput(display_, window_, 
-                        ExposureMask | KeyPressMask | KeyReleaseMask |
-                        ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
-                        StructureNotifyMask);
-            
-            // Step 6: Set up window close event
-            wmDeleteMessage_ = XInternAtom(display_, "WM_DELETE_WINDOW", False);
-            XSetWMProtocols(display_, window_, &wmDeleteMessage_, 1);
-            
-            // Step 7: Create Graphics Context (like a "drawing pen")
+            // Step 5: Create Graphics Context (like a "drawing pen")
             gc_ = XCreateGC(display_, window_, 0, nullptr);
             if (!gc_) {
                 throw std::runtime_error("Failed to create graphics context");
             }
             
-            // Step 8: Prepare pixel buffer and XImage
+            // Step 6: Prepare pixel buffer and XImage
             setupPixelBuffer();
             
-            // Step 9: Make window visible
+            // Step 7: Make window visible
             XMapWindow(display_, window_);     // Show the window
             XFlush(display_);                  // Force X server to process requests
             

@@ -11,7 +11,6 @@ void CenterWidget::add(std::shared_ptr<Widget> child) {
     children_.clear();
     children_.push_back(child);
     arrangeChildren();
-    markDirty();
 }
 
 void CenterWidget::arrangeChildren() {
