@@ -2,6 +2,7 @@
 
 #include "core/canvas.hpp"
 #include "core/input.hpp"
+#include "core/scene_manager.hpp"
 #include "graphics/primitives.hpp"
 #include "graphics/colors.hpp"
 #include "text/font.hpp"
