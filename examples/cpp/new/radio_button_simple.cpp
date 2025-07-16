@@ -6,10 +6,10 @@
 using namespace Fern;
 
 // Global radio button groups
-static std::shared_ptr<RadioButtonGroup> sizeGroup;
-static std::shared_ptr<RadioButtonGroup> colorGroup;
-static std::shared_ptr<RadioButtonGroup> qualityGroup;
-static std::shared_ptr<RadioButtonGroup> difficultyGroup;
+static std::shared_ptr<Fern::RadioButtonGroup> sizeGroup;
+static std::shared_ptr<Fern::RadioButtonGroup> colorGroup;
+static std::shared_ptr<Fern::RadioButtonGroup> qualityGroup;
+static std::shared_ptr<Fern::RadioButtonGroup> difficultyGroup;
 
 // Status text widgets
 static std::shared_ptr<TextWidget> sizeStatus;
@@ -40,13 +40,14 @@ void setupUI() {
     leftColumnChildren.push_back(sizeTitle);
     leftColumnChildren.push_back(SizedBox(0, 15));
     
-    sizeGroup = RadioGroup();
+    sizeGroup = Fern::RadioGroup();
     
     // Create size radio buttons
     std::vector<std::string> sizes = {"Small", "Medium", "Large", "X-Large"};
     for (int i = 0; i < sizes.size(); i++) {
-        auto button = RadioButton(RadioButtonConfig(0, 0, sizes[i], "size")
-            .style(RadioButtonStyle()
+        auto button = Fern::RadioButton(Fern::RadioButtonConfig(0, 0, sizes[i], "size")
+            .selected(i == 1) // Medium selected by default
+            .style(Fern::RadioButtonStyle()
                 .backgroundColor(Colors::White)
                 .selectedColor(Colors::Blue)
                 .textColor(Colors::Black)
@@ -60,11 +61,6 @@ void setupUI() {
         leftColumnChildren.push_back(SizedBox(0, 8));
     }
     
-    // Set default selection
-    if (!sizeGroup->getButtons().empty()) {
-        sizeGroup->selectButton(sizeGroup->getButtons()[1]); // Medium
-    }
-    
     sizeStatus = Text(Point(0, 0), "Selected: Medium", 2, Colors::Yellow);
     leftColumnChildren.push_back(sizeStatus);
     leftColumnChildren.push_back(SizedBox(0, 30));
@@ -74,7 +70,7 @@ void setupUI() {
     leftColumnChildren.push_back(colorTitle);
     leftColumnChildren.push_back(SizedBox(0, 15));
     
-    colorGroup = RadioGroup();
+    colorGroup = Fern::RadioGroup();
     
     // Create color radio buttons with different colors
     std::vector<std::pair<std::string, uint32_t>> colors = {
@@ -86,8 +82,9 @@ void setupUI() {
     };
     
     for (int i = 0; i < colors.size(); i++) {
-        auto button = RadioButton(RadioButtonConfig(0, 0, colors[i].first, "color")
-            .style(RadioButtonStyle()
+        auto button = Fern::RadioButton(Fern::RadioButtonConfig(0, 0, colors[i].first, "color")
+            .selected(i == 0) // Red selected by default
+            .style(Fern::RadioButtonStyle()
                 .backgroundColor(Colors::White)
                 .selectedColor(colors[i].second)
                 .textColor(Colors::Black)
@@ -99,11 +96,6 @@ void setupUI() {
         colorGroup->addButton(button);
         leftColumnChildren.push_back(button);
         leftColumnChildren.push_back(SizedBox(0, 8));
-    }
-    
-    // Set default selection
-    if (!colorGroup->getButtons().empty()) {
-        colorGroup->selectButton(colorGroup->getButtons()[0]); // Red
     }
     
     colorStatus = Text(Point(0, 0), "Selected: Red", 2, Colors::Yellow);
@@ -120,13 +112,14 @@ void setupUI() {
     rightColumnChildren.push_back(qualityTitle);
     rightColumnChildren.push_back(SizedBox(0, 15));
     
-    qualityGroup = RadioGroup();
+    qualityGroup = Fern::RadioGroup();
     
     // Create quality radio buttons
     std::vector<std::string> qualities = {"Low", "Medium", "High", "Ultra", "Maximum"};
     for (int i = 0; i < qualities.size(); i++) {
-        auto button = RadioButton(RadioButtonConfig(0, 0, qualities[i], "quality")
-            .style(RadioButtonStyle()
+        auto button = Fern::RadioButton(Fern::RadioButtonConfig(0, 0, qualities[i], "quality")
+            .selected(i == 2) // High selected by default
+            .style(Fern::RadioButtonStyle()
                 .backgroundColor(Colors::White)
                 .selectedColor(Colors::Green)
                 .textColor(Colors::Black)
@@ -140,11 +133,6 @@ void setupUI() {
         rightColumnChildren.push_back(SizedBox(0, 8));
     }
     
-    // Set default selection
-    if (!qualityGroup->getButtons().empty()) {
-        qualityGroup->selectButton(qualityGroup->getButtons()[2]); // High
-    }
-    
     qualityStatus = Text(Point(0, 0), "Selected: High", 2, Colors::Yellow);
     rightColumnChildren.push_back(qualityStatus);
     rightColumnChildren.push_back(SizedBox(0, 30));
@@ -154,13 +142,14 @@ void setupUI() {
     rightColumnChildren.push_back(difficultyTitle);
     rightColumnChildren.push_back(SizedBox(0, 15));
     
-    difficultyGroup = RadioGroup();
+    difficultyGroup = Fern::RadioGroup();
     
     // Create difficulty radio buttons
     std::vector<std::string> difficulties = {"Easy", "Normal", "Hard", "Expert", "Nightmare"};
     for (int i = 0; i < difficulties.size(); i++) {
-        auto button = RadioButton(RadioButtonConfig(0, 0, difficulties[i], "difficulty")
-            .style(RadioButtonStyle()
+        auto button = Fern::RadioButton(Fern::RadioButtonConfig(0, 0, difficulties[i], "difficulty")
+            .selected(i == 1) // Normal selected by default
+            .style(Fern::RadioButtonStyle()
                 .backgroundColor(Colors::White)
                 .selectedColor(Colors::Orange)
                 .textColor(Colors::Black)
@@ -172,11 +161,6 @@ void setupUI() {
         difficultyGroup->addButton(button);
         rightColumnChildren.push_back(button);
         rightColumnChildren.push_back(SizedBox(0, 8));
-    }
-    
-    // Set default selection
-    if (!difficultyGroup->getButtons().empty()) {
-        difficultyGroup->selectButton(difficultyGroup->getButtons()[1]); // Normal
     }
     
     difficultyStatus = Text(Point(0, 0), "Selected: Normal", 2, Colors::Yellow);
@@ -226,6 +210,8 @@ void setupUI() {
     std::cout << "3. Clicking a button deselects others in the same group" << std::endl;
     std::cout << "4. Different styling for each group" << std::endl;
     std::cout << "5. Status indicators show current selections" << std::endl;
+    std::cout << "6. Proper layout-based positioning with Column/Row" << std::endl;
+    std::cout << "7. No complex signal handling to avoid stack overflow" << std::endl;
     std::cout << "=================================" << std::endl;
 }
 
@@ -233,7 +219,8 @@ void draw() {
     // Dark background
     Draw::fill(0xFF1A1A1A);
     
-    // Update status texts based on current selections
+    // Update status texts based on current selections in draw loop
+    // This is safer than using signal callbacks
     if (sizeGroup && sizeStatus) {
         auto selectedButton = sizeGroup->getSelected();
         if (selectedButton) {
