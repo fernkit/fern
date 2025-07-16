@@ -19,6 +19,16 @@ namespace Fern {
         const int trackHeight = config_.getHeight() / 3;
         const int trackY = y_ + (config_.getHeight() - trackHeight) / 2;
         
+        // Clear the entire widget area first to prevent overpainting
+        // Include extra space for thumb at extremes
+        int thumbRadius = style.getThumbRadius();
+        int clearX = x_ - thumbRadius;
+        int clearWidth = config_.getWidth() + thumbRadius * 2;
+        if (style.getShowValue()) {
+            clearWidth += 60; // Extra space for value text
+        }
+        Draw::rect(clearX, y_, clearWidth, config_.getHeight(), 0x00000000); // Transparent background
+        
         // Draw track background
         Draw::rect(x_, trackY, config_.getWidth(), trackHeight, style.getTrackColor());
         
@@ -36,9 +46,11 @@ namespace Fern {
         
         // Draw value text if enabled
         if (style.getShowValue()) {
-            std::string valueText = std::to_string(static_cast<int>(currentValue_));
+            // Clear the text area first
             int textX = x_ + config_.getWidth() + 10;
             int textY = y_ + (config_.getHeight() - 8 * style.getTextScale()) / 2;
+            
+            std::string valueText = std::to_string(static_cast<int>(currentValue_));
             DrawText::drawText(valueText.c_str(), textX, textY, style.getTextScale(), style.getTextColor());
         }
     }

@@ -71,16 +71,31 @@ namespace Fern {
             int textX = x_ + style.getPadding() + style.getBorderWidth();
             int textY = y_ + style.getPadding() + style.getBorderWidth();
             
-            // Use different color for placeholder vs actual text
-            uint32_t textColor = isPlaceholder ? 0x888888 : style.getTextColor(); // Gray for placeholder
+            // Calculate available width for text (excluding padding and borders)
+            int availableWidth = config_.getWidth() - 2 * (style.getPadding() + style.getBorderWidth());
             
-            // Render based on font type
-            if (style.getFontType() == FontType::TTF && Font::hasTTFFont()) {
-                Font::renderTTF(globalCanvas, displayText, textX, textY, 
-                               style.getFontSize(), textColor, style.getTTFFontName());
+            // For placeholder, just clip it
+            if (isPlaceholder) {
+                std::string clippedText = clipTextToWidth(displayText, availableWidth);
+                uint32_t textColor = 0x888888; // Gray for placeholder
+                
+                if (style.getFontType() == FontType::TTF && Font::hasTTFFont()) {
+                    Font::renderTTF(globalCanvas, clippedText, textX, textY, 
+                                   style.getFontSize(), textColor, style.getTTFFontName());
+                } else {
+                    DrawText::drawText(clippedText.c_str(), textX, textY, style.getFontSize(), textColor);
+                }
             } else {
-                // Use bitmap font with correct scaling
-                DrawText::drawText(displayText.c_str(), textX, textY, style.getFontSize(), textColor);
+                // For actual text, implement scrolling to show cursor
+                std::string visibleText = getVisibleText(displayText, availableWidth);
+                uint32_t textColor = style.getTextColor();
+                
+                if (style.getFontType() == FontType::TTF && Font::hasTTFFont()) {
+                    Font::renderTTF(globalCanvas, visibleText, textX, textY, 
+                                   style.getFontSize(), textColor, style.getTTFFontName());
+                } else {
+                    DrawText::drawText(visibleText.c_str(), textX, textY, style.getFontSize(), textColor);
+                }
             }
         }
     }
@@ -209,8 +224,20 @@ namespace Fern {
         if (style.getFontType() == FontType::TTF && Font::hasTTFFont()) {
             return Font::getTextWidth(text, style.getFontSize(), FontType::TTF);
         } else {
-            // Bitmap font: each character is about 8 pixels wide, scaled by size
-            return text.length() * 8 * style.getFontSize();
+            // Bitmap font: calculate width correctly based on character types
+            int width = 0;
+            int scale = style.getFontSize();
+            
+            for (char c : text) {
+                if (c == ' ') {
+                    width += 4 * scale;  // Space is 4 pixels wide
+                } else if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
+                    width += 8 * scale;  // Regular characters are 8 pixels wide
+                } else {
+                    width += 4 * scale;  // Unsupported characters are 4 pixels wide
+                }
+            }
+            return width;
         }
     }
     
@@ -222,7 +249,36 @@ namespace Fern {
             return baseX;
         }
         
-        std::string textToCursor = text_.substr(0, cursorPosition_);
+        // Calculate available width for text
+        int availableWidth = config_.getWidth() - 2 * (style.getPadding() + style.getBorderWidth());
+        
+        // Get the visible text
+        std::string visibleText = getVisibleText(text_, availableWidth);
+        
+        // Find where the visible text starts in the original text
+        size_t visibleStart = 0;
+        if (getTextWidth(text_) > availableWidth) {
+            // Find the start position of visible text
+            for (size_t i = 0; i <= text_.length(); i++) {
+                std::string candidate = text_.substr(i);
+                if (getVisibleText(candidate, availableWidth) == visibleText) {
+                    visibleStart = i;
+                    break;
+                }
+            }
+        }
+        
+        // Calculate cursor position relative to visible text
+        if (cursorPosition_ < visibleStart) {
+            return baseX; // Cursor is before visible text, show at start
+        }
+        
+        size_t relativeCursorPos = cursorPosition_ - visibleStart;
+        if (relativeCursorPos > visibleText.length()) {
+            relativeCursorPos = visibleText.length();
+        }
+        
+        std::string textToCursor = visibleText.substr(0, relativeCursorPos);
         return baseX + getTextWidth(textToCursor);
     }
     
@@ -345,6 +401,128 @@ namespace Fern {
                     .borderWidth(2)
                     .padding(8)
                     .useTTFFont(fontName));
+        }
+    }
+    
+    std::string TextInputWidget::clipTextToWidth(const std::string& text, int maxWidth) const {
+        if (text.empty()) return text;
+        
+        // If the full text fits, return it
+        if (getTextWidth(text) <= maxWidth) {
+            return text;
+        }
+        
+        // Find the maximum number of characters that fit
+        std::string result;
+        int currentWidth = 0;
+        const auto& style = config_.getStyle();
+        int scale = style.getFontSize();
+        
+        for (char c : text) {
+            int charWidth;
+            if (c == ' ') {
+                charWidth = 4 * scale;
+            } else if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
+                charWidth = 8 * scale;
+            } else {
+                charWidth = 4 * scale;
+            }
+            
+            if (currentWidth + charWidth > maxWidth) {
+                break;
+            }
+            
+            result += c;
+            currentWidth += charWidth;
+        }
+        
+        return result;
+    }
+    
+    std::string TextInputWidget::getVisibleText(const std::string& text, int availableWidth) const {
+        if (text.empty()) return text;
+        
+        // If the full text fits, return it
+        if (getTextWidth(text) <= availableWidth) {
+            return text;
+        }
+        
+        // Ensure cursor is always visible - calculate visible text based on cursor position
+        size_t startPos = 0;
+        size_t endPos = text.length();
+        
+        // If cursor is at the end (most common case when typing), show text ending at cursor
+        if (cursorPosition_ >= text.length()) {
+            // Start from the end and work backwards to find maximum visible text
+            while (startPos < text.length()) {
+                std::string candidate = text.substr(startPos);
+                if (getTextWidth(candidate) <= availableWidth) {
+                    break;
+                }
+                startPos++;
+            }
+            return text.substr(startPos);
+        }
+        
+        // For cursor in middle, try to center it in the visible area
+        size_t cursorPos = std::min(cursorPosition_, text.length());
+        
+        // Calculate ideal start position (cursor roughly in middle of visible area)
+        size_t idealStart = 0;
+        if (cursorPos > 0) {
+            // Estimate how many characters fit in half the available width
+            int halfWidth = availableWidth / 2;
+            size_t charCount = 0;
+            int currentWidth = 0;
+            
+            // Count characters from cursor backwards
+            for (size_t i = cursorPos; i > 0 && currentWidth < halfWidth; i--) {
+                char c = text[i - 1];
+                int charWidth = getCharWidth(c);
+                if (currentWidth + charWidth > halfWidth) break;
+                currentWidth += charWidth;
+                charCount++;
+            }
+            
+            idealStart = cursorPos - charCount;
+        }
+        
+        // Find the actual start position that fits
+        startPos = idealStart;
+        while (startPos < text.length()) {
+            // Try to include the cursor position
+            endPos = std::max(cursorPos + 1, startPos + 1);
+            
+            // Extend as much as possible
+            while (endPos < text.length()) {
+                std::string candidate = text.substr(startPos, endPos - startPos + 1);
+                if (getTextWidth(candidate) > availableWidth) {
+                    break;
+                }
+                endPos++;
+            }
+            
+            // Check if cursor is visible
+            if (startPos <= cursorPos && cursorPos <= endPos) {
+                break;
+            }
+            
+            startPos++;
+        }
+        
+        return text.substr(startPos, endPos - startPos);
+    }
+    
+    int TextInputWidget::getCharWidth(char c) const {
+        const auto& style = config_.getStyle();
+        int scale = style.getFontSize();
+        
+        if (c == ' ') {
+            return 4 * scale;
+        } else if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
+            return 8 * scale;
+        } else {
+            return 4 * scale;
         }
     }
 }

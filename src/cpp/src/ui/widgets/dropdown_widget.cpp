@@ -50,6 +50,7 @@ namespace Fern {
                 } else {
                     // Clicked outside - close dropdown
                     close();
+                    return false; // Don't consume the click so other widgets can handle it
                 }
             }
         }
@@ -213,10 +214,28 @@ namespace Fern {
     void DropdownWidget::renderText(const std::string& text, int x, int y, uint32_t color) {
         const auto& style = config_.getStyle();
         
+        // Calculate available width for text (excluding padding and arrow space)
+        int availableWidth = config_.getWidth() - style.getPadding() * 2 - 30; // 30 for arrow
+        
+        // Clip text if it's too long
+        std::string displayText = text;
+        if (calculateTextWidth(text) > availableWidth) {
+            // Find the maximum number of characters that fit
+            std::string clippedText;
+            for (size_t i = 0; i < text.length(); ++i) {
+                std::string candidate = text.substr(0, i + 1);
+                if (calculateTextWidth(candidate) > availableWidth) {
+                    break;
+                }
+                clippedText = candidate;
+            }
+            displayText = clippedText;
+        }
+        
         if (style.getFontType() == FontType::TTF && Font::hasTTFFont()) {
-            Font::renderTTF(globalCanvas, text, x, y, style.getFontSize(), color);
+            Font::renderTTF(globalCanvas, displayText, x, y, style.getFontSize(), color);
         } else {
-            DrawText::drawText(text.c_str(), x, y, style.getFontSize(), color);
+            DrawText::drawText(displayText.c_str(), x, y, style.getFontSize(), color);
         }
     }
     
@@ -259,10 +278,30 @@ namespace Fern {
         if (style.getFontType() == FontType::TTF && Font::hasTTFFont()) {
             return Font::getTextWidth(text, style.getFontSize(), FontType::TTF);
         } else {
-            // Bitmap font calculation
-            int charWidth = style.getFontSize() * 6 / 8;
+            // Bitmap font calculation - more accurate
+            int charWidth = 8 * style.getFontSize(); // Each char is 8 pixels wide scaled
             return text.length() * charWidth;
         }
+    }
+    
+    int DropdownWidget::calculateOptimalWidth() const {
+        const auto& style = config_.getStyle();
+        const auto& items = config_.getItems();
+        
+        int maxWidth = 0;
+        
+        // Check placeholder width
+        if (!config_.getPlaceholder().empty()) {
+            maxWidth = std::max(maxWidth, calculateTextWidth(config_.getPlaceholder()));
+        }
+        
+        // Check all item widths
+        for (const auto& item : items) {
+            maxWidth = std::max(maxWidth, calculateTextWidth(item.text));
+        }
+        
+        // Add padding and arrow space
+        return maxWidth + style.getPadding() * 2 + 30; // 30 pixels for arrow
     }
     
     int DropdownWidget::getDropdownHeight() const {

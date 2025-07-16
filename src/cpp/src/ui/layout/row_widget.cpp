@@ -29,11 +29,12 @@ void RowWidget::arrangeChildren() {
     int spacingWidgetsWidth = 0;
 
     for (auto& child : children_) {
-         auto expanded = std::dynamic_pointer_cast<ExpandedWidget>(child);
-        auto spacing = std::dynamic_pointer_cast<SpacingWidget>(child);
+        auto expanded = std::dynamic_pointer_cast<ExpandedWidget>(child);
+        auto spacingWidget = std::dynamic_pointer_cast<SpacingWidget>(child);
 
-        if (spacing && child->getWidth() == 0) {
-            spacingWidgetsWidth += child->getHeight();
+        if (spacingWidget) {
+            // In a row, spacing widget width creates horizontal space
+            spacingWidgetsWidth += child->getWidth();
             continue;
         }
 
@@ -80,12 +81,13 @@ void RowWidget::arrangeChildren() {
     
     int currentX = startX;
     
-        for (auto& child : children_) {
+    for (auto& child : children_) {
         auto expanded = std::dynamic_pointer_cast<ExpandedWidget>(child);
         auto spacingWidget = std::dynamic_pointer_cast<SpacingWidget>(child);
 
-        if (spacingWidget && child->getWidth() == 0) {
-            currentX += child->getHeight();
+        if (spacingWidget) {
+            // In a row, spacing widget width creates horizontal space
+            currentX += child->getWidth();
             continue;
         }
 

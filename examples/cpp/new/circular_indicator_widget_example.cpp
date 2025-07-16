@@ -386,8 +386,9 @@ void setupUI() {
 }
 
 int main() {
-    Fern::init(700, 500, "Circular Indicator Widget Example");
+    Fern::initialize();
     setupUI();
-    Fern::run();
+
+    Fern::startRenderLoop();
     return 0;
 }

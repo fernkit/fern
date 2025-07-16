@@ -171,6 +171,7 @@ namespace Fern {
         bool isPointInDropdown(int x, int y) const;
         int getItemIndexAtPoint(int x, int y) const;
         int calculateTextWidth(const std::string& text) const;
+        int calculateOptimalWidth() const;
         int getDropdownHeight() const;
         int getItemHeight() const;
     };

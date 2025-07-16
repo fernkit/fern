@@ -34,10 +34,11 @@ void ColumnWidget::arrangeChildren() {
     
     for (auto& child : children_) {
         auto expanded = std::dynamic_pointer_cast<ExpandedWidget>(child);
-        auto spacingWidget = std::dynamic_pointer_cast<SpacingWidget>(child); // Renamed to spacingWidget
+        auto spacingWidget = std::dynamic_pointer_cast<SpacingWidget>(child);
 
-        if (spacingWidget && child->getHeight() == 0) {
-            spacingWidgetsHeight += child->getWidth(); 
+        if (spacingWidget) {
+            // In a column, spacing widget height creates vertical space
+            spacingWidgetsHeight += child->getHeight();
             continue;
         }
 
@@ -92,10 +93,11 @@ void ColumnWidget::arrangeChildren() {
     
     for (auto& child : children_) {
         auto expanded = std::dynamic_pointer_cast<ExpandedWidget>(child);
-        auto spacingWidget = std::dynamic_pointer_cast<SpacingWidget>(child); 
+        auto spacingWidget = std::dynamic_pointer_cast<SpacingWidget>(child);
 
-        if (spacingWidget && child->getHeight() == 0) {
-            currentY += child->getWidth();
+        if (spacingWidget) {
+            // In a column, spacing widget height creates vertical space
+            currentY += child->getHeight();
             continue;
         }
         

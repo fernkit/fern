@@ -117,12 +117,13 @@ namespace Fern {
             textWidth = Font::getTextWidth(percentageText, style.getFontSize(), FontType::TTF);
             textHeight = Font::getTextHeight(style.getFontSize(), FontType::TTF);
         } else {
-            // Bitmap font calculation
-            int charWidth = style.getFontSize() * 6 / 8;
+            // Bitmap font calculation - more accurate
+            int charWidth = 8 * style.getFontSize(); // Each char is 8 pixels wide scaled
             textWidth = percentageText.length() * charWidth;
-            textHeight = style.getFontSize();
+            textHeight = 8 * style.getFontSize(); // Each char is 8 pixels tall scaled
         }
         
+        // Center the text properly
         int textX = x_ + config_.getRadius() - textWidth / 2;
         int textY = y_ + config_.getRadius() - textHeight / 2;
         

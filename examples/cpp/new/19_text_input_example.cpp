@@ -14,16 +14,19 @@ void setupUI() {
     
     // Text input style
     TextInputStyle style;
-    style.backgroundColor(Colors::White)
+    style.backgroundColor(Colors::Amber)
          .borderColor(Colors::Gray)
-         .focusBorderColor(Colors::Blue)
+         .focusBorderColor(Colors::Blue)  // Changed from Amber to Blue for better visibility
          .textColor(Colors::Black)
+         .cursorColor(Colors::Black)      // Added cursor color
          .padding(10)
-         .fontSize(2);
+         .fontSize(2)
+         .borderWidth(2);                 // Added border width for better visibility
     
-    // Create text input
-    auto textInputConfig = TextInputPresets::Default(0,0);
-    auto textInput = TextInput(textInputConfig);
+    // Create text input with custom style
+    auto textInput = TextInput(TextInputConfig(0, 0, 300, 40)
+        .placeholder("Type something here...")
+        .style(style));
     
     // Handle text changes
     textInput->onTextChanged.connect([](const std::string& text) {
@@ -55,7 +58,7 @@ void setupUI() {
 }
 
 void draw() {
-    Draw::fill(Colors::DarkBlue);
+    Draw::fill(Colors::LightGray);
 }
 
 int main() {

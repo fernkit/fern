@@ -156,6 +156,9 @@ namespace Fern {
         void renderCursor();
         void renderBorder();
         void renderBackground();
+        std::string clipTextToWidth(const std::string& text, int maxWidth) const;
+        std::string getVisibleText(const std::string& text, int availableWidth) const;
+        int getCharWidth(char c) const;
     };
     
     // Helper function with class-based config
