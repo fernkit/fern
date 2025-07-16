@@ -68,3 +68,4 @@ build/
 .github/copilot-instructions.md
 __pycache__/
 *.pyc
+node_modules/
