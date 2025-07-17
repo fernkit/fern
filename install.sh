@@ -164,6 +164,16 @@ install_cpp_library() {
     
     cd ..
     
+    # Copy source files for web compilation
+    log_info "Setting up source files for web builds..."
+    FERN_SRC_DIR="$HOME/.fern/src"
+    mkdir -p "$FERN_SRC_DIR"
+    
+    if [ -d "src/cpp" ]; then
+        cp -r src/cpp/* "$FERN_SRC_DIR/"
+        log_info "Copied Fern source files for web compilation"
+    fi
+    
     log_success "Fern C++ library installed successfully"
 }
 

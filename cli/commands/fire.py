@@ -232,49 +232,64 @@ class FireCommand:
             cmd.extend(["-s", "EXPORTED_FUNCTIONS=['_main']"])
             cmd.extend(["-s", "EXPORTED_RUNTIME_METHODS=['ccall','cwrap']"])
             
-            # Add include paths (use fern source for web builds)
-            fern_source = Path(__file__).parent.parent.parent / "src" / "cpp"
-            if fern_source.exists():
-                cmd.extend(["-I", str(fern_source / "include")])
+            # For web builds, we need to compile Fern source files directly with Emscripten
+            # since static libraries compiled for Linux won't work with WebAssembly
             
-            # Add source file
-            cmd.append(str(main_file))
-            
-            # Add Fern source files for web
-            if fern_source.exists():
-                # Add core files
-                for pattern in ["core/*.cpp", "graphics/*.cpp", "text/*.cpp", "font/*.cpp"]:
-                    for src_file in fern_source.glob(f"src/{pattern}"):
-                        cmd.append(str(src_file))
-                
-                # Add web platform files
-                web_renderer = fern_source / "src/platform/web_renderer.cpp"
-                if web_renderer.exists():
-                    cmd.append(str(web_renderer))
-                
-                cmd.append(str(fern_source / "src/platform/platform_factory.cpp"))
-                cmd.append(str(fern_source / "src/fern.cpp"))
-            
-            # Check for custom template
-            project_template = build_system.project_root / "web" / "template.html"
-            if project_template.exists():
-                # Use custom template
-                cmd.extend(["--shell-file", str(project_template)])
-                cmd.extend(["-o", str(build_dir / "main.html")])
-            else:
-                # Use default Emscripten template
-                cmd.extend(["-o", str(build_dir / "main.html")])
-            
-            print_info("Compiling for web...")
-            result = subprocess.run(cmd, capture_output=True, text=True)
-            
-            if result.returncode != 0:
-                print_error("Web compilation failed:")
-                print(result.stderr)
+            # Try to find Fern source files in the installation
+            fern_src_path = self._find_fern_source_for_web()
+            if not fern_src_path:
+                print_error("Fern source files not found for web compilation.")
+                print_warning("Web builds require Fern source files to be available.")
+                print_info("Solutions:")
+                print_info("1. Reinstall Fern from source: ./install.sh")
+                print_info("2. Clone Fern to ~/git/fern and run ./install.sh")
+                print_info("3. Install using: git clone https://github.com/fernkit/fern")
                 return False
             
-            return True
+            # Temporarily hide installed headers to avoid conflicts
+            installed_headers = Path.home() / ".local/include/fern"
+            backup_headers = Path.home() / ".local/include/fern_backup"
+            headers_moved = False
             
+            try:
+                if installed_headers.exists():
+                    installed_headers.rename(backup_headers)
+                    headers_moved = True
+                
+                # Add include paths - use ONLY the source headers
+                cmd.extend(["-I", str(fern_src_path / "include")])
+                    
+                # Add source file
+                cmd.append(str(main_file))
+                
+                # Add all necessary Fern source files
+                source_files = self._get_fern_web_sources(fern_src_path)
+                cmd.extend([str(f) for f in source_files])
+                
+                # Check for custom template
+                project_template = build_system.project_root / "web" / "template.html"
+                if project_template.exists():
+                    # Use custom template
+                    cmd.extend(["--shell-file", str(project_template)])
+                    cmd.extend(["-o", str(build_dir / "main.html")])
+                else:
+                    # Use default Emscripten template
+                    cmd.extend(["-o", str(build_dir / "main.html")])
+                
+                print_info("Compiling for web...")
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                
+                success = result.returncode == 0
+                if not success:
+                    print_error("Web compilation failed:")
+                    print(result.stderr)
+                
+                return success
+                
+            finally:
+                # Restore headers if they were moved
+                if headers_moved and backup_headers.exists():
+                    backup_headers.rename(installed_headers)
         except Exception as e:
             print_error(f"Web build error: {str(e)}")
             return False
@@ -502,6 +517,60 @@ class FireCommand:
         except Exception as e:
             print_error(f"Error running web file: {str(e)}")
     
+    def _find_fern_source_for_web(self):
+        """Find Fern source files for web compilation"""
+        # First, try the installed source location
+        fern_src = Path.home() / ".fern" / "src"
+        
+        if fern_src.exists() and (fern_src / "src").exists():
+            return fern_src
+        
+        # Try common development locations
+        possible_locations = [
+            Path.home() / "git" / "fern" / "src" / "cpp",
+            Path("/opt/fern/src/cpp"),
+            Path("/usr/local/src/fern/src/cpp"),
+        ]
+        
+        for location in possible_locations:
+            if location.exists() and (location / "src").exists():
+                return location
+        
+        return None
+    
+    def _get_fern_web_sources(self, fern_src_path):
+        """Get list of Fern source files needed for web compilation"""
+        sources = []
+        
+        # Core files
+        core_patterns = [
+            "src/core/*.cpp",
+            "src/graphics/*.cpp", 
+            "src/text/*.cpp",
+            "src/font/*.cpp",
+            "src/ui/containers/*.cpp",
+            "src/ui/layout/*.cpp",
+            "src/ui/widgets/*.cpp",
+            "src/fern.cpp"
+        ]
+        
+        for pattern in core_patterns:
+            for src_file in fern_src_path.glob(pattern):
+                sources.append(src_file)
+        
+        # Add web platform files specifically
+        web_platform_files = [
+            "src/platform/web_renderer.cpp",
+            "src/platform/platform_factory.cpp"
+        ]
+        
+        for web_file in web_platform_files:
+            web_path = fern_src_path / web_file
+            if web_path.exists():
+                sources.append(web_path)
+        
+        return sources
+
     def _run_executable(self, executable_path):
         """Run the compiled executable"""
         try:

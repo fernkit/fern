@@ -224,6 +224,9 @@ Thumbs.db
         
         (project_root / ".gitignore").write_text(gitignore_content)
         
+        # Create VS Code configuration for better development experience
+        self._create_vscode_config(project_root)
+        
         print_info("Created project files:")
         print_info("  ├── fern.yaml")
         print_info("  ├── README.md")
@@ -308,6 +311,79 @@ Thumbs.db
 </body></html>""")
             print_info("Created minimal web template: " + str(template_dest))
     
+    def _create_vscode_config(self, project_root):
+        """Create VS Code configuration for Fern development"""
+        try:
+            vscode_dir = project_root / ".vscode"
+            vscode_dir.mkdir(exist_ok=True)
+            
+            # Create c_cpp_properties.json for IntelliSense
+            cpp_config = {
+                "configurations": [
+                    {
+                        "name": "Linux",
+                        "includePath": [
+                            "${workspaceFolder}/**",
+                            config.get_include_paths()[0] if config.get_include_paths() else "/usr/local/include"
+                        ],
+                        "defines": [],
+                        "compilerPath": "/usr/bin/g++",
+                        "cStandard": "c17",
+                        "cppStandard": "c++17",
+                        "intelliSenseMode": "linux-gcc-x64"
+                    }
+                ],
+                "version": 4
+            }
+            
+            import json
+            (vscode_dir / "c_cpp_properties.json").write_text(json.dumps(cpp_config, indent=4))
+            
+            # Create tasks.json for building
+            tasks_config = {
+                "version": "2.0.0",
+                "tasks": [
+                    {
+                        "label": "Fern: Run Project",
+                        "type": "shell",
+                        "command": "fern",
+                        "args": ["fire"],
+                        "group": {
+                            "kind": "build",
+                            "isDefault": True
+                        },
+                        "presentation": {
+                            "echo": True,
+                            "reveal": "always",
+                            "focus": False,
+                            "panel": "shared"
+                        },
+                        "problemMatcher": []
+                    },
+                    {
+                        "label": "Fern: Run for Web",
+                        "type": "shell",
+                        "command": "fern",
+                        "args": ["fire", "-p", "web"],
+                        "group": "build",
+                        "presentation": {
+                            "echo": True,
+                            "reveal": "always",
+                            "focus": False,
+                            "panel": "shared"
+                        },
+                        "problemMatcher": []
+                    }
+                ]
+            }
+            
+            (vscode_dir / "tasks.json").write_text(json.dumps(tasks_config, indent=4))
+            
+            print_info(f"Created VS Code configuration in {vscode_dir}")
+            
+        except Exception as e:
+            print_warning(f"Could not create VS Code configuration: {e}")
+
     def _show_next_steps(self, project_name):
         """Show what to do next"""
         print()
