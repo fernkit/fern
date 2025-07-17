@@ -1,139 +1,53 @@
-/**
- * @file scene_manager_demo.cpp
- * @brief Comprehensive Scene Manager demonstration
- * 
- * This example demonstrates all the features of the Fern Scene Manager system:
- * - Scene registration and navigation
- * - Lifecycle management (onCreate, onEnter, onExit, onDestroy)
- * - Stack-based navigation (push, pop, replace)
- * - Overlay scenes for modals and pause menus
- * - Widget management per scene
- * - Scene communication and state preservation
- */
-
-#include "../../src/cpp/include/fern/fern.hpp"
+#include <fern/fern.hpp>
 #include <iostream>
-#include <memory>
+#include <chrono>
 
 using namespace Fern;
 
-/**
- * @brief Menu Scene - Main menu with navigation buttons
- * 
- * The main entry point of the application. Provides navigation to
- * different parts of the app and demonstrates basic scene setup.
- */
+// Forward declarations
+class MenuScene;
+class GameScene;
+class SettingsScene;
+class PauseScene;
+
+// Menu Scene - The main menu of the application
 class MenuScene : public Scene {
 public:
     MenuScene() : Scene("MenuScene") {}
     
     void onCreate() override {
-        std::cout << "MenuScene: Created" << std::endl;
-        // One-time initialization could go here
+        std::cout << "Menu scene created" << std::endl;
     }
     
     void onEnter() override {
-        std::cout << "MenuScene: Entered" << std::endl;
+        std::cout << "Entered menu scene" << std::endl;
         setupUI();
     }
     
     void onExit() override {
-        std::cout << "MenuScene: Exited" << std::endl;
-        // IMPORTANT: Always clear widgets to prevent memory leaks
-        WidgetManager::getInstance().clearAll();
-    }
-    
-    void onDestroy() override {
-        std::cout << "MenuScene: Destroyed" << std::endl;
+        std::cout << "Exiting menu scene" << std::endl;
+        WidgetManager::getInstance().clear();
     }
     
     void update(float deltaTime) override {
-        // Update menu animations or logic here
-        // For this demo, we'll just let it be static
+        // Update logic for menu (animations, etc.)
     }
     
     void render() override {
-        // Draw background
         Draw::fill(Colors::DarkBlue);
-        
-        // Draw title manually (as an example of custom rendering)
-        auto titleWidget = std::make_shared<TextWidget>(
-            "Fern Scene Manager Demo",
-            Point(Fern::getWidth() / 2 - 150, 50),
-            Size(300, 40),
-            TextStyle().setTextSize(24).setTextColor(Colors::White)
-        );
-        titleWidget->render();
-        
-        // Render all managed widgets
-        Scene::render();
+        Scene::render(); // Renders all widgets
     }
     
 private:
     void setupUI() {
-        int centerX = Fern::getWidth() / 2;
+        // Title
+        auto title = Text(Point(0, 0), "Fern Scene Manager Demo", 4, Colors::White);
         
-        // Start Game button
-        auto startButton = std::make_shared<ButtonWidget>(
-            "Start Game",
-            Point(centerX - 100, 150),
-            Size(200, 50),
-            ButtonStyle()
-                .setBackgroundColor(Colors::Green)
-                .setTextColor(Colors::White)
-                .setTextSize(18)
-        );
-        startButton->onClick.connect([this]() {
-            pushScene("GameScene");
-        });
-        addWidget(startButton);
-        
-        // Settings button  
-        auto settingsButton = std::make_shared<ButtonWidget>(
-            "Settings",
-            Point(centerX - 100, 220),
-            Size(200, 50),
-            ButtonStyle()
-                .setBackgroundColor(Colors::Blue)
-                .setTextColor(Colors::White)
-                .setTextSize(18)
-        );
-        settingsButton->onClick.connect([this]() {
-            pushScene("SettingsScene");
-        });
-        addWidget(settingsButton);
-        
-        // About button (demonstrates overlay)
-        auto aboutButton = std::make_shared<ButtonWidget>(
-            "About",
-            Point(centerX - 100, 290),
-            Size(200, 50),
-            ButtonStyle()
-                .setBackgroundColor(Colors::Purple)
-                .setTextColor(Colors::White)
-                .setTextSize(18)
-        );
-        aboutButton->onClick.connect([this]() {
-            pushScene("AboutScene");  // This will be an overlay
-        });
-        addWidget(aboutButton);
-        
-        // Quit button
-        auto quitButton = std::make_shared<ButtonWidget>(
-            "Quit",
-            Point(centerX - 100, 360),
-            Size(200, 50),
-            ButtonStyle()
-                .setBackgroundColor(Colors::Red)
-                .setTextColor(Colors::White)
-                .setTextSize(18)
-        );
-        quitButton->onClick.connect([this]() {
-            SceneManager::getInstance().clearScenes();
-        });
-        addWidget(quitButton);
-    }
-};
+        // Menu buttons
+        ButtonStyle buttonStyle;
+        buttonStyle.normalColor(Colors::Blue)
+                  .hoverColor(Colors::LightBlue)
+                  .pressColor(Colors::DarkBlue)
                   .textColor(Colors::White)
                   .textScale(2);
         
