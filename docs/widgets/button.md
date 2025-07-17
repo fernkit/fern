@@ -1,287 +1,636 @@
-# Button Widget
+# Button Widget - Interactive Elements Made Simple
 
-The Button widget is one of the most fundamental interactive elements in Fern. It provides a clickable area that can trigger actions in your application.
+Buttons are the workhorses of user interfaces. Every time you click "Save", "Submit", "OK", or any other action in an application, you're interacting with a button widget. Understanding how buttons work, both conceptually and technically, will give you insight into interactive UI design and help you build better applications.
 
-## Table of Contents
-- [Basic Usage](#basic-usage)
-- [Configuration](#configuration)
-- [Styling](#styling)
-- [Event Handling](#event-handling)
-- [Examples](#examples)
-- [API Reference](#api-reference)
+## What Makes a Button?
 
-## Basic Usage
+At its core, a button is a visual element that:
+- **Looks clickable**: Uses visual cues like borders, colors, and text to signal it's interactive
+- **Responds to interaction**: Changes appearance when you hover over it or click it
+- **Triggers actions**: Executes code when activated, connecting user intent to application logic
+- **Provides feedback**: Gives immediate visual response so users know their click registered
 
-### Simple Button
+In Fern, buttons combine several lower-level concepts:
+- **Rectangle drawing** for the button background
+- **Text rendering** for the button label  
+- **Input handling** to detect mouse interactions
+- **State management** to track hover/pressed/normal states
+- **Signal emission** to notify your code when clicked
+
+## The Anatomy of User Interaction
+
+Before diving into code, let's understand what happens when you interact with a button:
+
+1. **Visual Recognition**: Your eye sees a rectangular area with text that looks clickable
+2. **Hover Feedback**: As you move your mouse over it, the button changes color to confirm it's interactive
+3. **Click Action**: You press the mouse button, and the button visually "presses down" with a different color
+4. **Signal Emission**: The button widget emits a signal that your application code receives
+5. **Action Execution**: Your connected function runs, performing the intended action
+6. **Visual Reset**: The button returns to its normal or hover state
+
+This entire cycle happens in milliseconds, but understanding each step helps you design better interactions.
+
+## Basic Button Usage
+
+The simplest button requires just a position, size, and text label:
+
 ```cpp
 #include <fern/fern.hpp>
 
 using namespace Fern;
 
 void setupUI() {
+    // Create a basic button at position (100, 100) with size 200x50 pixels
     auto button = Button(ButtonConfig(100, 100, 200, 50, "Click Me"));
     
+    // Connect an action to the button's click event
     button->onClick.connect([]() {
         std::cout << "Button clicked!" << std::endl;
     });
     
+    // Add to the widget manager so it renders and receives input
     addWidget(button);
+}
+
+void draw() {
+    Draw::fill(Colors::Black);  // Clear background
+}
+
+int main() {
+    Fern::initialize();
+    setupUI();
+    Fern::setDrawCallback(draw);
+    Fern::startRenderLoop();
+    return 0;
 }
 ```
 
-### Modern Configuration
+This creates a fully functional button with:
+- Default styling (colors, borders, text)
+- Automatic hover effects
+- Click detection and feedback
+- Signal emission when clicked
+
+## Understanding ButtonConfig
+
+The `ButtonConfig` class is your primary tool for defining button properties. It uses a builder pattern that makes configuration both flexible and readable:
+
+```cpp
+// Basic configuration: x, y, width, height, text
+ButtonConfig(100, 100, 200, 50, "My Button")
+
+// Extended configuration with styling
+ButtonConfig(100, 100, 200, 50, "Styled Button")
+    .style(myButtonStyle)
+    .tooltip("This button does something important")
+```
+
+The builder pattern allows you to chain method calls, setting only the properties you need while getting sensible defaults for everything else.
+
+## Button Styling and Visual States
+
+Buttons have three primary visual states, each serving an important purpose in user experience:
+
+### Understanding Visual States
+
+1. **Normal State**: The button's default appearance when not being interacted with
+2. **Hover State**: How the button looks when the mouse cursor is over it (but not clicked)
+3. **Pressed State**: The button's appearance when being actively clicked
+
+These states provide crucial feedback to users about the current interaction state.
+
+### Creating Custom Styles
+
 ```cpp
 void setupUI() {
-    // Create button with modern configuration
+    // Create a custom button style
     ButtonStyle style;
-    style.normalColor(Colors::Blue)
-        .hoverColor(Colors::LightBlue)
-        .pressColor(Colors::DarkBlue)
-        .textColor(Colors::White)
-        .textScale(2);
+    style.normalColor(Colors::Blue)         // Default state: blue background
+         .hoverColor(Colors::LightBlue)     // Hover state: lighter blue
+         .pressColor(Colors::DarkBlue)      // Pressed state: darker blue
+         .textColor(Colors::White)          // Text is always white
+         .textScale(2)                      // Text size multiplier
+         .borderRadius(8);                  // Rounded corners
     
-    auto button = Button(ButtonConfig(100, 100, 200, 50, "Styled Button").style(style));
+    // Apply the style to a button
+    auto styledButton = Button(ButtonConfig(200, 200, 180, 60, "Styled Button").style(style));
     
-    button->onClick.connect([]() {
+    styledButton->onClick.connect([]() {
         std::cout << "Styled button clicked!" << std::endl;
     });
     
-    addWidget(button);
+    addWidget(styledButton);
 }
 ```
 
-### Button Presets
-```cpp
-void setupUI() {
-    // Use predefined button styles for consistency
-    auto primaryButton = Button(ButtonPresets::Primary(50, 50, 150, 40, "Primary"));
-    auto secondaryButton = Button(ButtonPresets::Secondary(50, 100, 150, 40, "Secondary"));
-    auto successButton = Button(ButtonPresets::Success(50, 150, 150, 40, "Success"));
-    auto dangerButton = Button(ButtonPresets::Danger(50, 200, 150, 40, "Danger"));
-    auto warningButton = Button(ButtonPresets::Warning(50, 250, 150, 40, "Warning"));
-    
-    addWidget(primaryButton);
-    addWidget(secondaryButton);
-    addWidget(successButton);
-    addWidget(dangerButton);
-    addWidget(warningButton);
-}
-```
+### Button Style Properties
 
-### Auto-Sizing Button
-```cpp
-void setupUI() {
-    ButtonStyle autoStyle;
-    autoStyle.normalColor(Colors::Purple)
-           .hoverColor(Colors::Magenta)
-           .textColor(Colors::White)
-           .textScale(2);
-    
-    auto button = Button(ButtonConfig(100, 100, 200, 40, "Auto Size").style(autoStyle));
-    
-    button->onClick.connect([button]() {
-        static std::vector<std::string> texts = {
-            "Short", "Medium text", "Very long button text here", "Auto Size"
-        };
-        static int index = 0;
-        index = (index + 1) % texts.size();
-        
-        // Update text and auto-size
-        ButtonConfig newConfig(button->getX(), button->getY(), 200, 40, texts[index]);
-        newConfig.style(autoStyle);
-        button->setConfig(newConfig);
-        button->autoSizeToContent(20);  // 20px padding
-    });
-    
-    addWidget(button);
-}
-```
+The `ButtonStyle` class provides comprehensive control over button appearance:
 
-### Border Radius Example
-```cpp
-void setupUI() {
-    ButtonStyle roundedStyle;
-    roundedStyle.normalColor(Colors::Orange)
-              .hoverColor(Colors::Yellow)
-              .pressColor(Colors::Red)
-              .textColor(Colors::Black)
-              .textScale(2)
-              .borderRadius(15);  // Rounded corners
-    
-    auto roundButton = Button(ButtonConfig(100, 100, 120, 60, "Round").style(roundedStyle));
-    addWidget(roundButton);
-}
-```
-
-## Configuration
-
-### ButtonConfig Constructor
-```cpp
-ButtonConfig(int x, int y, int width, int height, const std::string& label)
-```
-
-Parameters:
-- `x, y`: Position of the button
-- `width, height`: Dimensions of the button
-- `label`: Text displayed on the button
-
-### Fluent Configuration
-```cpp
-ButtonConfig config(100, 100, 200, 50, "Button");
-config.style(buttonStyle)
-      .label("New Text")
-      .position(150, 150)
-      .size(250, 60);
-```
-
-## Styling
-
-### ButtonStyle Properties
-
-#### Colors
 ```cpp
 ButtonStyle style;
-style.normalColor(Colors::Blue)        // Default state color
-     .hoverColor(Colors::LightBlue)    // When mouse hovers
-     .pressColor(Colors::DarkBlue)     // When button is pressed
-     .textColor(Colors::White);        // Text color
+
+// Background colors for different states
+style.normalColor(Colors::Green)        // Default background
+     .hoverColor(Colors::LightGreen)    // Hover background  
+     .pressColor(Colors::DarkGreen);    // Pressed background
+
+// Text properties
+style.textColor(Colors::White)          // Text color
+     .textScale(1.5);                   // Text size (1.0 = normal, 2.0 = double)
+
+// Border and shape
+style.borderRadius(10)                  // Rounded corners (0 = square)
+     .borderWidth(2)                    // Border thickness
+     .borderColor(Colors::Black);       // Border color
+
+// Advanced properties
+style.shadow(true)                      // Drop shadow effect
+     .shadowColor(Colors::Gray)         // Shadow color
+     .shadowOffset(2, 2);               // Shadow position offset
 ```
 
-#### Text Properties
+## Event Handling and Signals
+
+Buttons communicate with your application through Fern's signal-slot system. This is a powerful pattern borrowed from frameworks like Qt that provides clean separation between UI and logic.
+
+### The Signal-Slot Pattern
+
+A **signal** is an event that can occur (like a button click). A **slot** is a function that responds to that event. You **connect** slots to signals to define what happens when events occur.
+
 ```cpp
-style.textScale(2)                     // Text size multiplier
-     .textColor(Colors::White);        // Text color
-```
+// Signal: button->onClick
+// Slot: the lambda function []() { ... }
+// Connection: .connect() links them together
 
-#### Border Properties
-```cpp
-style.borderRadius(8)                  // Rounded corners
-     .border(2, Colors::Gray);         // Border width and color
-```
-
-### Predefined Styles
-
-#### Primary Button
-```cpp
-ButtonStyle primaryStyle;
-primaryStyle.normalColor(Colors::Blue)
-           .hoverColor(Colors::LightBlue)
-           .pressColor(Colors::DarkBlue)
-           .textColor(Colors::White)
-           .textScale(2)
-           .borderRadius(4);
-```
-
-#### Secondary Button
-```cpp
-ButtonStyle secondaryStyle;
-secondaryStyle.normalColor(Colors::Gray)
-             .hoverColor(Colors::LightGray)
-             .pressColor(Colors::DarkGray)
-             .textColor(Colors::Black)
-             .textScale(2)
-             .borderRadius(4);
-```
-
-#### Danger Button
-```cpp
-ButtonStyle dangerStyle;
-dangerStyle.normalColor(Colors::Red)
-          .hoverColor(Colors::LightRed)
-          .pressColor(Colors::DarkRed)
-          .textColor(Colors::White)
-          .textScale(2)
-          .borderRadius(4);
-```
-
-## Event Handling
-
-### onClick Event
-```cpp
 button->onClick.connect([]() {
-    std::cout << "Button clicked!" << std::endl;
+    std::cout << "This is a slot function!" << std::endl;
 });
 ```
 
-### With Captured Variables
-```cpp
-int counter = 0;
-auto counterText = Text(Point(0, 0), "Count: 0", 2, Colors::White);
+### Multiple Handlers
 
-button->onClick.connect([&counter, counterText]() {
-    counter++;
-    counterText->setText("Count: " + std::to_string(counter));
+You can connect multiple functions to the same button:
+
+```cpp
+auto saveButton = Button(ButtonConfig(0, 0, 100, 40, "Save"));
+
+// Connect multiple handlers
+saveButton->onClick.connect([]() {
+    std::cout << "Saving data..." << std::endl;
 });
+
+saveButton->onClick.connect([]() {
+    std::cout << "Updating UI..." << std::endl;
+});
+
+saveButton->onClick.connect([]() {
+    std::cout << "Logging action..." << std::endl;
+});
+
+// When clicked, all three functions will run in order
 ```
 
-### Lambda with Parameters
+### Capturing Variables
+
+Lambda functions can capture variables from their surrounding scope:
+
 ```cpp
-auto createButton = [](const std::string& name, int id) {
-    auto button = Button(ButtonConfig(0, 0, 100, 40, name));
-    button->onClick.connect([id]() {
-        std::cout << "Button " << id << " clicked!" << std::endl;
+void setupUI() {
+    static int clickCount = 0;  // Static so it persists
+    static std::shared_ptr<TextWidget> counterDisplay;
+    
+    counterDisplay = Text(Point(100, 50), "Clicks: 0", 2, Colors::White);
+    
+    auto countButton = Button(ButtonConfig(100, 100, 150, 50, "Count"));
+    
+    // Capture variables in the lambda
+    countButton->onClick.connect([&]() {
+        clickCount++;
+        counterDisplay->setText("Clicks: " + std::to_string(clickCount));
     });
-    return button;
-};
+    
+    addWidget(counterDisplay);
+    addWidget(countButton);
+}
 ```
 
-## Examples
+## Button Layouts and Positioning
 
-### Example 1: Simple Click Counter
+While you can position buttons with exact coordinates, using layout widgets creates more flexible, responsive interfaces.
+
+### Manual Positioning
+
+```cpp
+// Fixed positions - works but not responsive
+auto button1 = Button(ButtonConfig(100, 100, 120, 40, "Button 1"));
+auto button2 = Button(ButtonConfig(230, 100, 120, 40, "Button 2"));
+auto button3 = Button(ButtonConfig(360, 100, 120, 40, "Button 3"));
+```
+
+### Layout-Based Positioning
+
+```cpp
+// Responsive positioning using layouts
+void setupUI() {
+    std::vector<std::shared_ptr<Widget>> buttons = {
+        Button(ButtonConfig(0, 0, 120, 40, "Save")),
+        SizedBox(10, 0),  // 10 pixels horizontal spacing
+        Button(ButtonConfig(0, 0, 120, 40, "Cancel")),
+        SizedBox(10, 0),
+        Button(ButtonConfig(0, 0, 120, 40, "Help"))
+    };
+    
+    // Create horizontal button row
+    auto buttonRow = Row(buttons);
+    buttonRow.setMainAxisAlignment(MainAxisAlignment::Center);
+    
+    // Center the button row on screen
+    auto centerWidget = std::make_shared<CenterWidget>(0, 0, Fern::getWidth(), Fern::getHeight());
+    centerWidget->add(buttonRow);
+    
+    addWidget(centerWidget);
+}
+```
+
+### Common Button Layout Patterns
+
+**Action Bar (right-aligned buttons):**
+```cpp
+std::vector<std::shared_ptr<Widget>> actionButtons = {
+    Button(ButtonConfig(0, 0, 80, 35, "Cancel")),
+    SizedBox(10, 0),
+    Button(ButtonConfig(0, 0, 80, 35, "OK"))
+};
+
+auto actionRow = Row(actionButtons);
+actionRow.setMainAxisAlignment(MainAxisAlignment::End);  // Right-align
+```
+
+**Button Grid:**
+```cpp
+// First row of buttons
+auto row1 = Row({
+    Button(ButtonConfig(0, 0, 100, 40, "1")),
+    SizedBox(10, 0),
+    Button(ButtonConfig(0, 0, 100, 40, "2")),
+    SizedBox(10, 0),
+    Button(ButtonConfig(0, 0, 100, 40, "3"))
+});
+
+// Second row of buttons
+auto row2 = Row({
+    Button(ButtonConfig(0, 0, 100, 40, "4")),
+    SizedBox(10, 0),
+    Button(ButtonConfig(0, 0, 100, 40, "5")),
+    SizedBox(10, 0),
+    Button(ButtonConfig(0, 0, 100, 40, "6"))
+});
+
+// Combine rows vertically
+auto buttonGrid = Column({
+    row1,
+    SizedBox(0, 10),  // Vertical spacing between rows
+    row2
+});
+```
+
+## Button Presets and Common Styles
+
+Fern provides several preset button styles for common UI patterns:
+
+```cpp
+void setupUI() {
+    std::vector<std::shared_ptr<Widget>> presetButtons = {
+        Button(ButtonPresets::Primary(0, 0, 120, 40, "Primary")),
+        SizedBox(10, 0),
+        Button(ButtonPresets::Secondary(0, 0, 120, 40, "Secondary")),
+        SizedBox(10, 0),
+        Button(ButtonPresets::Success(0, 0, 120, 40, "Success")),
+        SizedBox(10, 0),
+        Button(ButtonPresets::Danger(0, 0, 120, 40, "Danger")),
+        SizedBox(10, 0),
+        Button(ButtonPresets::Warning(0, 0, 120, 40, "Warning"))
+    };
+    
+    auto buttonRow = Row(presetButtons);
+    buttonRow.setMainAxisAlignment(MainAxisAlignment::Center);
+    
+    auto centerWidget = std::make_shared<CenterWidget>(0, 0, Fern::getWidth(), Fern::getHeight());
+    centerWidget->add(buttonRow);
+    addWidget(centerWidget);
+}
+```
+
+These presets follow common UI design conventions:
+- **Primary**: Main action button (usually blue)
+- **Secondary**: Alternative action (usually gray)
+- **Success**: Positive actions like "Save" or "Submit" (usually green)
+- **Danger**: Destructive actions like "Delete" (usually red)
+- **Warning**: Cautionary actions (usually orange/yellow)
+
+## Advanced Button Features
+
+### Auto-Sizing Buttons
+
+Buttons can automatically resize to fit their text content:
+
+```cpp
+auto autoButton = Button(ButtonConfig(0, 0, 100, 40, "Short"));
+
+autoButton->onClick.connect([autoButton]() {
+    static int state = 0;
+    std::vector<std::string> texts = {
+        "Short",
+        "Medium length text",
+        "This is a very long button text that demonstrates auto-sizing"
+    };
+    
+    state = (state + 1) % texts.size();
+    
+    // Update button text and auto-resize
+    ButtonConfig newConfig(autoButton->getX(), autoButton->getY(), 100, 40, texts[state]);
+    autoButton->setConfig(newConfig);
+    autoButton->autoSizeToContent(20);  // 20 pixels padding
+});
+```
+
+### Toggle Buttons
+
+Create buttons that maintain pressed/unpressed state:
+
+```cpp
+void setupUI() {
+    static bool isToggled = false;
+    static std::shared_ptr<ButtonWidget> toggleButton;
+    
+    ButtonStyle normalStyle;
+    normalStyle.normalColor(Colors::Gray).textColor(Colors::White);
+    
+    ButtonStyle toggledStyle;
+    toggledStyle.normalColor(Colors::Blue).textColor(Colors::White);
+    
+    toggleButton = Button(ButtonConfig(0, 0, 120, 40, "Toggle: OFF").style(normalStyle));
+    
+    toggleButton->onClick.connect([&]() {
+        isToggled = !isToggled;
+        
+        if (isToggled) {
+            toggleButton->setText("Toggle: ON");
+            toggleButton->setStyle(toggledStyle);
+        } else {
+            toggleButton->setText("Toggle: OFF");
+            toggleButton->setStyle(normalStyle);
+        }
+    });
+    
+    addWidget(toggleButton);
+}
+```
+
+### Disabled Buttons
+
+Buttons can be disabled to prevent interaction:
+
+```cpp
+ButtonStyle disabledStyle;
+disabledStyle.normalColor(Colors::DarkGray)
+             .textColor(Colors::Gray)
+             .hoverColor(Colors::DarkGray)   // Same as normal
+             .pressColor(Colors::DarkGray);  // Same as normal
+
+auto disabledButton = Button(ButtonConfig(0, 0, 120, 40, "Disabled").style(disabledStyle));
+
+// Don't connect any onClick handlers for disabled buttons
+```
+
+## State Management with Buttons
+
+Buttons often need to update other parts of your interface when clicked. Here are common patterns:
+
+### Counter Example
+
+```cpp
+static int counter = 0;
+static std::shared_ptr<TextWidget> counterDisplay;
+
+void setupUI() {
+    counterDisplay = Text(Point(0, 0), "Count: 0", 3, Colors::White);
+    
+    auto incrementButton = Button(ButtonConfig(0, 0, 80, 40, "+")); 
+    incrementButton->onClick.connect([]() {
+        counter++;
+        counterDisplay->setText("Count: " + std::to_string(counter));
+    });
+    
+    auto decrementButton = Button(ButtonConfig(0, 0, 80, 40, "-"));
+    decrementButton->onClick.connect([]() {
+        counter--;
+        counterDisplay->setText("Count: " + std::to_string(counter));
+    });
+    
+    auto resetButton = Button(ButtonConfig(0, 0, 80, 40, "Reset"));
+    resetButton->onClick.connect([]() {
+        counter = 0;
+        counterDisplay->setText("Count: 0");
+    });
+    
+    std::vector<std::shared_ptr<Widget>> elements = {
+        counterDisplay,
+        SizedBox(0, 20),
+        Row({
+            decrementButton,
+            SizedBox(10, 0),
+            incrementButton, 
+            SizedBox(10, 0),
+            resetButton
+        })
+    };
+    
+    auto centerWidget = std::make_shared<CenterWidget>(0, 0, Fern::getWidth(), Fern::getHeight());
+    centerWidget->add(Column(elements));
+    addWidget(centerWidget);
+}
+```
+
+### Form Validation
+
+```cpp
+static std::shared_ptr<TextInput> emailInput;
+static std::shared_ptr<TextInput> passwordInput;
+static std::shared_ptr<ButtonWidget> submitButton;
+
+void setupUI() {
+    emailInput = TextInput(Point(0, 0), Size(250, 35));
+    passwordInput = TextInput(Point(0, 0), Size(250, 35));
+    
+    // Initially disabled submit button
+    ButtonStyle disabledStyle;
+    disabledStyle.normalColor(Colors::DarkGray).textColor(Colors::Gray);
+    
+    submitButton = Button(ButtonConfig(0, 0, 100, 40, "Submit").style(disabledStyle));
+    
+    // Enable submit button when both fields have content
+    auto validateForm = []() {
+        bool isValid = !emailInput->getText().empty() && !passwordInput->getText().empty();
+        
+        if (isValid) {
+            ButtonStyle enabledStyle;
+            enabledStyle.normalColor(Colors::Green).textColor(Colors::White);
+            submitButton->setStyle(enabledStyle);
+            
+            // Connect submit handler only when enabled
+            submitButton->onClick.connect([]() {
+                std::cout << "Form submitted!" << std::endl;
+            });
+        }
+    };
+    
+    // Validate when text changes (this would need onTextChanged signals)
+    // For now, validate on a separate button click
+    auto validateButton = Button(ButtonConfig(0, 0, 100, 40, "Validate"));
+    validateButton->onClick.connect(validateForm);
+    
+    std::vector<std::shared_ptr<Widget>> formElements = {
+        Text(Point(0, 0), "Email:", 2, Colors::White),
+        SizedBox(0, 5),
+        emailInput,
+        SizedBox(0, 15),
+        Text(Point(0, 0), "Password:", 2, Colors::White),
+        SizedBox(0, 5),
+        passwordInput,
+        SizedBox(0, 20),
+        Row({validateButton, SizedBox(10, 0), submitButton})
+    };
+    
+    auto centerWidget = std::make_shared<CenterWidget>(0, 0, Fern::getWidth(), Fern::getHeight());
+    centerWidget->add(Column(formElements));
+    addWidget(centerWidget);
+}
+```
+
+## Performance and Best Practices
+
+### Button Creation Efficiency
+
+Create buttons once in `setupUI()`, not every frame:
+
+```cpp
+// Good - create once
+void setupUI() {
+    auto button = Button(ButtonConfig(0, 0, 100, 40, "Click"));
+    addWidget(button);
+}
+
+// Bad - creates new button every frame
+void draw() {
+    auto button = Button(ButtonConfig(0, 0, 100, 40, "Click"));  // Don't do this!
+    addWidget(button);
+}
+```
+
+### Memory Management
+
+Use shared_ptr for buttons you need to reference later:
+
+```cpp
+static std::shared_ptr<ButtonWidget> importantButton;
+
+void setupUI() {
+    importantButton = Button(ButtonConfig(0, 0, 100, 40, "Important"));
+    
+    importantButton->onClick.connect([]() {
+        // Can safely reference importantButton here
+        importantButton->setText("Clicked!");
+    });
+    
+    addWidget(importantButton);
+}
+```
+
+### Event Handler Performance
+
+Keep event handlers lightweight:
+
+```cpp
+// Good - quick operations
+button->onClick.connect([]() {
+    counter++;
+    updateDisplay();
+});
+
+// Be careful with heavy operations
+button->onClick.connect([]() {
+    // Heavy file I/O or network operations might block the UI
+    // Consider using background threads for heavy work
+    processLargeFile();  // This could cause lag
+});
+```
+
+## Troubleshooting Common Issues
+
+### Button Not Responding
+
+**Problem**: Button appears but doesn't respond to clicks
+**Solutions**:
+- Ensure you called `addWidget(button)`
+- Check that another widget isn't covering the button
+- Verify the button's position is within the window bounds
+
+### Button Not Appearing
+
+**Problem**: Button doesn't show up on screen
+**Solutions**:
+- Check button position and size (e.g., not at negative coordinates)
+- Ensure `addWidget()` was called after button creation
+- Verify the button isn't positioned outside the window
+
+### Click Handler Not Working
+
+**Problem**: Button responds visually but click handler doesn't run
+**Solutions**:
+- Ensure you connected the handler with `.connect()`
+- Check that the lambda capture is correct (use `[&]` or `[=]` as needed)
+- Verify the handler code doesn't throw exceptions
+
+### Layout Issues
+
+**Problem**: Button appears in wrong position when using layouts
+**Solutions**:
+- Use `Point(0, 0)` for buttons inside layout widgets
+- Check your layout hierarchy and alignment settings
+- Add proper `SizedBox` spacing between elements
+
+## Complete Working Examples
+
+### Simple Click Counter
+
 ```cpp
 #include <fern/fern.hpp>
 #include <iostream>
 
 using namespace Fern;
 
-static int clickCount = 0;
-static std::shared_ptr<TextWidget> counterDisplay;
+static int clicks = 0;
+static std::shared_ptr<TextWidget> display;
 
 void setupUI() {
-    // Counter display
-    counterDisplay = Text(Point(0, 0), "Clicks: 0", 3, Colors::White);
+    display = Text(Point(0, 0), "Clicks: 0", 3, Colors::White);
     
-    // Click button
-    ButtonStyle clickStyle;
-    clickStyle.normalColor(Colors::Blue)
-             .hoverColor(Colors::LightBlue)
-             .pressColor(Colors::DarkBlue)
-             .textColor(Colors::White)
-             .textScale(2);
-    
-    auto clickButton = Button(ButtonConfig(0, 0, 150, 50, "Click Me!").style(clickStyle));
+    auto clickButton = Button(ButtonConfig(0, 0, 150, 50, "Click Me!"));
     clickButton->onClick.connect([]() {
-        clickCount++;
-        counterDisplay->setText("Clicks: " + std::to_string(clickCount));
+        clicks++;
+        display->setText("Clicks: " + std::to_string(clicks));
     });
     
-    // Reset button
-    ButtonStyle resetStyle;
-    resetStyle.normalColor(Colors::Red)
-             .hoverColor(Colors::LightRed)
-             .pressColor(Colors::DarkRed)
-             .textColor(Colors::White)
-             .textScale(2);
-    
-    auto resetButton = Button(ButtonConfig(0, 0, 100, 40, "Reset").style(resetStyle));
-    resetButton->onClick.connect([]() {
-        clickCount = 0;
-        counterDisplay->setText("Clicks: 0");
-    });
-    
-    // Layout
-    std::vector<std::shared_ptr<Widget>> children = {
-        counterDisplay,
+    std::vector<std::shared_ptr<Widget>> elements = {
+        display,
         SizedBox(0, 30),
-        clickButton,
-        SizedBox(0, 20),
-        resetButton
+        clickButton
     };
     
-    int width = Fern::getWidth();
-    int height = Fern::getHeight();
-    auto centerWidget = std::make_shared<CenterWidget>(0, 0, width, height);
-    centerWidget->add(Column(children));
+    auto centerWidget = std::make_shared<CenterWidget>(0, 0, Fern::getWidth(), Fern::getHeight());
+    centerWidget->add(Column(elements));
     addWidget(centerWidget);
 }
 
@@ -298,7 +647,8 @@ int main() {
 }
 ```
 
-### Example 2: Color Selector
+### Multi-Button Interface
+
 ```cpp
 #include <fern/fern.hpp>
 #include <iostream>
@@ -308,47 +658,51 @@ using namespace Fern;
 static std::shared_ptr<TextWidget> statusText;
 
 void setupUI() {
-    statusText = Text(Point(0, 0), "Select a color:", 2, Colors::White);
+    statusText = Text(Point(0, 0), "Ready", 2, Colors::White);
     
-    // Color buttons
-    auto createColorButton = [](uint32_t color, const std::string& name) {
-        ButtonStyle style;
-        style.normalColor(color)
-             .hoverColor(Colors::White)
-             .pressColor(Colors::Gray)
-             .textColor(Colors::Black)
-             .textScale(1);
-        
-        auto button = Button(ButtonConfig(0, 0, 80, 80, "").style(style));
-        button->onClick.connect([name]() {
-            statusText->setText(name + " selected!");
-        });
-        
-        return button;
-    };
+    // Create styled buttons
+    ButtonStyle successStyle;
+    successStyle.normalColor(Colors::Green).hoverColor(Colors::LightGreen).textColor(Colors::White);
     
-    std::vector<std::shared_ptr<Widget>> colorRow = {
-        createColorButton(Colors::Red, "Red"),
-        SizedBox(15, 0),
-        createColorButton(Colors::Green, "Green"),
-        SizedBox(15, 0),
-        createColorButton(Colors::Blue, "Blue"),
-        SizedBox(15, 0),
-        createColorButton(Colors::Yellow, "Yellow")
-    };
+    ButtonStyle warningStyle;
+    warningStyle.normalColor(Colors::Orange).hoverColor(Colors::Gold).textColor(Colors::White);
     
-    std::vector<std::shared_ptr<Widget>> mainColumn = {
-        Text(Point(0, 0), "Color Picker", 3, Colors::White),
+    ButtonStyle dangerStyle;  
+    dangerStyle.normalColor(Colors::Red).hoverColor(Colors::LightRed).textColor(Colors::White);
+    
+    auto saveButton = Button(ButtonConfig(0, 0, 100, 40, "Save").style(successStyle));
+    auto warningButton = Button(ButtonConfig(0, 0, 100, 40, "Warning").style(warningStyle));
+    auto deleteButton = Button(ButtonConfig(0, 0, 100, 40, "Delete").style(dangerStyle));
+    
+    // Connect handlers
+    saveButton->onClick.connect([]() {
+        statusText->setText("Data saved successfully!");
+    });
+    
+    warningButton->onClick.connect([]() {
+        statusText->setText("Warning: Check your inputs!");
+    });
+    
+    deleteButton->onClick.connect([]() {
+        statusText->setText("Item deleted!");
+    });
+    
+    std::vector<std::shared_ptr<Widget>> elements = {
+        Text(Point(0, 0), "Button Demo", 4, Colors::White),
         SizedBox(0, 30),
         statusText,
-        SizedBox(0, 40),
-        Row(colorRow)
+        SizedBox(0, 30),
+        Row({
+            saveButton,
+            SizedBox(15, 0),
+            warningButton,
+            SizedBox(15, 0),
+            deleteButton
+        })
     };
     
-    int width = Fern::getWidth();
-    int height = Fern::getHeight();
-    auto centerWidget = std::make_shared<CenterWidget>(0, 0, width, height);
-    centerWidget->add(Column(mainColumn));
+    auto centerWidget = std::make_shared<CenterWidget>(0, 0, Fern::getWidth(), Fern::getHeight());
+    centerWidget->add(Column(elements));
     addWidget(centerWidget);
 }
 
@@ -365,286 +719,5 @@ int main() {
 }
 ```
 
-### Example 3: Toggle Button
-```cpp
-#include <fern/fern.hpp>
-#include <iostream>
+Understanding buttons deeply - from their visual states to their event handling to their role in larger interfaces - gives you a solid foundation for building any kind of interactive application. Buttons might seem simple, but they embody many fundamental concepts of UI design and user interaction that apply throughout interface development.
 
-using namespace Fern;
-
-static std::shared_ptr<TextWidget> modeText;
-static std::shared_ptr<ButtonWidget> toggleButton;
-static bool isOn = false;
-
-void setupUI() {
-    modeText = Text(Point(0, 0), "Mode: OFF", 3, Colors::Red);
-    
-    // Create toggle button
-    ButtonStyle offStyle;
-    offStyle.normalColor(Colors::Gray)
-           .hoverColor(Colors::LightGray)
-           .pressColor(Colors::DarkGray)
-           .textColor(Colors::White)
-           .textScale(2);
-    
-    toggleButton = Button(ButtonConfig(0, 0, 120, 50, "Turn ON").style(offStyle));
-    
-    toggleButton->onClick.connect([]() {
-        isOn = !isOn;
-        
-        if (isOn) {
-            modeText->setText("Mode: ON");
-            modeText->setColor(Colors::Green);
-            
-            ButtonStyle onStyle;
-            onStyle.normalColor(Colors::Green)
-                  .hoverColor(Colors::LightGreen)
-                  .pressColor(Colors::DarkGreen)
-                  .textColor(Colors::White)
-                  .textScale(2);
-            
-            toggleButton->setConfig(ButtonConfig(0, 0, 120, 50, "Turn OFF").style(onStyle));
-        } else {
-            modeText->setText("Mode: OFF");
-            modeText->setColor(Colors::Red);
-            
-            ButtonStyle offStyle;
-            offStyle.normalColor(Colors::Gray)
-                   .hoverColor(Colors::LightGray)
-                   .pressColor(Colors::DarkGray)
-                   .textColor(Colors::White)
-                   .textScale(2);
-            
-            toggleButton->setConfig(ButtonConfig(0, 0, 120, 50, "Turn ON").style(offStyle));
-        }
-    });
-    
-    std::vector<std::shared_ptr<Widget>> children = {
-        Text(Point(0, 0), "Toggle Switch", 3, Colors::White),
-        SizedBox(0, 30),
-        modeText,
-        SizedBox(0, 40),
-        toggleButton
-    };
-    
-    int width = Fern::getWidth();
-    int height = Fern::getHeight();
-    auto centerWidget = std::make_shared<CenterWidget>(0, 0, width, height);
-    centerWidget->add(Column(children));
-    addWidget(centerWidget);
-}
-
-void draw() {
-    Draw::fill(Colors::DarkGray);
-}
-
-int main() {
-    Fern::initialize();
-    setupUI();
-    Fern::setDrawCallback(draw);
-    Fern::startRenderLoop();
-    return 0;
-}
-```
-
-## API Reference
-
-### ButtonConfig Class
-
-#### Constructor
-```cpp
-ButtonConfig(int x, int y, int width, int height, const std::string& label)
-```
-
-#### Methods
-```cpp
-ButtonConfig& style(const ButtonStyle& s)     // Set button style
-ButtonConfig& label(const std::string& text)  // Set button text
-ButtonConfig& position(int x, int y)          // Set position
-ButtonConfig& size(int width, int height)     // Set size
-```
-
-#### Getters
-```cpp
-int getX() const
-int getY() const
-int getWidth() const
-int getHeight() const
-const std::string& getLabel() const
-const ButtonStyle& getStyle() const
-```
-
-### ButtonStyle Class
-
-#### Color Methods
-```cpp
-ButtonStyle& normalColor(uint32_t color)    // Default state color
-ButtonStyle& hoverColor(uint32_t color)     // Hover state color
-ButtonStyle& pressColor(uint32_t color)     // Pressed state color
-ButtonStyle& textColor(uint32_t color)      // Text color
-```
-
-#### Text Methods
-```cpp
-ButtonStyle& textScale(int scale)           // Text size multiplier
-```
-
-#### Border Methods
-```cpp
-ButtonStyle& borderRadius(int radius)       // Corner radius
-ButtonStyle& border(int width, uint32_t color) // Border properties
-```
-
-#### Getters
-```cpp
-uint32_t getNormalColor() const
-uint32_t getHoverColor() const
-uint32_t getPressColor() const
-uint32_t getTextColor() const
-int getTextScale() const
-int getBorderRadius() const
-int getBorderWidth() const
-uint32_t getBorderColor() const
-```
-
-### ButtonWidget Class
-
-#### Events
-```cpp
-Signal<> onClick    // Fired when button is clicked
-```
-
-#### Methods
-```cpp
-void setConfig(const ButtonConfig& config)  // Update button configuration
-void setText(const std::string& text)       // Change button text
-void setStyle(const ButtonStyle& style)     // Update button style
-```
-
-### Auto-Sizing Methods
-```cpp
-void autoSizeToContent(int padding = 16)           // Auto-size button to fit text
-static int calculateTextWidth(const std::string& text, int textScale)  // Calculate text width
-static int calculateTextHeight(int textScale)      // Calculate text height
-```
-
-### Button Presets
-
-#### Primary Button
-```cpp
-ButtonConfig ButtonPresets::Primary(int x, int y, int width, int height, const std::string& label)
-```
-Bootstrap-style primary button (blue theme).
-
-#### Secondary Button  
-```cpp
-ButtonConfig ButtonPresets::Secondary(int x, int y, int width, int height, const std::string& label)
-```
-Bootstrap-style secondary button (gray theme).
-
-#### Success Button
-```cpp
-ButtonConfig ButtonPresets::Success(int x, int y, int width, int height, const std::string& label)
-```
-Bootstrap-style success button (green theme).
-
-#### Danger Button
-```cpp
-ButtonConfig ButtonPresets::Danger(int x, int y, int width, int height, const std::string& label)
-```
-Bootstrap-style danger button (red theme).
-
-#### Warning Button
-```cpp
-ButtonConfig ButtonPresets::Warning(int x, int y, int width, int height, const std::string& label)
-```
-Bootstrap-style warning button (yellow/orange theme).
-
-### Border Radius Support
-The Button widget now supports rounded corners through the `borderRadius()` method:
-```cpp
-ButtonStyle style;
-style.borderRadius(10);  // 10 pixel corner radius
-```
-
-## Common Issues and Solutions
-
-### Toggle Button Position Fix
-**Problem**: Button position resets to (0,0) after state change.
-
-**Solution**: Preserve position when updating button config:
-```cpp
-toggleButton->onClick.connect([toggleButton]() {
-    // Preserve current position
-    int currentX = toggleButton->getX();
-    int currentY = toggleButton->getY();
-    
-    ButtonConfig newConfig(currentX, currentY, 120, 50, "New Text");
-    newConfig.style(newStyle);
-    toggleButton->setConfig(newConfig);
-});
-```
-
-### Auto-Sizing Implementation
-**Problem**: Button doesn't automatically resize based on content.
-
-**Solution**: Use the `autoSizeToContent()` method:
-```cpp
-button->setConfig(newConfig);
-button->autoSizeToContent(20);  // 20px padding around text
-```
-
-### Responsive Button Width
-**Problem**: Button doesn't adapt to window resize.
-
-**Solution**: Update button width in resize callback:
-```cpp
-void onWindowResize(int newWidth, int newHeight) {
-    if (responsiveButton) {
-        int newButtonWidth = newWidth * 0.3;  // 30% of screen width
-        ButtonConfig newConfig(0, 0, newButtonWidth, 50, "Responsive");
-        responsiveButton->setConfig(newConfig);
-    }
-}
-```
-
-### Border Radius Not Visible
-**Problem**: Setting border radius doesn't change button appearance.
-
-**Solution**: Ensure you're using a recent version with rounded rectangle support. The border radius is now properly implemented using `Draw::roundedRect()`.
-
-## Best Practices
-
-### Consistent Button Sizing
-Use button presets for consistent styling across your application:
-```cpp
-// Good: Consistent styling
-auto saveButton = Button(ButtonPresets::Primary(x, y, 120, 40, "Save"));
-auto cancelButton = Button(ButtonPresets::Secondary(x, y + 50, 120, 40, "Cancel"));
-
-// Avoid: Inconsistent manual styling
-auto saveButton = Button(ButtonConfig(x, y, 120, 40, "Save")
-    .style(ButtonStyle().normalColor(0xFF123456))); // Random color
-```
-
-### Responsive Design
-Make buttons adapt to screen size:
-```cpp
-int screenWidth = Fern::getWidth();
-int buttonWidth = std::min(200, screenWidth * 0.4);  // Max 200px or 40% of screen
-auto button = Button(ButtonConfig(x, y, buttonWidth, 40, "Responsive"));
-```
-
-### Auto-Sizing for Dynamic Content
-Use auto-sizing for buttons with changing text:
-```cpp
-button->onClick.connect([button]() {
-    // Update text
-    ButtonConfig newConfig = button->getConfig();
-    newConfig.label("New dynamic text");
-    button->setConfig(newConfig);
-    
-    // Auto-size to fit
-    button->autoSizeToContent(15);  // 15px padding
-});
-```

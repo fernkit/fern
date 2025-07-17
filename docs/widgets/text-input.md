@@ -1,561 +1,659 @@
-# Text Input Widget
+# Text Input Widget Guide
 
-The `TextInputWidget` provides an interactive text input field that allows users to type and edit text. It supports placeholders, text validation, focus management, and customizable styling.
+Text input fields are the bridge between users and your application - they're how people communicate their thoughts, preferences, and data to your program. In this guide, you'll learn how to create responsive, accessible text input widgets in Fern while understanding the complex systems behind keyboard input, text rendering, and user interaction.
 
-## Table of Contents
-- [Basic Usage](#basic-usage)
-- [Configuration](#configuration)
-- [Styling](#styling)
-- [Events and Signals](#events-and-signals)
-- [Focus Management](#focus-management)
-- [Advanced Features](#advanced-features)
-- [Examples](#examples)
-- [Best Practices](#best-practices)
-- [Troubleshooting](#troubleshooting)
+## Understanding Text Input Systems
 
-## Basic Usage
+Creating a text input widget involves orchestrating several complex systems:
 
-### Creating a Text Input
+1. **Keyboard Input Handling**: Capturing keypresses, handling special keys, and managing text composition
+2. **Text Rendering**: Drawing characters as the user types, handling different fonts and sizes
+3. **Cursor Management**: Positioning and animating the text cursor, handling selection
+4. **Focus States**: Managing which input field is active and responding to focus changes
+5. **Text Validation**: Constraining input length, filtering characters, providing feedback
+
+Fern handles these complexities while exposing a clean, modern API that feels natural to use.
+
+## Text Input Philosophy in Fern
+
+Fern's text input system follows these principles:
+
+- **Visual Feedback**: Clear indication of active state, cursor position, and input constraints
+- **Responsive Interaction**: Immediate visual response to user actions
+- **Flexible Styling**: Support for both bitmap and TTF fonts with comprehensive theming
+- **Signal-Based Communication**: Type-safe event handling for text changes and user actions
+- **Accessibility First**: Proper focus management and keyboard navigation
+
+This approach ensures text inputs feel natural and responsive while maintaining the educational transparency that makes Fern special.
+
+## Your First Text Input
+
+Let's start with the simplest possible text input:
 
 ```cpp
 #include <fern/fern.hpp>
+
 using namespace Fern;
 
-// Basic text input
-auto textInput = TextInput(TextInputConfig(100, 100, 200, 30));
-
-// With placeholder
-auto textInput = TextInput(
-    TextInputConfig(100, 100, 200, 30)
-        .placeholder("Enter your name...")
-);
-
-// Using presets
-auto textInput = TextInput(TextInputPresets::Default(100, 100));
-```
-
-### Simple Example
-
-```cpp
-void setupUI() {
-    // Create a text input
-    auto textInput = TextInput(
-        TextInputConfig(100, 100, 300, 40)
-            .placeholder("Type something...")
-    );
+int main() {
+    // Initialize Fern
+    setupFern();
+    
+    // Create a basic text input
+    auto textInput = TextInput(TextInputConfig(100, 100, 200, 30));
     
     // Handle text changes
     textInput->onTextChanged.connect([](const std::string& text) {
-        std::cout << "Text: " << text << std::endl;
+        std::cout << "User typed: " << text << std::endl;
     });
     
-    // Handle enter key
-    textInput->onEnterPressed.connect([](const std::string& text) {
-        std::cout << "Submitted: " << text << std::endl;
-    });
+    // Start the game loop
+    while (shouldKeepRunning()) {
+        processInput();
+        render();
+    }
     
-    addWidget(textInput);
+    return 0;
 }
 ```
 
-## Configuration
+**What's happening here?**
+- `TextInputConfig(100, 100, 200, 30)`: Position (100,100) with size 200x30 pixels
+- `onTextChanged`: Signal emitted whenever the user types or deletes text
+- The input automatically handles cursor movement, character insertion, and visual feedback
 
-### TextInputConfig
+Click the text field and start typing - you'll see immediate visual feedback and console output.
 
-The `TextInputConfig` class provides a fluent interface for configuring text input properties:
+## Understanding Focus and Interaction
 
-```cpp
-TextInputConfig config(x, y, width, height);
-
-// Method chaining
-config.placeholder("Enter text...")
-      .maxLength(100)
-      .style(customStyle);
-
-// Individual setters
-config.setPosition(200, 150);
-config.setSize(400, 50);
-```
-
-### Configuration Properties
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `x, y` | `int` | Required | Position coordinates |
-| `width, height` | `int` | Required | Widget dimensions |
-| `placeholder` | `std::string` | `""` | Placeholder text when empty |
-| `maxLength` | `size_t` | `256` | Maximum text length |
-| `style` | `TextInputStyle` | Default | Visual styling |
-
-### Preset Configurations
+Text inputs use **focus** to determine which field is active for keyboard input:
 
 ```cpp
-// Standard text input
-auto input1 = TextInput(TextInputPresets::Default(100, 100));
+// Create multiple text inputs
+auto nameInput = TextInput(TextInputConfig(100, 50, 200, 30).placeholder("Name"));
+auto emailInput = TextInput(TextInputConfig(100, 100, 200, 30).placeholder("Email"));
 
-// Modern styled input
-auto input2 = TextInput(TextInputPresets::Modern(100, 150));
-
-// TTF font input
-auto input3 = TextInput(TextInputPresets::WithTTF(100, 200, "Arial"));
-```
-
-## Styling
-
-### TextInputStyle
-
-The `TextInputStyle` class provides comprehensive styling options:
-
-```cpp
-TextInputStyle style;
-style.backgroundColor(0xFFFFFF)     // White background
-     .borderColor(0x888888)         // Gray border
-     .focusBorderColor(0x0066CC)    // Blue focus border
-     .textColor(0x000000)           // Black text
-     .cursorColor(0x000000)         // Black cursor
-     .borderWidth(2)                // 2px border
-     .padding(8)                    // 8px internal padding
-     .fontSize(16);                 // 16px font size
-```
-
-### Font Configuration
-
-```cpp
-// Bitmap font (default)
-style.useBitmapFont()
-     .fontSize(2);  // Scale factor for bitmap font
-
-// TTF font
-style.useTTFFont("Arial")
-     .fontSize(18);  // Point size for TTF font
-```
-
-### Style Properties
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `backgroundColor` | `uint32_t` | `0xFFFFFF` | Background color |
-| `borderColor` | `uint32_t` | `0x888888` | Border color |
-| `focusBorderColor` | `uint32_t` | `0x0066CC` | Focus border color |
-| `textColor` | `uint32_t` | `0x000000` | Text color |
-| `cursorColor` | `uint32_t` | `0x000000` | Cursor color |
-| `borderWidth` | `int` | `1` | Border width in pixels |
-| `padding` | `int` | `4` | Internal padding |
-| `fontSize` | `int` | `2` | Font size |
-
-### Color Examples
-
-```cpp
-// Using color constants
-style.backgroundColor(Colors::White)
-     .borderColor(Colors::Gray)
-     .focusBorderColor(Colors::Blue)
-     .textColor(Colors::Black);
-
-// Using hex colors
-style.backgroundColor(0xF5F5F5)     // Light gray
-     .borderColor(0xDDDDDD)         // Light border
-     .focusBorderColor(0x4CAF50)    // Green focus
-     .textColor(0x333333);          // Dark text
-```
-
-## Events and Signals
-
-### Available Signals
-
-```cpp
-// Text changed signal
-textInput->onTextChanged.connect([](const std::string& text) {
-    // Called whenever text changes
+// Handle focus changes
+nameInput->onFocusChanged.connect([](bool focused) {
+    if (focused) {
+        std::cout << "Name field is now active" << std::endl;
+    }
 });
 
-// Enter key pressed
-textInput->onEnterPressed.connect([](const std::string& text) {
-    // Called when user presses Enter
-});
-
-// Focus changed
-textInput->onFocusChanged.connect([](bool hasFocus) {
-    // Called when focus state changes
-});
-```
-
-### Event Handling Example
-
-```cpp
-void setupTextInput() {
-    auto textInput = TextInput(TextInputConfig(100, 100, 300, 40)
-        .placeholder("Search...")
-        .maxLength(50));
-    
-    // Real-time search
-    textInput->onTextChanged.connect([](const std::string& text) {
-        if (text.length() > 2) {
-            performSearch(text);
-        }
-    });
-    
-    // Submit search
-    textInput->onEnterPressed.connect([](const std::string& text) {
-        if (!text.empty()) {
-            submitSearch(text);
-        }
-    });
-    
-    // Visual feedback on focus
-    textInput->onFocusChanged.connect([textInput](bool focused) {
-        if (focused) {
-            // Highlight or show help text
-        }
-    });
-}
-```
-
-## Focus Management
-
-### Focus Control
-
-```cpp
-// Set focus programmatically
-textInput->setFocus(true);
-
-// Check focus state
-if (textInput->isFocused()) {
-    // Handle focused state
-}
-
-// Remove focus
-textInput->setFocus(false);
-```
-
-### Focus Styling
-
-```cpp
-// Different colors for focused/unfocused states
-TextInputStyle style;
-style.borderColor(Colors::Gray)
-     .focusBorderColor(Colors::Blue);  // Changes when focused
-
-// The widget automatically switches between these colors
-```
-
-## Advanced Features
-
-### Text Manipulation
-
-```cpp
-// Set text programmatically
-textInput->setText("Hello, World!");
-
-// Get current text
-std::string currentText = textInput->getText();
-
-// Clear text
-textInput->clear();
-
-// Update placeholder
-textInput->setPlaceholder("New placeholder...");
-```
-
-### Validation Example
-
-```cpp
-textInput->onTextChanged.connect([](const std::string& text) {
-    // Email validation
-    if (text.find('@') == std::string::npos && !text.empty()) {
-        // Show error state
-    } else {
-        // Show normal state
+emailInput->onFocusChanged.connect([](bool focused) {
+    if (focused) {
+        std::cout << "Email field is now active" << std::endl;
     }
 });
 ```
 
-### Character Limits
+**Focus Behavior:**
+- **Click to focus**: Clicking a text input gives it focus
+- **Tab navigation**: Tab key moves between focusable widgets
+- **Visual indication**: Focused inputs show a different border color
+- **Exclusive focus**: Only one input can be focused at a time
+
+## Styling Your Text Inputs
+
+Fern provides comprehensive styling options through the `TextInputStyle` system:
 
 ```cpp
-// Set maximum length
-auto textInput = TextInput(
-    TextInputConfig(100, 100, 300, 40)
-        .maxLength(20)  // Maximum 20 characters
-        .placeholder("Max 20 chars")
+// Create a modern-looking text input
+TextInputStyle modernStyle;
+modernStyle.backgroundColor(Colors::White)
+           .borderColor(Colors::LightGray)
+           .focusBorderColor(Colors::Blue)
+           .textColor(Colors::Black)
+           .padding(10)
+           .borderWidth(2);
+
+auto styledInput = TextInput(
+    TextInputConfig(100, 100, 250, 40)
+        .placeholder("Modern input...")
+        .style(modernStyle)
+);
+```
+
+### Font Styling
+
+Text inputs support both bitmap and TTF fonts:
+
+```cpp
+// Bitmap font input (retro style)
+TextInputStyle retroStyle;
+retroStyle.useBitmapFont()
+          .fontSize(3)
+          .backgroundColor(Colors::Black)
+          .textColor(Colors::Green)
+          .borderColor(Colors::DarkGreen);
+
+auto retroInput = TextInput(
+    TextInputConfig(100, 150, 300, 35)
+        .placeholder("RETRO INPUT...")
+        .style(retroStyle)
 );
 
-// Check length in handler
+// TTF font input (modern style)
+TextInputStyle modernStyle;
+modernStyle.useTTFFont("arial")
+           .fontSize(18)
+           .backgroundColor(Colors::White)
+           .textColor(Colors::DarkBlue)
+           .padding(8);
+
+auto modernInput = TextInput(
+    TextInputConfig(100, 200, 300, 40)
+        .placeholder("Modern input...")
+        .style(modernStyle)
+);
+```
+
+### Color States
+
+Different visual states provide user feedback:
+
+```cpp
+TextInputStyle stateStyle;
+stateStyle.backgroundColor(Colors::White)
+          .borderColor(Colors::Gray)           // Normal state
+          .focusBorderColor(Colors::Blue)      // When focused
+          .textColor(Colors::Black)            // Text color
+          .cursorColor(Colors::Red);           // Cursor color
+
+auto stateInput = TextInput(
+    TextInputConfig(100, 250, 200, 30)
+        .style(stateStyle)
+);
+```
+
+## Event Handling and Signals
+
+Text inputs communicate through Fern's signal system:
+
+### Text Change Events
+
+```cpp
+auto textInput = TextInput(TextInputConfig(100, 100, 200, 30));
+
+// Triggered on every character typed or deleted
 textInput->onTextChanged.connect([](const std::string& text) {
-    if (text.length() >= 20) {
-        // Handle max length reached
+    std::cout << "Current text: '" << text << "'" << std::endl;
+    
+    // Real-time validation
+    if (text.length() > 10) {
+        std::cout << "Warning: Text is getting long!" << std::endl;
     }
 });
 ```
 
-## Examples
+### Enter Key Handling
+
+```cpp
+// Triggered when user presses Enter
+textInput->onEnterPressed.connect([](const std::string& text) {
+    std::cout << "User submitted: '" << text << "'" << std::endl;
+    
+    // Process the input
+    if (!text.empty()) {
+        processUserInput(text);
+    }
+});
+```
+
+### Focus Management
+
+```cpp
+textInput->onFocusChanged.connect([](bool focused) {
+    if (focused) {
+        std::cout << "Input gained focus - user can now type" << std::endl;
+    } else {
+        std::cout << "Input lost focus - user finished editing" << std::endl;
+    }
+});
+```
+
+## Advanced Text Input Features
+
+### Input Validation and Constraints
+
+```cpp
+// Create input with maximum length
+auto constrainedInput = TextInput(
+    TextInputConfig(100, 100, 200, 30)
+        .maxLength(20)
+        .placeholder("Max 20 characters")
+);
+
+// Real-time validation
+constrainedInput->onTextChanged.connect([](const std::string& text) {
+    // Custom validation logic
+    bool isValid = true;
+    
+    // Check for numbers only
+    for (char c : text) {
+        if (!std::isdigit(c)) {
+            isValid = false;
+            break;
+        }
+    }
+    
+    if (!isValid) {
+        std::cout << "Only numbers allowed!" << std::endl;
+    }
+});
+```
+
+### Dynamic Placeholder Updates
+
+```cpp
+auto dynamicInput = TextInput(
+    TextInputConfig(100, 100, 250, 30)
+        .placeholder("Type to change placeholder...")
+);
+
+dynamicInput->onTextChanged.connect([dynamicInput](const std::string& text) {
+    if (text.length() < 5) {
+        dynamicInput->setPlaceholder("Keep typing...");
+    } else if (text.length() < 10) {
+        dynamicInput->setPlaceholder("Almost there!");
+    } else {
+        dynamicInput->setPlaceholder("Perfect length!");
+    }
+});
+```
+
+### Programmatic Text Control
+
+```cpp
+// Control text input programmatically
+auto controlledInput = TextInput(TextInputConfig(100, 100, 200, 30));
+
+// Set text from code
+controlledInput->setText("Hello, World!");
+
+// Clear input
+controlledInput->clear();
+
+// Get current text
+std::string currentText = controlledInput->getText();
+
+// Force focus (useful for forms)
+controlledInput->setFocus(true);
+```
+
+## Text Input Presets
+
+Fern provides convenient presets for common use cases:
+
+```cpp
+// Standard input field
+auto defaultInput = TextInput(TextInputPresets::Default(100, 100));
+
+// Modern styled input
+auto modernInput = TextInput(TextInputPresets::Modern(100, 150));
+
+// TTF font input
+auto ttfInput = TextInput(TextInputPresets::WithTTF(100, 200, "arial"));
+```
+
+## Common Text Input Patterns
 
 ### Login Form
 
 ```cpp
-void createLoginForm() {
-    // Username input
-    auto usernameInput = TextInput(
-        TextInputConfig(100, 100, 300, 40)
-            .placeholder("Username")
-            .style(TextInputStyle()
-                .backgroundColor(Colors::White)
-                .borderColor(Colors::Gray)
-                .focusBorderColor(Colors::Blue)
-                .padding(10)
-                .fontSize(16))
-    );
-    
-    // Password input (conceptual - would need custom implementation)
-    auto passwordInput = TextInput(
-        TextInputConfig(100, 150, 300, 40)
-            .placeholder("Password")
-            .style(TextInputStyle()
-                .backgroundColor(Colors::White)
-                .borderColor(Colors::Gray)
-                .focusBorderColor(Colors::Blue)
-                .padding(10)
-                .fontSize(16))
-    );
-    
-    // Login button
-    auto loginButton = Button(
-        ButtonConfig(100, 200, 300, 40)
-            .text("Login")
-            .style(ButtonStyle()
-                .backgroundColor(Colors::Blue)
-                .textColor(Colors::White))
-    );
-    
-    // Handle login
-    loginButton->onClick.connect([=]() {
-        std::string username = usernameInput->getText();
-        std::string password = passwordInput->getText();
+class LoginForm {
+public:
+    LoginForm(int x, int y) {
+        // Username input
+        username_ = TextInput(
+            TextInputConfig(x, y, 200, 30)
+                .placeholder("Username")
+                .style(createFormStyle())
+        );
         
-        if (!username.empty() && !password.empty()) {
-            // Process login
+        // Password input (you'd implement password masking)
+        password_ = TextInput(
+            TextInputConfig(x, y + 40, 200, 30)
+                .placeholder("Password")
+                .style(createFormStyle())
+        );
+        
+        // Handle Enter on either field
+        username_->onEnterPressed.connect([this](const std::string&) {
+            password_->setFocus(true);
+        });
+        
+        password_->onEnterPressed.connect([this](const std::string&) {
+            submitForm();
+        });
+    }
+    
+    void submitForm() {
+        std::string user = username_->getText();
+        std::string pass = password_->getText();
+        
+        if (!user.empty() && !pass.empty()) {
+            std::cout << "Logging in user: " << user << std::endl;
+            // Process login...
         }
-    });
+    }
+    
+private:
+    std::shared_ptr<TextInputWidget> username_;
+    std::shared_ptr<TextInputWidget> password_;
+    
+    TextInputStyle createFormStyle() {
+        TextInputStyle style;
+        return style.backgroundColor(Colors::White)
+                   .borderColor(Colors::Gray)
+                   .focusBorderColor(Colors::Blue)
+                   .padding(8);
+    }
+};
+```
+
+### Search Box
+
+```cpp
+class SearchBox {
+public:
+    SearchBox(int x, int y) {
+        searchInput_ = TextInput(
+            TextInputConfig(x, y, 300, 35)
+                .placeholder("🔍 Search...")
+                .style(createSearchStyle())
+        );
+        
+        // Real-time search
+        searchInput_->onTextChanged.connect([this](const std::string& query) {
+            if (query.length() >= 3) {
+                performSearch(query);
+            }
+        });
+        
+        // Search on Enter
+        searchInput_->onEnterPressed.connect([this](const std::string& query) {
+            if (!query.empty()) {
+                performSearch(query);
+                showResults();
+            }
+        });
+    }
+    
+private:
+    std::shared_ptr<TextInputWidget> searchInput_;
+    
+    TextInputStyle createSearchStyle() {
+        TextInputStyle style;
+        return style.backgroundColor(Colors::LightGray)
+                   .borderColor(Colors::Gray)
+                   .focusBorderColor(Colors::Blue)
+                   .padding(10)
+                   .useTTFFont()
+                   .fontSize(16);
+    }
+    
+    void performSearch(const std::string& query) {
+        std::cout << "Searching for: " << query << std::endl;
+        // Implement search logic...
+    }
+    
+    void showResults() {
+        std::cout << "Showing search results..." << std::endl;
+    }
+};
+```
+
+### Settings Panel
+
+```cpp
+struct Setting {
+    std::string label;
+    std::string value;
+    std::function<void(const std::string&)> onChange;
+};
+
+class SettingsPanel {
+public:
+    SettingsPanel(int x, int y, const std::vector<Setting>& settings) {
+        int currentY = y;
+        
+        for (const auto& setting : settings) {
+            // Create label (you'd use Text widget)
+            
+            // Create input
+            auto input = TextInput(
+                TextInputConfig(x + 150, currentY, 200, 30)
+                    .placeholder(setting.value)
+                    .style(createSettingStyle())
+            );
+            
+            input->setText(setting.value);
+            input->onTextChanged.connect(setting.onChange);
+            
+            inputs_.push_back(input);
+            currentY += 40;
+        }
+    }
+    
+private:
+    std::vector<std::shared_ptr<TextInputWidget>> inputs_;
+    
+    TextInputStyle createSettingStyle() {
+        TextInputStyle style;
+        return style.backgroundColor(Colors::White)
+                   .borderColor(Colors::LightGray)
+                   .focusBorderColor(Colors::Blue)
+                   .padding(6);
+    }
+};
+```
+
+## Text Input in Layouts
+
+Text inputs work seamlessly with Fern's layout system:
+
+```cpp
+// Vertical form layout
+auto form = Column({
+    Text(TextPresets::Title(0, 0, "Contact Form")),
+    TextInput(TextInputPresets::Default(0, 0).placeholder("Name")),
+    TextInput(TextInputPresets::Default(0, 0).placeholder("Email")),
+    TextInput(TextInputPresets::Default(0, 0).placeholder("Message")),
+    Button(ButtonConfig(0, 0, 100, 35, "Submit"))
+});
+```
+
+## Performance Considerations
+
+### Text Rendering Efficiency
+
+Text inputs re-render on every keystroke, so consider:
+
+```cpp
+// Efficient: Use bitmap fonts for fast rendering
+TextInputStyle fastStyle;
+fastStyle.useBitmapFont().fontSize(2);
+
+// Slower: TTF fonts require more processing
+TextInputStyle niceStyle;
+niceStyle.useTTFFont("arial").fontSize(18);
+
+// Choose based on your needs:
+// - Bitmap for fast, retro interfaces
+// - TTF for professional, readable interfaces
+```
+
+### Memory Management
+
+```cpp
+// Text inputs are automatically managed
+auto input = TextInput(TextInputConfig(100, 100, 200, 30));
+// Automatically cleaned up when references go away
+
+// For temporary inputs:
+{
+    auto tempInput = TextInput(TextInputConfig(50, 50, 150, 25));
+    // Automatically cleaned up when scope ends
 }
 ```
 
-### Search Bar
+## Advanced Text Input Techniques
+
+### Custom Validation
 
 ```cpp
-void createSearchBar() {
-    auto searchInput = TextInput(
-        TextInputConfig(50, 20, 400, 35)
-            .placeholder("Search...")
-            .style(TextInputStyle()
-                .backgroundColor(0xF8F8F8)
-                .borderColor(0xDDDDDD)
-                .focusBorderColor(0x4CAF50)
-                .textColor(0x333333)
-                .borderWidth(1)
-                .padding(12))
-    );
+class ValidatedInput {
+public:
+    ValidatedInput(TextInputConfig config, std::function<bool(const std::string&)> validator)
+        : validator_(validator) {
+        
+        input_ = TextInput(config);
+        
+        input_->onTextChanged.connect([this](const std::string& text) {
+            bool isValid = validator_(text);
+            updateValidationState(isValid);
+        });
+    }
     
-    // Real-time search
-    searchInput->onTextChanged.connect([](const std::string& query) {
-        if (query.length() >= 2) {
-            // Perform search with debouncing
-            performSearch(query);
+    void updateValidationState(bool isValid) {
+        TextInputStyle style = input_->getConfig().getStyle();
+        
+        if (isValid) {
+            style.borderColor(Colors::Green);
         } else {
-            // Clear search results
-            clearSearchResults();
-        }
-    });
-    
-    // Search on Enter
-    searchInput->onEnterPressed.connect([](const std::string& query) {
-        if (!query.empty()) {
-            performFullSearch(query);
-        }
-    });
-}
-```
-
-### Multi-Input Form
-
-```cpp
-void createContactForm() {
-    std::vector<std::shared_ptr<TextInputWidget>> inputs;
-    
-    // Create multiple inputs
-    inputs.push_back(TextInput(
-        TextInputConfig(100, 100, 300, 40)
-            .placeholder("First Name")
-    ));
-    
-    inputs.push_back(TextInput(
-        TextInputConfig(100, 150, 300, 40)
-            .placeholder("Last Name")
-    ));
-    
-    inputs.push_back(TextInput(
-        TextInputConfig(100, 200, 300, 40)
-            .placeholder("Email")
-    ));
-    
-    // Submit button
-    auto submitButton = Button(
-        ButtonConfig(100, 250, 300, 40)
-            .text("Submit")
-    );
-    
-    // Handle form submission
-    submitButton->onClick.connect([=]() {
-        std::vector<std::string> values;
-        for (const auto& input : inputs) {
-            values.push_back(input->getText());
+            style.borderColor(Colors::Red);
         }
         
-        // Validate and process form
-        if (validateForm(values)) {
-            submitForm(values);
-        }
-    });
-}
-```
+        // Update style (you'd need to implement this)
+        // input_->setStyle(style);
+    }
+    
+private:
+    std::shared_ptr<TextInputWidget> input_;
+    std::function<bool(const std::string&)> validator_;
+};
 
-## Best Practices
-
-### 1. Responsive Design
-
-```cpp
-// Use relative positioning for different screen sizes
-int screenWidth = Fern::getWidth();
-int inputWidth = std::min(400, screenWidth - 100);
-
-auto textInput = TextInput(
-    TextInputConfig(50, 100, inputWidth, 40)
-        .placeholder("Responsive input")
+// Usage
+ValidatedInput emailInput(
+    TextInputConfig(100, 100, 200, 30).placeholder("Email"),
+    [](const std::string& text) {
+        return text.find('@') != std::string::npos; // Simple email check
+    }
 );
 ```
 
-### 2. Accessibility
+### Input History
 
 ```cpp
-// Provide clear placeholders
-.placeholder("Enter your email address")
-
-// Use appropriate font sizes
-.fontSize(16)  // Readable size
-
-// Provide visual feedback
-.focusBorderColor(Colors::Blue)
+class HistoryInput {
+public:
+    HistoryInput(TextInputConfig config) {
+        input_ = TextInput(config);
+        
+        input_->onEnterPressed.connect([this](const std::string& text) {
+            if (!text.empty()) {
+                history_.push_back(text);
+                historyIndex_ = history_.size();
+                input_->clear();
+            }
+        });
+        
+        // Handle up/down arrows for history navigation
+        // (You'd need to add key handling for this)
+    }
+    
+    void navigateHistory(int direction) {
+        if (history_.empty()) return;
+        
+        historyIndex_ += direction;
+        historyIndex_ = std::clamp(historyIndex_, 0, (int)history_.size());
+        
+        if (historyIndex_ < history_.size()) {
+            input_->setText(history_[historyIndex_]);
+        } else {
+            input_->clear();
+        }
+    }
+    
+private:
+    std::shared_ptr<TextInputWidget> input_;
+    std::vector<std::string> history_;
+    int historyIndex_ = 0;
+};
 ```
 
-### 3. Performance
+## Troubleshooting Common Issues
 
+### Input Not Responding
+
+**Check these common issues:**
+
+1. **Input not focused**:
 ```cpp
-// Limit text length for performance
-.maxLength(1000)
+// Ensure input has focus to receive keyboard input
+input->setFocus(true);
 
-// Use efficient event handlers
-textInput->onTextChanged.connect([](const std::string& text) {
-    // Avoid heavy operations in real-time handlers
-    if (text.length() > 3) {
-        // Debounce or throttle expensive operations
-    }
+// Or check if input is focused
+if (!input->isFocused()) {
+    std::cout << "Input needs focus to receive keyboard input" << std::endl;
+}
+```
+
+2. **Input outside clickable area**:
+```cpp
+// Ensure input is positioned within screen bounds
+auto input = TextInput(TextInputConfig(10, 10, 200, 30)); // Safe position
+```
+
+3. **No event handlers connected**:
+```cpp
+// Make sure you've connected to the signals
+input->onTextChanged.connect([](const std::string& text) {
+    // This will actually run when text changes
 });
 ```
 
-### 4. User Experience
+### Visual Issues
 
+**Text not appearing:**
 ```cpp
-// Clear visual states
+// Check text color contrasts with background
 TextInputStyle style;
 style.backgroundColor(Colors::White)
-     .borderColor(Colors::Gray)
-     .focusBorderColor(Colors::Blue)  // Clear focus indication
-     .padding(10);                    // Adequate padding
-
-// Helpful placeholders
-.placeholder("Enter email (e.g., user@example.com)")
+     .textColor(Colors::Black);        // Ensure contrast
 ```
 
-### 5. Error Handling
-
+**Cursor not visible:**
 ```cpp
-// Validate input
-textInput->onTextChanged.connect([](const std::string& text) {
-    if (!isValidEmail(text) && !text.empty()) {
-        // Show error state
-        // Could change border color to red
-    }
-});
+// Ensure cursor color is different from background
+style.cursorColor(Colors::Black)
+     .backgroundColor(Colors::White);
 ```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Text Input Not Receiving Focus**
-   ```cpp
-   // Ensure widget is properly added to manager
-   addWidget(textInput);
-   
-   // Check if other widgets are blocking input
-   ```
-
-2. **Cursor Not Visible**
-   ```cpp
-   // Ensure cursor color contrasts with background
-   style.cursorColor(Colors::Black)
-        .backgroundColor(Colors::White);
-   ```
-
-3. **Text Overflow**
-   ```cpp
-   // Set appropriate width and max length
-   TextInputConfig(100, 100, 300, 40)  // Wide enough
-       .maxLength(50)                   // Reasonable limit
-   ```
-
-4. **Font Size Issues**
-   ```cpp
-   // For bitmap fonts, use scale factors
-   style.useBitmapFont().fontSize(2);
-   
-   // For TTF fonts, use point sizes
-   style.useTTFFont("Arial").fontSize(16);
-   ```
 
 ### Performance Issues
 
-1. **Slow Text Updates**
-   ```cpp
-   // Avoid heavy operations in onTextChanged
-   textInput->onTextChanged.connect([](const std::string& text) {
-       // Use debouncing for expensive operations
-       static auto lastUpdate = std::chrono::steady_clock::now();
-       auto now = std::chrono::steady_clock::now();
-       
-       if (now - lastUpdate > std::chrono::milliseconds(300)) {
-           // Perform expensive operation
-           lastUpdate = now;
-       }
-   });
-   ```
+**Slow input response:**
+```cpp
+// Use bitmap fonts for faster rendering
+TextInputStyle fastStyle;
+fastStyle.useBitmapFont().fontSize(2);
 
-2. **Memory Usage**
-   ```cpp
-   // Limit text length
-   .maxLength(1000)
-   
-   // Clear unused text inputs
-   textInput->clear();
-   ```
+// Avoid very large input fields
+auto efficientInput = TextInput(TextInputConfig(100, 100, 200, 30)); // Reasonable size
+```
 
-## Related Documentation
+## Summary
 
-- [Button Widget](button.md) - For form submission buttons
-- [Text Widget](text.md) - For display text
-- [Layout System](../layout/overview.md) - For positioning inputs
-- [Input Handling](../input/input-handling.md) - For advanced input processing
-- [Event System](../input/events.md) - For custom event handling
+Text input widgets in Fern provide a sophisticated foundation for user interaction while maintaining the transparency and educational value that makes Fern special. Whether you're building simple forms or complex data entry interfaces, understanding focus management, event handling, and styling options will help you create responsive, user-friendly input systems.
 
----
+Key takeaways:
+- **Focus management**: Only focused inputs receive keyboard input
+- **Signal-based events**: Clean, type-safe communication through onTextChanged, onEnterPressed, and onFocusChanged
+- **Flexible styling**: Support for both bitmap and TTF fonts with comprehensive theming
+- **Built-in features**: Cursor management, text selection, and visual feedback
+- **Layout integration**: Works seamlessly with Fern's layout system
+- **Performance awareness**: Choose appropriate fonts and sizes for your use case
 
-*This documentation covers the Fern Text Input Widget API. For more examples and advanced usage, see the examples directory.*
+Text inputs showcase Fern's commitment to both simplicity and power - they're easy to use for basic cases but provide the depth needed for sophisticated applications. Master text inputs, and you'll have the foundation for creating engaging, interactive user interfaces that feel natural and responsive.
+ 

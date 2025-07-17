@@ -1,52 +1,486 @@
-# Circle Widget
+# Circle Widget Guide
 
-The `CircleWidget` provides a simple way to display circular shapes with customizable radius, position, and color. It supports click and hover events, making it useful for buttons, indicators, and interactive elements.
+Circles are fundamental geometric shapes that appear everywhere in user interfaces - from buttons and icons to decorative elements and interactive indicators. In this guide, you'll learn how to create, style, and make circles interactive in Fern, while understanding the mathematical principles behind drawing perfect circles on pixel-based displays.
 
-## Table of Contents
-- [Basic Usage](#basic-usage)
-- [Configuration](#configuration)
-- [Events](#events)
-- [Styling](#styling)
-- [Examples](#examples)
-- [Best Practices](#best-practices)
-- [Troubleshooting](#troubleshooting)
+## Understanding Circles in Digital Graphics
 
-## Basic Usage
+Drawing a circle on a pixel grid is more complex than it first appears. A perfect mathematical circle is a continuous curve, but pixels are discrete squares. To create the illusion of a smooth circle, we need to:
 
-### Creating a Circle
+1. **Calculate which pixels to fill**: Using mathematical formulas to determine which pixels best approximate the circle
+2. **Handle anti-aliasing**: Making edges appear smooth despite the pixel grid
+3. **Manage the center point**: Defining where the circle is positioned
+4. **Control the radius**: Determining the size accurately
+
+Fern handles all this complexity while exposing a simple, intuitive API.
+
+## Circle Philosophy in Fern
+
+Circles in Fern are **center-positioned and radius-defined**. This means:
+
+- **Position** refers to the center point, not a corner
+- **Radius** determines size, making scaling intuitive
+- **Color** is solid fill (no outline-only circles)
+- **Interactivity** is built-in through signals
+
+This approach mirrors how we think about circles naturally - as shapes with a center and a distance extending outward.
+
+## Your First Circle
+
+Let's start with the simplest possible circle:
 
 ```cpp
 #include <fern/fern.hpp>
+
 using namespace Fern;
 
-// Basic circle
-auto circle = Circle(50, Point(100, 100), Colors::Red);
-
-// Without adding to manager
-auto circle = Circle(30, Point(200, 200), Colors::Blue, false);
+int main() {
+    // Initialize Fern
+    setupFern();
+    
+    // Create a red circle with radius 50, centered at (200, 150)
+    auto circle = Circle(50, Point(200, 150), Colors::Red);
+    
+    // Start the game loop
+    while (shouldKeepRunning()) {
+        processInput();
+        render();
+    }
+    
+    return 0;
+}
 ```
 
-### Using CircleWidget Class
+**What's happening here?**
+- `50`: Radius in pixels (the circle extends 50 pixels from its center in all directions)
+- `Point(200, 150)`: Center position (200 pixels from left, 150 pixels from top)
+- `Colors::Red`: Fill color using Fern's color system
+
+The resulting circle will be 100x100 pixels total (diameter = radius × 2).
+
+## Circle Positioning: Center vs Corner
+
+Unlike rectangles that are often positioned by their top-left corner, circles are positioned by their center. This makes positioning intuitive:
 
 ```cpp
-// Create with constructor
-auto circle = std::make_shared<CircleWidget>(
-    40,                    // radius
-    Point(150, 150),      // position
-    Colors::Green         // color
-);
+// Screen center (assuming 800x600 screen)
+auto centerCircle = Circle(30, Point(400, 300), Colors::Blue);
 
-// Add to widget manager
-addWidget(circle);
+// Top-left area (circle will be partially visible)
+auto cornerCircle = Circle(25, Point(25, 25), Colors::Green);
+
+// The center of cornerCircle is at (25,25), so the circle extends from (0,0) to (50,50)
 ```
 
-## Configuration
+**Visual Understanding:**
+```
+Screen coordinates (0,0) at top-left
 
-### Basic Properties
+    25 pixels
+    |
+    v
+25--●────────────────
+    |░░░░░            ← Circle extends 25px in all directions
+    |░░░░░            from center point (25,25)
+    |░░░░░
+    |░░░░░
+    |
+```
+
+## Making Circles Interactive
+
+One of Fern's strengths is built-in interactivity. Circles can respond to mouse events through Fern's signal system:
 
 ```cpp
-// Create circle
-auto circle = Circle(50, Point(100, 100), Colors::Red);
+// Create an interactive button-like circle
+auto button = Circle(40, Point(150, 100), Colors::Blue);
+
+// Handle clicks
+button->onClick.connect([]() {
+    std::cout << "Circle was clicked!" << std::endl;
+});
+
+// Handle hover events  
+button->onHover.connect([](bool isHovered) {
+    if (isHovered) {
+        std::cout << "Mouse entered circle" << std::endl;
+    } else {
+        std::cout << "Mouse left circle" << std::endl;
+    }
+});
+```
+
+**Understanding Signal-Slot Communication:**
+- `onClick` is emitted when the circle is clicked
+- `onHover` is emitted when mouse enters or leaves the circle boundary
+- You can connect multiple functions to the same signal
+- Signals provide type-safe, decoupled communication
+
+### Advanced Hover Effects
+
+```cpp
+auto hoverCircle = Circle(50, Point(250, 200), Colors::DarkBlue);
+
+// Store original color for restoration
+uint32_t originalColor = Colors::DarkBlue;
+uint32_t hoverColor = Colors::LightBlue;
+
+hoverCircle->onHover.connect([hoverCircle, originalColor, hoverColor](bool isHovered) {
+    if (isHovered) {
+        hoverCircle->setColor(hoverColor);
+    } else {
+        hoverCircle->setColor(originalColor);
+    }
+});
+```
+
+## Dynamic Circles: Animation and Updates
+
+Circles can be modified after creation, enabling animations and dynamic interfaces:
+
+```cpp
+// Create a circle that grows over time
+auto growingCircle = Circle(10, Point(300, 200), Colors::Green);
+
+// In your game loop:
+double time = getCurrentTime();
+int newRadius = 10 + (sin(time * 2) + 1) * 20; // Pulsing between 10 and 50
+growingCircle->setRadius(newRadius);
+```
+
+### Moving Circles
+
+```cpp
+// Create a circle that follows the mouse
+auto follower = Circle(25, Point(0, 0), Colors::Yellow);
+
+// In your input handling:
+if (input.mousePosition.x != -1) { // Mouse is on screen
+    follower->setPosition(input.mousePosition);
+}
+```
+
+### Color Transitions
+
+```cpp
+// Circle that changes color based on some state
+auto statusCircle = Circle(30, Point(100, 100), Colors::Green);
+
+void updateStatus(int healthPercent) {
+    if (healthPercent > 75) {
+        statusCircle->setColor(Colors::Green);
+    } else if (healthPercent > 25) {
+        statusCircle->setColor(Colors::Yellow);
+    } else {
+        statusCircle->setColor(Colors::Red);
+    }
+}
+```
+
+## Circles in Layouts
+
+Circles work seamlessly with Fern's layout system:
+
+```cpp
+// Row of indicator circles
+auto indicatorRow = Row({
+    Circle(15, Point(0, 0), Colors::Green),   // Active
+    Circle(15, Point(0, 0), Colors::Gray),    // Inactive
+    Circle(15, Point(0, 0), Colors::Gray),    // Inactive  
+    Circle(15, Point(0, 0), Colors::Gray)     // Inactive
+});
+
+// The layout system will position these circles automatically
+// The Point(0, 0) positions become relative to the row container
+```
+
+### Circle Grids
+
+```cpp
+// Create a grid of clickable circles
+std::vector<std::shared_ptr<Widget>> circles;
+
+for (int row = 0; row < 3; row++) {
+    for (int col = 0; col < 3; col++) {
+        auto circle = Circle(20, Point(0, 0), Colors::LightGray);
+        
+        // Add click handler
+        circle->onClick.connect([row, col, circle]() {
+            std::cout << "Clicked circle at (" << row << ", " << col << ")" << std::endl;
+            circle->setColor(Colors::Blue); // Mark as selected
+        });
+        
+        circles.push_back(circle);
+    }
+}
+
+// Arrange in a grid layout (you'd use Fern's grid layout widget)
+```
+
+## Common Circle Patterns
+
+### Toggle Buttons
+
+```cpp
+class ToggleCircle {
+public:
+    ToggleCircle(Point position, uint32_t activeColor, uint32_t inactiveColor) 
+        : isActive_(false), activeColor_(activeColor), inactiveColor_(inactiveColor) {
+        
+        circle_ = Circle(25, position, inactiveColor);
+        circle_->onClick.connect([this]() { toggle(); });
+    }
+    
+    void toggle() {
+        isActive_ = !isActive_;
+        circle_->setColor(isActive_ ? activeColor_ : inactiveColor_);
+    }
+    
+    bool isActive() const { return isActive_; }
+    
+private:
+    std::shared_ptr<CircleWidget> circle_;
+    bool isActive_;
+    uint32_t activeColor_, inactiveColor_;
+};
+
+// Usage
+ToggleCircle powerButton(Point(100, 100), Colors::Green, Colors::Red);
+```
+
+### Progress Indicators
+
+```cpp
+class CircularProgress {
+public:
+    CircularProgress(Point position, int maxRadius) 
+        : position_(position), maxRadius_(maxRadius), progress_(0.0f) {
+        
+        // Background circle
+        background_ = Circle(maxRadius, position, Colors::DarkGray);
+        
+        // Progress circle (starts small)
+        progress_ = Circle(1, position, Colors::Blue);
+    }
+    
+    void setProgress(float percent) { // 0.0 to 1.0
+        progress_ = std::clamp(percent, 0.0f, 1.0f);
+        int newRadius = (int)(progress_ * maxRadius_);
+        progressCircle_->setRadius(newRadius);
+    }
+    
+private:
+    std::shared_ptr<CircleWidget> background_;
+    std::shared_ptr<CircleWidget> progressCircle_;
+    Point position_;
+    int maxRadius_;
+    float progress_;
+};
+```
+
+### Notification Dots
+
+```cpp
+// Small notification indicators
+auto notificationDot = Circle(8, Point(iconX + 30, iconY - 5), Colors::Red);
+
+// Hide/show based on notifications
+void updateNotifications(int count) {
+    if (count > 0) {
+        notificationDot->setColor(Colors::Red);
+    } else {
+        notificationDot->setColor(Colors::Transparent); // Hide
+    }
+}
+```
+
+## Circle Math: Understanding the Implementation
+
+While Fern handles the complexity, understanding circle math helps with positioning and sizing:
+
+### Radius and Diameter
+```cpp
+// Relationship between radius and size
+int radius = 25;
+int diameter = radius * 2;    // 50
+int area = 3.14159 * radius * radius; // ~1963 pixels
+
+// For UI spacing, consider the diameter when positioning multiple circles
+int spacing = 10;
+auto circle1 = Circle(25, Point(50, 100), Colors::Red);
+auto circle2 = Circle(25, Point(50 + 50 + spacing, 100), Colors::Blue);
+//                          └─ x + diameter + spacing
+```
+
+### Distance Calculations
+```cpp
+// Check if two circles overlap
+bool circlesOverlap(Point center1, int radius1, Point center2, int radius2) {
+    int dx = center1.x - center2.x;
+    int dy = center1.y - center2.y;
+    double distance = sqrt(dx*dx + dy*dy);
+    return distance < (radius1 + radius2);
+}
+```
+
+## Performance Considerations
+
+### Circle Rendering Cost
+
+Circles require more computation than rectangles:
+- Each pixel must be tested against the circle equation
+- Larger circles = more pixels to calculate
+- Many circles = multiplicative performance impact
+
+**Optimization strategies:**
+```cpp
+// Use smaller circles when possible
+auto efficientDot = Circle(5, position, color);  // Better than Circle(50, ...)
+
+// Cache circles that don't change
+static auto cachedIcon = Circle(20, Point(100, 100), Colors::Blue);
+
+// Consider using rectangular approximations for very small circles
+// Rectangle widgets are faster to render
+```
+
+### Memory Management
+
+```cpp
+// Circles are automatically managed with shared_ptr
+auto circle = Circle(30, Point(200, 200), Colors::Green);
+// No manual cleanup needed - automatic when last reference goes away
+
+// For temporary circles, consider:
+{
+    auto tempCircle = Circle(10, Point(50, 50), Colors::White);
+    // Automatically cleaned up when scope ends
+}
+```
+
+## Advanced Circle Techniques
+
+### Custom Circle Behaviors
+
+```cpp
+// Circles that react to global state
+class LiveCircle {
+public:
+    LiveCircle(Point pos, std::function<uint32_t()> colorFunc) {
+        circle_ = Circle(20, pos, Colors::White);
+        getColor_ = colorFunc;
+    }
+    
+    void update() {
+        circle_->setColor(getColor_());
+    }
+    
+private:
+    std::shared_ptr<CircleWidget> circle_;
+    std::function<uint32_t()> getColor_;
+};
+
+// Usage - circle color reflects system state
+LiveCircle systemStatus(Point(50, 50), []() {
+    return isSystemHealthy() ? Colors::Green : Colors::Red;
+});
+```
+
+### Circle Chains and Networks
+
+```cpp
+// Connected circles with lines between them
+struct CircleNode {
+    std::shared_ptr<CircleWidget> circle;
+    std::vector<CircleNode*> connections;
+    
+    CircleNode(Point pos, uint32_t color) {
+        circle = Circle(15, pos, color);
+    }
+};
+
+// Create network of connected circles
+std::vector<CircleNode> nodes;
+// ... add nodes and connections
+// ... draw lines between connected nodes (using LineWidget)
+```
+
+## Troubleshooting Common Issues
+
+### Circle Not Appearing
+
+**Check these common issues:**
+
+1. **Position outside screen bounds**:
+```cpp
+// Bad: Circle center at (50, 50) with radius 100 extends off-screen
+auto offScreen = Circle(100, Point(50, 50), Colors::Red);
+
+// Good: Account for radius in positioning
+auto onScreen = Circle(50, Point(100, 100), Colors::Red);
+```
+
+2. **Color matches background**:
+```cpp
+// If background is black, black circles won't be visible
+auto invisible = Circle(30, Point(100, 100), Colors::Black); // On black background
+auto visible = Circle(30, Point(100, 100), Colors::White);   // Contrasts with background
+```
+
+3. **Radius too small**:
+```cpp
+// Radius 1 might be too small to see clearly
+auto tinyCircle = Circle(1, Point(100, 100), Colors::Red);
+auto visibleCircle = Circle(5, Point(100, 100), Colors::Red); // Better minimum
+```
+
+### Click Detection Issues
+
+**Events not triggering:**
+
+1. **Circle outside clickable area**: Remember the click area is the full circular region
+2. **Overlapping widgets**: Higher widgets might capture clicks first
+3. **Signal not connected**: Ensure you've connected to the signal
+
+```cpp
+auto circle = Circle(30, Point(100, 100), Colors::Blue);
+
+// Make sure to connect the signal
+circle->onClick.connect([]() {
+    std::cout << "This will actually run!" << std::endl;
+});
+
+// Missing connection means no response:
+// auto circle = Circle(30, Point(100, 100), Colors::Blue);
+// // No onClick.connect() call = no click response
+```
+
+### Performance Issues
+
+**Too many circles causing lag:**
+
+```cpp
+// Instead of many small circles:
+std::vector<std::shared_ptr<CircleWidget>> manyCircles;
+for (int i = 0; i < 1000; i++) {
+    manyCircles.push_back(Circle(2, Point(i, 100), Colors::White));
+}
+
+// Consider: Single widget with custom rendering, or sprites
+```
+
+## Summary
+
+Circles in Fern provide a perfect foundation for creating interactive, dynamic interfaces. Whether you're building button systems, progress indicators, or decorative elements, understanding circle positioning, interactivity, and performance characteristics will help you create beautiful, responsive user interfaces.
+
+Key takeaways:
+- **Center-positioned**: Circles are positioned by their center point, making placement intuitive
+- **Built-in interactivity**: onClick and onHover signals provide easy event handling
+- **Dynamic updates**: Radius, position, and color can be changed during runtime
+- **Layout integration**: Circles work seamlessly with Fern's layout system  
+- **Performance awareness**: Consider rendering cost with many or large circles
+- **Mathematical foundation**: Understanding radius, diameter, and distance helps with positioning
+
+The circle widget showcases Fern's philosophy: simple concepts that can be combined in sophisticated ways. Master circles, and you'll have a powerful tool for creating engaging, interactive interfaces that feel natural and responsive to users.
 
 // Modify properties
 circle->setRadius(75);
