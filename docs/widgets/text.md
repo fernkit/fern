@@ -486,79 +486,140 @@ std::vector<std::shared_ptr<Widget>> textElements = {
 };
 ```
 
-## Common Patterns
+## Common Issues and Solutions
 
-### Loading Text
+### Text Overlapping in Layouts
+**Problem**: Text widgets overlap when used in Column layouts without proper spacing.
+
+**Cause**: Text height is calculated as `size * 8` pixels, but layouts don't automatically add spacing.
+
+**Solution**: Always use `SizedBox(0, text_height)` between text elements:
 ```cpp
-class LoadingText {
-    std::shared_ptr<TextWidget> text;
-    std::vector<std::string> frames = {"Loading", "Loading.", "Loading..", "Loading..."};
-    int currentFrame = 0;
-    
-public:
-    void update() {
-        text->setText(frames[currentFrame]);
-        currentFrame = (currentFrame + 1) % frames.size();
-    }
+std::vector<std::shared_ptr<Widget>> children = {
+    Text(Point(0, 0), "Title", 4, Colors::White),        // 4 * 8 = 32px height
+    SizedBox(0, 32),  // Spacing equal to text height
+    Text(Point(0, 0), "Subtitle", 2, Colors::Gray),      // 2 * 8 = 16px height  
+    SizedBox(0, 16),  // Spacing equal to text height
+    Text(Point(0, 0), "Body text", 2, Colors::White)
 };
 ```
 
-### Highlighted Text
+### Text Height Calculation
+- **Bitmap fonts**: Height = `size * 8` pixels
+- **TTF fonts**: Height varies by font and point size
+- Use appropriate spacing: 100% for tight spacing, 150% for comfortable reading
+
+### Example: Text Spacing Showcase
 ```cpp
-void createHighlightedText(const std::string& content, const std::string& highlight) {
-    // Find highlight position
-    size_t pos = content.find(highlight);
-    if (pos != std::string::npos) {
-        // Create segments: before, highlight, after
-        auto beforeText = Text(Point(0, 0), content.substr(0, pos), 2, Colors::White);
-        auto highlightText = Text(Point(0, 0), highlight, 2, Colors::Yellow);
-        auto afterText = Text(Point(0, 0), content.substr(pos + highlight.length()), 2, Colors::White);
-        
-        // Layout in row
-        std::vector<std::shared_ptr<Widget>> segments = {
-            beforeText, highlightText, afterText
-        };
-        
-        return Row(segments);
-    }
+#include <fern/fern.hpp>
+
+using namespace Fern;
+
+void setupUI() {
+    // CORRECT: Proper spacing between text elements
+    std::vector<std::shared_ptr<Widget>> goodExample = {
+        Text(Point(0, 0), "Title (properly spaced)", 4, Colors::Green),
+        SizedBox(0, 32),  // Height for size 4 text: 4 * 8 = 32 pixels
+        Text(Point(0, 0), "Subtitle (with spacing)", 2, Colors::Green),
+        SizedBox(0, 16),  // Height for size 2 text: 2 * 8 = 16 pixels
+        Text(Point(0, 0), "Body text with proper spacing", 2, Colors::Green)
+    };
+    
+    auto centerWidget = std::make_shared<CenterWidget>(0, 0, Fern::getWidth(), Fern::getHeight());
+    centerWidget->add(Column(goodExample));
+    addWidget(centerWidget);
 }
 ```
 
-### Multiline Text
+## TTF Font Usage
+
+### Loading System Fonts
 ```cpp
-void createMultilineText(const std::vector<std::string>& lines) {
-    std::vector<std::shared_ptr<Widget>> textLines;
+TextStyle systemStyle;
+systemStyle.useTTFFont("Arial")  // System font name
+          .fontSize(24)          // Point size for TTF
+          .color(Colors::White);
+
+auto text = Text(TextConfig(0, 0, "System Font Text").style(systemStyle));
+```
+
+### Loading Custom Fonts
+```cpp
+TextStyle customStyle;
+customStyle.useTTFFont("path/to/font.ttf")  // Font file path
+          .fontSize(20)
+          .color(Colors::Blue);
+
+auto text = Text(TextConfig(0, 0, "Custom Font Text").style(customStyle));
+```
+
+### TTF Font Features
+- **Sizes**: Use point sizes (12pt, 16pt, 24pt, etc.)
+- **Fallback**: Automatically falls back to bitmap font if TTF unavailable
+- **Effects**: Supports shadows, backgrounds, and all text styling options
+- **Performance**: TTF rendering is slower than bitmap fonts
+
+### Example: TTF Font Showcase
+```cpp
+void setupUI() {
+    // Different TTF font sizes
+    std::vector<std::shared_ptr<Widget>> sizeExamples;
+    std::vector<int> sizes = {12, 16, 20, 24, 32};
     
-    for (const auto& line : lines) {
-        textLines.push_back(Text(Point(0, 0), line, 2, Colors::White));
-        textLines.push_back(SizedBox(0, 5));  // Line spacing
+    for (int size : sizes) {
+        TextStyle style;
+        style.useTTFFont("Arial")
+            .fontSize(size)
+            .color(Colors::White);
+        
+        std::string text = "TTF " + std::to_string(size) + "pt";
+        auto sizeText = Text(TextConfig(0, 0, text).style(style));
+        sizeExamples.push_back(sizeText);
+        sizeExamples.push_back(SizedBox(0, size + 5));  // Dynamic spacing
     }
     
-    return Column(textLines);
+    auto centerWidget = std::make_shared<CenterWidget>(0, 0, Fern::getWidth(), Fern::getHeight());
+    centerWidget->add(Column(sizeExamples));
+    addWidget(centerWidget);
 }
 ```
 
-## Troubleshooting
+## Window Responsiveness
 
-### Text Not Visible
-- Check text color against background
-- Verify text size is appropriate
-- Ensure text is within screen bounds
+### Making Text Responsive to Window Resize
+```cpp
+static std::shared_ptr<TextWidget> responsiveText;
+static std::shared_ptr<CenterWidget> centerWidget;
 
-### Font Issues
-- Bitmap fonts work on all platforms
-- TTF fonts require font files to be available
-- Check font name spelling for TTF fonts
+void setupUI() {
+    responsiveText = Text(Point(0, 0), "Responsive Text", 3, Colors::White);
+    
+    int width = Fern::getWidth();
+    int height = Fern::getHeight();
+    centerWidget = std::make_shared<CenterWidget>(0, 0, width, height);
+    centerWidget->add(responsiveText);
+    addWidget(centerWidget);
+}
 
-### Layout Problems
-- Text width calculation is automatic
-- Use proper spacing between text elements
-- Consider text wrapping for long content
+void onWindowResize(int newWidth, int newHeight) {
+    // Update center widget to new dimensions
+    if (centerWidget) {
+        centerWidget->resize(newWidth, newHeight);
+    }
+}
 
-### Performance Issues
-- Avoid frequent text updates
-- Cache text widgets when possible
-- Use appropriate text sizes
+int main() {
+    Fern::initialize();
+    setupUI();
+    Fern::setDrawCallback(draw);
+    
+    // Set up window resize callback
+    Fern::setWindowResizeCallback(onWindowResize);
+    
+    Fern::startRenderLoop();
+    return 0;
+}
+```
 
 ---
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "widget.hpp"
+#include "../../core/responsive_widget.hpp"
 #include <string>
 #include <functional>
 #include <memory>
@@ -108,6 +109,11 @@ namespace Fern {
         Signal<> onClick;       
         Signal<bool> onHover;   
         Signal<bool> onPress;   
+        
+        // Auto-sizing functionality
+        void autoSizeToContent(int padding = 16);
+        static int calculateTextWidth(const std::string& text, int textScale);
+        static int calculateTextHeight(int textScale);
         
     private:
         ButtonConfig config_;

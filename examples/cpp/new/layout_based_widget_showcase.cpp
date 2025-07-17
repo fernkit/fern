@@ -151,35 +151,35 @@ void setupUI() {
     leftColumn.push_back(SizedBox(0, 8));
     leftColumn.push_back(speedLabel);
     
-    // CENTER COLUMN: Animated Circular Indicators
-    std::vector<std::shared_ptr<Widget>> centerColumn;
-    centerColumn.push_back(Text(Point(0, 0), "Animated Progress", 2, Colors::Cyan));
-    centerColumn.push_back(SizedBox(0, 20));
+    // // CENTER COLUMN: Animated Circular Indicators
+    // std::vector<std::shared_ptr<Widget>> centerColumn;
+    // centerColumn.push_back(Text(Point(0, 0), "Animated Progress", 2, Colors::Cyan));
+    // centerColumn.push_back(SizedBox(0, 20));
     
-    // Download Progress
-    downloadProgress = CircularIndicator(CircularIndicatorConfig(0, 0, 60)
-        .range(0.0f, 100.0f)
-        .value(50.0f)
-        .style(CircularIndicatorStyle()
-            .fillColor(Colors::Blue)
-            .backgroundColor(Colors::DarkGray)
-            .borderColor(Colors::LightGray)
-            .borderWidth(2)
-            .thickness(8)
-            .showPercentage(true)
-            .fontSize(2)
-            .textColor(Colors::White)
-            .startAngle(-90)), false);
+    // // Download Progress
+    // downloadProgress = CircularIndicator(CircularIndicatorConfig(0, 0, 60)
+    //     .range(0.0f, 100.0f)
+    //     .value(50.0f)
+    //     .style(CircularIndicatorStyle()
+    //         .fillColor(Colors::Blue)
+    //         .backgroundColor(Colors::DarkGray)
+    //         .borderColor(Colors::LightGray)
+    //         .borderWidth(2)
+    //         .thickness(8)
+    //         .showPercentage(true)
+    //         .fontSize(2)
+    //         .textColor(Colors::White)
+    //         .startAngle(-90)), false);
     
-    std::vector<std::shared_ptr<Widget>> downloadGroup;
-    downloadGroup.push_back(downloadProgress);
-    downloadGroup.push_back(SizedBox(0, 10));
-    downloadGroup.push_back(Text(Point(0, 0), "Download Progress", 2, Colors::White));
+    // std::vector<std::shared_ptr<Widget>> downloadGroup;
+    // downloadGroup.push_back(downloadProgress);
+    // downloadGroup.push_back(SizedBox(0, 10));
+    // downloadGroup.push_back(Text(Point(0, 0), "Download Progress", 2, Colors::White));
     
-    auto downloadContainer = std::make_shared<CenterWidget>(0, 0, 200, 150);
-    downloadContainer->add(Column(downloadGroup));
-    centerColumn.push_back(downloadContainer);
-    centerColumn.push_back(SizedBox(0, 20));
+    // auto downloadContainer = std::make_shared<CenterWidget>(0, 0, 200, 150);
+    // downloadContainer->add(Column(downloadGroup));
+    // centerColumn.push_back(downloadContainer);
+    // centerColumn.push_back(SizedBox(0, 20));
     
     // // Battery Level
     // batteryLevel = CircularIndicator(CircularIndicatorConfig(0, 0, 60)

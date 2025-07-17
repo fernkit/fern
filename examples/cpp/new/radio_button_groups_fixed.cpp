@@ -205,25 +205,25 @@ void setupUI() {
     }
     
     // Set up change callbacks for status updates
-    sizeGroup->onSelectionChanged.connect([=](std::shared_ptr<RadioButtonWidget> selected) {
+    sizeGroup->onSelectionChanged.connect([&](std::shared_ptr<RadioButtonWidget> selected) {
         if (selected && sizeStatus) {
             sizeStatus->setText("Selected: " + selected->getText());
         }
     });
     
-    colorGroup->onSelectionChanged.connect([=](std::shared_ptr<RadioButtonWidget> selected) {
+    colorGroup->onSelectionChanged.connect([&](std::shared_ptr<RadioButtonWidget> selected) {
         if (selected && colorStatus) {
             colorStatus->setText("Selected: " + selected->getText());
         }
     });
     
-    qualityGroup->onSelectionChanged.connect([=](std::shared_ptr<RadioButtonWidget> selected) {
+    qualityGroup->onSelectionChanged.connect([&](std::shared_ptr<RadioButtonWidget> selected) {
         if (selected && qualityStatus) {
             qualityStatus->setText("Selected: " + selected->getText());
         }
     });
     
-    difficultyGroup->onSelectionChanged.connect([=](std::shared_ptr<RadioButtonWidget> selected) {
+    difficultyGroup->onSelectionChanged.connect([&](std::shared_ptr<RadioButtonWidget> selected) {
         if (selected && difficultyStatus) {
             difficultyStatus->setText("Selected: " + selected->getText());
         }

@@ -34,4 +34,7 @@ namespace Fern {
 
     void startRenderLoop();
     void setDrawCallback(std::function<void()> callback);
+
+    // Window resize callback
+    void setWindowResizeCallback(std::function<void(int, int)> callback);
 }

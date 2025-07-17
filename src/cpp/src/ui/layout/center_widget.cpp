@@ -41,6 +41,13 @@ void CenterWidget::arrangeChildren() {
     child->setPosition(childX, childY);
 }
 
+void CenterWidget::onWindowResize(int newWidth, int newHeight) {
+    // Update this widget's dimensions to match the new window size
+    resize(newWidth, newHeight);
+    // Re-arrange children to center them in the new dimensions
+    arrangeChildren();
+}
+
 std::shared_ptr<CenterWidget> Center(std::shared_ptr<Widget> child, bool addToManager) {
     // Create center widget with default dimensions - will inherit from parent
     auto center = std::make_shared<CenterWidget>(0, 0, 0, 0);

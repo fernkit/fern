@@ -6,6 +6,7 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
+#include <iostream>
 
 namespace Fern {
     std::unique_ptr<PlatformRenderer> createRenderer();
@@ -16,6 +17,8 @@ namespace Fern {
     static bool usingManagedBuffer = false;
     static int lastWidth = 800;
     static int lastHeight = 600;
+
+    static std::function<void(int, int)> windowResizeCallback = nullptr;
 
     int getWidth() {
         return lastWidth;
@@ -86,10 +89,30 @@ namespace Fern {
         
         renderer->setResizeCallback([](int width, int height) {
             if (usingManagedBuffer && (width != lastWidth || height != lastHeight)) {
+                // Create new buffer for new dimensions
                 managedBuffer.reset(new uint32_t[width * height]);
+                
+                // Initialize the new buffer to opaque black (ARGB format: 0xAARRGGBB)
+                std::fill_n(managedBuffer.get(), width * height, 0xFF000000);
+                
+                // Delete old canvas and create new one
+                delete globalCanvas;
                 globalCanvas = new Canvas(managedBuffer.get(), width, height);
+                
                 lastWidth = width;
                 lastHeight = height;
+                
+                std::cout << "Canvas resized and cleared: " << width << "x" << height << std::endl;
+                
+                // Force a complete redraw by clearing everything and re-rendering
+                // The draw callback will be called in the next frame
+                
+                // Notify widget manager about resize
+                WidgetManager::getInstance().onWindowResize(width, height);
+            }
+
+            if (windowResizeCallback) {
+                windowResizeCallback(width, height);
             }
         });
     }
@@ -150,5 +173,9 @@ namespace Fern {
     
     void setDrawCallback(std::function<void()> callback) {
         drawCallback = callback;
+    }
+
+    void setWindowResizeCallback(std::function<void(int, int)> callback) {
+        windowResizeCallback = callback;
     }
 }

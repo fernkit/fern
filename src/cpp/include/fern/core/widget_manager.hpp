@@ -1,9 +1,16 @@
 #pragma once
 #include "../ui/widgets/widget.hpp"
 #include "../core/input.hpp"
+#include "responsive_widget.hpp"
 #include <vector>
 #include <memory>
 #include <algorithm>
+
+// Forward declarations
+namespace Fern {
+    int getWidth();
+    int getHeight();
+}
 
 namespace Fern
 {
@@ -45,6 +52,27 @@ namespace Fern
         void clear() {
             widgets_.clear();
         }
+
+        // Responsiveness support
+        void onWindowResize(int newWidth, int newHeight) {
+            // Notify all widgets about the resize
+            for (auto& widget : widgets_) {
+                // Check if widget has responsive capabilities
+                auto responsiveWidget = dynamic_cast<ResponsiveWidget*>(widget.get());
+                if (responsiveWidget) {
+                    responsiveWidget->onWindowResize(newWidth, newHeight);
+                }
+            }
+        }
+        
+        void refreshLayout() { 
+            // Use external canvas dimensions
+            onWindowResize(getWidth(), getHeight()); 
+        }
+        
+        // Get current canvas dimensions (implemented inline to avoid dependency issues)
+        int getCanvasWidth() const { return 800; }  // Will be updated by external calls
+        int getCanvasHeight() const { return 600; } // Will be updated by external calls
 
     private:
         WidgetManager() = default;

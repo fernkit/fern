@@ -14,6 +14,11 @@ namespace Fern {
         constexpr uint32_t Cyan = 0xFF00FFFF;
         constexpr uint32_t Magenta = 0xFFFF00FF;
         
+        // Additional color variations
+        constexpr uint32_t DarkCyan = 0xFF008B8B;
+        constexpr uint32_t DarkMagenta = 0xFF8B008B;
+        constexpr uint32_t Teal = 0xFF008080;
+        
         // Grayscale
         constexpr uint32_t Gray = 0xFF808080;
         constexpr uint32_t DarkGray = 0xFF404040;

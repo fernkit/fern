@@ -18,9 +18,15 @@ namespace Fern {
     bool CircleWidget::handleInput(const InputState& input) {
         bool wasHovered = isHovered_;
         
-        int dx = input.mouseX - x_;
-        int dy = input.mouseY - y_;
-        isHovered_ = (dx*dx + dy*dy) <= (radius_ * radius_);
+        // Calculate distance from mouse to circle center
+        // Circle center is at (x_ + radius_, y_ + radius_) since x_, y_ is top-left corner
+        int centerX = x_ + radius_;
+        int centerY = y_ + radius_;
+        int dx = input.mouseX - centerX;
+        int dy = input.mouseY - centerY;
+        int distanceSquared = dx*dx + dy*dy;
+        
+        isHovered_ = distanceSquared <= (radius_ * radius_);
         
         if (wasHovered != isHovered_) {
             onHover.emit(isHovered_);

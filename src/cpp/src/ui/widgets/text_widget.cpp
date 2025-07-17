@@ -139,7 +139,7 @@ namespace Fern {
                     textWidth += 8 * size_;  // Characters are 8 * scale pixels
                 }
             }
-            textHeight = size_;
+            textHeight = 8 * size_;  // Bitmap font height is 8 * scale pixels
         }
         
         resize(textWidth, textHeight);

@@ -50,6 +50,69 @@ void setupUI() {
 }
 ```
 
+### Button Presets
+```cpp
+void setupUI() {
+    // Use predefined button styles for consistency
+    auto primaryButton = Button(ButtonPresets::Primary(50, 50, 150, 40, "Primary"));
+    auto secondaryButton = Button(ButtonPresets::Secondary(50, 100, 150, 40, "Secondary"));
+    auto successButton = Button(ButtonPresets::Success(50, 150, 150, 40, "Success"));
+    auto dangerButton = Button(ButtonPresets::Danger(50, 200, 150, 40, "Danger"));
+    auto warningButton = Button(ButtonPresets::Warning(50, 250, 150, 40, "Warning"));
+    
+    addWidget(primaryButton);
+    addWidget(secondaryButton);
+    addWidget(successButton);
+    addWidget(dangerButton);
+    addWidget(warningButton);
+}
+```
+
+### Auto-Sizing Button
+```cpp
+void setupUI() {
+    ButtonStyle autoStyle;
+    autoStyle.normalColor(Colors::Purple)
+           .hoverColor(Colors::Magenta)
+           .textColor(Colors::White)
+           .textScale(2);
+    
+    auto button = Button(ButtonConfig(100, 100, 200, 40, "Auto Size").style(autoStyle));
+    
+    button->onClick.connect([button]() {
+        static std::vector<std::string> texts = {
+            "Short", "Medium text", "Very long button text here", "Auto Size"
+        };
+        static int index = 0;
+        index = (index + 1) % texts.size();
+        
+        // Update text and auto-size
+        ButtonConfig newConfig(button->getX(), button->getY(), 200, 40, texts[index]);
+        newConfig.style(autoStyle);
+        button->setConfig(newConfig);
+        button->autoSizeToContent(20);  // 20px padding
+    });
+    
+    addWidget(button);
+}
+```
+
+### Border Radius Example
+```cpp
+void setupUI() {
+    ButtonStyle roundedStyle;
+    roundedStyle.normalColor(Colors::Orange)
+              .hoverColor(Colors::Yellow)
+              .pressColor(Colors::Red)
+              .textColor(Colors::Black)
+              .textScale(2)
+              .borderRadius(15);  // Rounded corners
+    
+    auto roundButton = Button(ButtonConfig(100, 100, 120, 60, "Round").style(roundedStyle));
+    addWidget(roundButton);
+}
+```
+
 ## Configuration
 
 ### ButtonConfig Constructor
@@ -458,121 +521,130 @@ void setText(const std::string& text)       // Change button text
 void setStyle(const ButtonStyle& style)     // Update button style
 ```
 
-## Best Practices
-
-### 1. Consistent Styling
-Create reusable button styles:
+### Auto-Sizing Methods
 ```cpp
-namespace ButtonStyles {
-    ButtonStyle Primary() {
-        ButtonStyle style;
-        style.normalColor(Colors::Blue)
-             .hoverColor(Colors::LightBlue)
-             .pressColor(Colors::DarkBlue)
-             .textColor(Colors::White)
-             .textScale(2);
-        return style;
+void autoSizeToContent(int padding = 16)           // Auto-size button to fit text
+static int calculateTextWidth(const std::string& text, int textScale)  // Calculate text width
+static int calculateTextHeight(int textScale)      // Calculate text height
+```
+
+### Button Presets
+
+#### Primary Button
+```cpp
+ButtonConfig ButtonPresets::Primary(int x, int y, int width, int height, const std::string& label)
+```
+Bootstrap-style primary button (blue theme).
+
+#### Secondary Button  
+```cpp
+ButtonConfig ButtonPresets::Secondary(int x, int y, int width, int height, const std::string& label)
+```
+Bootstrap-style secondary button (gray theme).
+
+#### Success Button
+```cpp
+ButtonConfig ButtonPresets::Success(int x, int y, int width, int height, const std::string& label)
+```
+Bootstrap-style success button (green theme).
+
+#### Danger Button
+```cpp
+ButtonConfig ButtonPresets::Danger(int x, int y, int width, int height, const std::string& label)
+```
+Bootstrap-style danger button (red theme).
+
+#### Warning Button
+```cpp
+ButtonConfig ButtonPresets::Warning(int x, int y, int width, int height, const std::string& label)
+```
+Bootstrap-style warning button (yellow/orange theme).
+
+### Border Radius Support
+The Button widget now supports rounded corners through the `borderRadius()` method:
+```cpp
+ButtonStyle style;
+style.borderRadius(10);  // 10 pixel corner radius
+```
+
+## Common Issues and Solutions
+
+### Toggle Button Position Fix
+**Problem**: Button position resets to (0,0) after state change.
+
+**Solution**: Preserve position when updating button config:
+```cpp
+toggleButton->onClick.connect([toggleButton]() {
+    // Preserve current position
+    int currentX = toggleButton->getX();
+    int currentY = toggleButton->getY();
+    
+    ButtonConfig newConfig(currentX, currentY, 120, 50, "New Text");
+    newConfig.style(newStyle);
+    toggleButton->setConfig(newConfig);
+});
+```
+
+### Auto-Sizing Implementation
+**Problem**: Button doesn't automatically resize based on content.
+
+**Solution**: Use the `autoSizeToContent()` method:
+```cpp
+button->setConfig(newConfig);
+button->autoSizeToContent(20);  // 20px padding around text
+```
+
+### Responsive Button Width
+**Problem**: Button doesn't adapt to window resize.
+
+**Solution**: Update button width in resize callback:
+```cpp
+void onWindowResize(int newWidth, int newHeight) {
+    if (responsiveButton) {
+        int newButtonWidth = newWidth * 0.3;  // 30% of screen width
+        ButtonConfig newConfig(0, 0, newButtonWidth, 50, "Responsive");
+        responsiveButton->setConfig(newConfig);
     }
 }
 ```
 
-### 2. Responsive Sizing
+### Border Radius Not Visible
+**Problem**: Setting border radius doesn't change button appearance.
+
+**Solution**: Ensure you're using a recent version with rounded rectangle support. The border radius is now properly implemented using `Draw::roundedRect()`.
+
+## Best Practices
+
+### Consistent Button Sizing
+Use button presets for consistent styling across your application:
+```cpp
+// Good: Consistent styling
+auto saveButton = Button(ButtonPresets::Primary(x, y, 120, 40, "Save"));
+auto cancelButton = Button(ButtonPresets::Secondary(x, y + 50, 120, 40, "Cancel"));
+
+// Avoid: Inconsistent manual styling
+auto saveButton = Button(ButtonConfig(x, y, 120, 40, "Save")
+    .style(ButtonStyle().normalColor(0xFF123456))); // Random color
+```
+
+### Responsive Design
 Make buttons adapt to screen size:
 ```cpp
 int screenWidth = Fern::getWidth();
-int buttonWidth = std::min(300, screenWidth - 40); // Max 300px, min 20px margin
+int buttonWidth = std::min(200, screenWidth * 0.4);  // Max 200px or 40% of screen
+auto button = Button(ButtonConfig(x, y, buttonWidth, 40, "Responsive"));
 ```
 
-### 3. Clear Labels
-Use descriptive, action-oriented labels:
+### Auto-Sizing for Dynamic Content
+Use auto-sizing for buttons with changing text:
 ```cpp
-// Good
-Button("Save Document")
-Button("Delete Item")
-Button("Send Message")
-
-// Avoid
-Button("OK")
-Button("Do It")
-Button("Click")
-```
-
-### 4. Visual Feedback
-Always provide hover and press states:
-```cpp
-style.normalColor(Colors::Blue)
-     .hoverColor(Colors::LightBlue)   // Lighter on hover
-     .pressColor(Colors::DarkBlue);   // Darker when pressed
-```
-
-## Common Patterns
-
-### Confirmation Dialog
-```cpp
-void createConfirmDialog(const std::string& message, std::function<void()> onConfirm) {
-    auto confirmButton = Button(ButtonConfig(0, 0, 100, 40, "Confirm"));
-    confirmButton->onClick.connect([onConfirm]() {
-        onConfirm();
-        // Close dialog logic here
-    });
+button->onClick.connect([button]() {
+    // Update text
+    ButtonConfig newConfig = button->getConfig();
+    newConfig.label("New dynamic text");
+    button->setConfig(newConfig);
     
-    auto cancelButton = Button(ButtonConfig(0, 0, 100, 40, "Cancel"));
-    cancelButton->onClick.connect([]() {
-        // Close dialog logic here
-    });
-    
-    // Layout buttons horizontally
-    std::vector<std::shared_ptr<Widget>> buttons = {
-        confirmButton,
-        SizedBox(20, 0),
-        cancelButton
-    };
-    
-    // Add to dialog layout
-}
+    // Auto-size to fit
+    button->autoSizeToContent(15);  // 15px padding
+});
 ```
-
-### Loading States
-```cpp
-class LoadingButton {
-    std::shared_ptr<ButtonWidget> button;
-    bool isLoading = false;
-    
-public:
-    void setLoading(bool loading) {
-        isLoading = loading;
-        if (loading) {
-            button->setText("Loading...");
-            button->setEnabled(false);
-        } else {
-            button->setText("Submit");
-            button->setEnabled(true);
-        }
-    }
-};
-```
-
-## Troubleshooting
-
-### Button Not Responding
-- Check if button is properly added to widget manager
-- Verify click handler is connected
-- Ensure button is not obscured by other widgets
-
-### Styling Issues
-- Verify color values are valid
-- Check text scale is appropriate for button size
-- Ensure border radius doesn't exceed button dimensions
-
-### Layout Problems
-- Use proper spacing between buttons
-- Consider screen size when setting button dimensions
-- Test on different screen resolutions
-
----
-
-**Related Documentation:**
-- [Text Widget](text.md)
-- [Layout System](../layout/overview.md)
-- [Colors System](../graphics/colors.md)
-- [Event Handling](../input/events.md)

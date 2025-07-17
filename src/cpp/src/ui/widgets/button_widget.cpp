@@ -24,19 +24,33 @@ namespace Fern {
             buttonColor = isPressed_ ? config_.getStyle().getPressColor() : config_.getStyle().getHoverColor();
         }
         
-        Draw::rect(x_, y_, config_.getWidth(), config_.getHeight(), buttonColor);
+        int borderRadius = config_.getStyle().getBorderRadius();
+        if (borderRadius > 0) {
+            Draw::roundedRect(x_, y_, config_.getWidth(), config_.getHeight(), borderRadius, buttonColor);
+        } else {
+            Draw::rect(x_, y_, config_.getWidth(), config_.getHeight(), buttonColor);
+        }
     }
     
     void ButtonWidget::renderBorder() {
         if (config_.getStyle().getBorderWidth() > 0) {
             int borderWidth = config_.getStyle().getBorderWidth();
             uint32_t borderColor = config_.getStyle().getBorderColor();
+            int borderRadius = config_.getStyle().getBorderRadius();
             
-            // Draw border as 4 lines (since we don't have rectOutline)
-            Draw::line(x_ - borderWidth, y_ - borderWidth, x_ + config_.getWidth() + borderWidth, y_ - borderWidth, borderWidth, borderColor); // Top
-            Draw::line(x_ - borderWidth, y_ + config_.getHeight() + borderWidth, x_ + config_.getWidth() + borderWidth, y_ + config_.getHeight() + borderWidth, borderWidth, borderColor); // Bottom
-            Draw::line(x_ - borderWidth, y_ - borderWidth, x_ - borderWidth, y_ + config_.getHeight() + borderWidth, borderWidth, borderColor); // Left
-            Draw::line(x_ + config_.getWidth() + borderWidth, y_ - borderWidth, x_ + config_.getWidth() + borderWidth, y_ + config_.getHeight() + borderWidth, borderWidth, borderColor); // Right
+            if (borderRadius > 0) {
+                // Use rounded rectangle border
+                Draw::roundedRectBorder(x_ - borderWidth, y_ - borderWidth, 
+                                      config_.getWidth() + 2 * borderWidth, 
+                                      config_.getHeight() + 2 * borderWidth, 
+                                      borderRadius + borderWidth, borderWidth, borderColor);
+            } else {
+                // Draw border as 4 lines (since we don't have rectOutline)
+                Draw::line(x_ - borderWidth, y_ - borderWidth, x_ + config_.getWidth() + borderWidth, y_ - borderWidth, borderWidth, borderColor); // Top
+                Draw::line(x_ - borderWidth, y_ + config_.getHeight() + borderWidth, x_ + config_.getWidth() + borderWidth, y_ + config_.getHeight() + borderWidth, borderWidth, borderColor); // Bottom
+                Draw::line(x_ - borderWidth, y_ - borderWidth, x_ - borderWidth, y_ + config_.getHeight() + borderWidth, borderWidth, borderColor); // Left
+                Draw::line(x_ + config_.getWidth() + borderWidth, y_ - borderWidth, x_ + config_.getWidth() + borderWidth, y_ + config_.getHeight() + borderWidth, borderWidth, borderColor); // Right
+            }
         }
     }
     
@@ -122,7 +136,29 @@ namespace Fern {
     void ButtonWidget::setLabel(const std::string& label) {
         config_.label(label);
     }
-
+    
+    void ButtonWidget::autoSizeToContent(int padding) {
+        if (!config_.getLabel().empty()) {
+            int textWidth = calculateTextWidth(config_.getLabel(), config_.getStyle().getTextScale());
+            int textHeight = calculateTextHeight(config_.getStyle().getTextScale());
+            
+            int newWidth = textWidth + padding * 2;
+            int newHeight = textHeight + padding;
+            
+            config_.setSize(newWidth, newHeight);
+        }
+    }
+    
+    int ButtonWidget::calculateTextWidth(const std::string& text, int textScale) {
+        // Each character is 8 pixels wide in bitmap font
+        return text.length() * 8 * textScale;
+    }
+    
+    int ButtonWidget::calculateTextHeight(int textScale) {
+        // Each character is 8 pixels tall in bitmap font
+        return 8 * textScale;
+    }
+    
     // Preset configurations
     namespace ButtonPresets {
         ButtonConfig Primary(int x, int y, int width, int height, const std::string& label) {

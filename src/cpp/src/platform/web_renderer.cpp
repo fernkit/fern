@@ -103,6 +103,13 @@ namespace Fern {
                 if (canvas) {
                     canvas.width = $0;
                     canvas.height = $1;
+                    
+                    // Setting canvas.width automatically clears the canvas
+                    // But let's also explicitly clear it to ensure clean state
+                    var ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, $0, $1);
+                    
+                    console.log("Canvas resized to: " + $0 + "x" + $1);
                 }
             }, width, height);
         }
@@ -121,6 +128,10 @@ namespace Fern {
         void onResize(int width, int height) {
             width_ = width;
             height_ = height;
+            
+            // Update the HTML canvas element size
+            setSize(width, height);
+            
             if (resizeCallback_) {
                 resizeCallback_(width, height);
             }

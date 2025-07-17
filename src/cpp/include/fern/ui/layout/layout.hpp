@@ -1,6 +1,7 @@
 #pragma once
 #include "../widgets/widget.hpp"
 #include "../../graphics/primitives.hpp"
+#include "../../core/responsive_widget.hpp"
 #include <vector>
 #include <memory>
 
@@ -75,11 +76,14 @@ namespace Fern {
         std::vector<std::shared_ptr<Widget>> children_;
     };
 
-    class CenterWidget : public LayoutWidget {
+    class CenterWidget : public LayoutWidget, public ResponsiveWidget {
     public:
         CenterWidget(int x, int y, int width, int height);
         
         void add(std::shared_ptr<Widget> child);
+        
+        // ResponsiveWidget implementation
+        void onWindowResize(int newWidth, int newHeight) override;
         
     protected:
         void arrangeChildren() override;
