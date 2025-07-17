@@ -79,44 +79,56 @@ check_dependencies() {
 install_cli() {
     log_info "Installing Terra CLI..."
     
-    # Check if Terra CLI is already installed
-    TERRA_DIR="$HOME/.fern/terra"
+    # Create Terra CLI directory
+    CLI_DIR="$HOME/.fern/cli"
+    mkdir -p "$CLI_DIR"
     
-    if [ -d "$TERRA_DIR" ]; then
-        log_info "Terra CLI directory exists, updating..."
-        cd "$TERRA_DIR"
-        git pull origin master
-        cd - > /dev/null
+    # Copy CLI files from local or clone from GitHub
+    if [ -d "cli" ]; then
+        log_info "Using local Terra CLI source..."
+        cp -r cli/* "$CLI_DIR/"
     else
-        log_info "Cloning Terra CLI repository..."
-        mkdir -p "$HOME/.fern"
-        cd "$HOME/.fern"
-        git clone https://github.com/fernkit/terra.git
-        cd - > /dev/null
+        log_info "Cloning Terra CLI from GitHub..."
+        TEMP_DIR=$(mktemp -d)
+        cd "$TEMP_DIR"
+        
+        if git clone https://github.com/fernkit/terra.git; then
+            cp -r terra/cli/* "$CLI_DIR/"
+            cd - > /dev/null
+            rm -rf "$TEMP_DIR"
+        else
+            log_error "Failed to clone Terra CLI from GitHub"
+            log_error "Please check your internet connection and try again"
+            cd - > /dev/null
+            rm -rf "$TEMP_DIR"
+            return 1
+        fi
     fi
     
     # Create ~/.local/bin directory if it doesn't exist
     mkdir -p "$HOME/.local/bin"
     
-    # Create a simple launcher script
+    # Create global launcher script
     cat > "$HOME/.local/bin/fern" << 'EOF'
-#!/usr/bin/env python3
-import sys
-import os
-from pathlib import Path
-
-# Add Terra CLI directory to path
-TERRA_CLI_DIR = Path.home() / ".fern" / "terra" / "cli"
-sys.path.insert(0, str(TERRA_CLI_DIR))
-
-from terra_cli import main
-
-if __name__ == "__main__":
-    main()
+#!/bin/bash
+# Fern CLI launcher
+CLI_DIR="$HOME/.fern/cli"
+if [ ! -f "$CLI_DIR/terra_cli.py" ]; then
+    echo "Error: Terra CLI not found at $CLI_DIR"
+    exit 1
+fi
+cd "$CLI_DIR"
+python3 terra_cli.py "$@"
 EOF
-    
-    # Make it executable
     chmod +x "$HOME/.local/bin/fern"
+    
+    # Create alias for 'terra' command
+    cat > "$HOME/.local/bin/terra" << 'EOF'
+#!/bin/bash
+# Terra CLI alias
+exec "$HOME/.local/bin/fern" "$@"
+EOF
+    chmod +x "$HOME/.local/bin/terra"
     
     # Check if ~/.local/bin is in PATH
     if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
@@ -248,13 +260,26 @@ install_gleeb_lsp() {
     GLEEB_DIR="$HOME/.fern/gleeb"
     mkdir -p "$GLEEB_DIR"
     
-    # Copy Gleeb source files
+    # Clone Gleeb LSP from GitHub if not present locally
     if [ -d "gleeb" ]; then
-        log_info "Copying Gleeb LSP source..."
+        log_info "Using local Gleeb LSP source..."
         cp -r gleeb/* "$GLEEB_DIR/"
     else
-        log_error "Gleeb source directory not found"
-        return 1
+        log_info "Cloning Gleeb LSP from GitHub..."
+        TEMP_DIR=$(mktemp -d)
+        cd "$TEMP_DIR"
+        
+        if git clone https://github.com/fernkit/gleeb.git; then
+            cp -r gleeb/* "$GLEEB_DIR/"
+            cd - > /dev/null
+            rm -rf "$TEMP_DIR"
+        else
+            log_error "Failed to clone Gleeb LSP from GitHub"
+            log_error "Please check your internet connection and try again"
+            cd - > /dev/null
+            rm -rf "$TEMP_DIR"
+            return 1
+        fi
     fi
     
     # Install dependencies and build
@@ -372,9 +397,6 @@ main() {
     # Setup global templates and config
     setup_global_templates
     setup_global_config
-    
-    # Install Gleeb LSP
-    install_gleeb_lsp
     
     echo "========================================"
     log_success "Fern UI Framework with Terra CLI installed successfully!"

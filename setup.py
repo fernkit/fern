@@ -16,12 +16,12 @@ version = "0.1.0"
 setup(
     name="fern-ui",
     version=version,
-    description="Modern UI Framework CLI - Flutter-like development for C++",
+    description="UI Framework CLI - Flutter-like development for C++",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="Fern UI Team",
-    author_email="contact@fern-ui.dev",
-    url="https://github.com/fern-ui/fern",
+    author="Rishi Ahuja",
+    author_email="www.rishiahuja@gmail.com",
+    url="https://github.com/fernkit/fern",
     packages=find_packages(where="cli"),
     package_dir={"": "cli"},
     entry_points={

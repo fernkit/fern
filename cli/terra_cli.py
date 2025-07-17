@@ -10,6 +10,7 @@ Commands:
   prepare <platform>       Build for target platform
   install <package>        Install Fern packages
   templates               Manage project templates
+  lsp <subcommand>        Manage Language Server Protocol
   help                    Show this help message
 """
 
@@ -29,6 +30,7 @@ from commands.fire import FireCommand
 from commands.prepare import PrepareCommand
 from commands.install import InstallCommand
 from commands.templates import TemplatesCommand
+from commands.lsp import LSPCommand
 from utils.colors import Colors, print_colored
 
 class FernCLI:
@@ -40,6 +42,7 @@ class FernCLI:
             'prepare': PrepareCommand(),
             'install': InstallCommand(),
             'templates': TemplatesCommand(),
+            'lsp': LSPCommand(),
         }
     
     def run(self, args):
@@ -62,7 +65,7 @@ class FernCLI:
             sys.exit(1)
     
     def show_help(self):
-        print_colored("🌿 Fern CLI", Colors.GREEN)
+        print_colored("🌿 Terra CLI", Colors.GREEN)
         print_colored("=" * 40, Colors.CYAN)
         print(__doc__)
         
@@ -73,6 +76,8 @@ class FernCLI:
         print("  fern fire                     # Run current project")
         print("  fern prepare web              # Build for web")
         print("  fern prepare linux            # Build for linux")
+        print("  fern lsp start                # Start LSP server")
+        print("  fern lsp config               # Configure VS Code")
 
 def main():
     cli = FernCLI()
