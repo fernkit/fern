@@ -4,10 +4,10 @@
 
 ### 1. Core Documentation
 - [x] **Getting Started Guide** (`docs/getting-started.md`)
-- [ ] **Installation Guide** (`docs/installation.md`)
-- [ ] **API Reference** (`docs/api-reference.md`)
-- [ ] **Project Structure** (`docs/project-structure.md`)
-- [ ] **Build System** (`docs/build-system.md`)
+- [x] **Installation Guide** (`docs/installation.md`)
+- [x] **API Reference** (`docs/api-reference.md`)
+- [x] **Project Structure** (`docs/project-structure.md`)
+- [x] **Build System** (`docs/build-system.md`)
 
 ### 2. Widget Documentation
 - [x] **Button Widget** (`docs/widgets/button.md`)
@@ -53,10 +53,10 @@
 - [x] **Best Practices** (`docs/examples/best-practices.md`)
 
 ### 8. Development
-- [ ] **Contributing Guide** (`docs/development/contributing.md`)
-- [ ] **Architecture Overview** (`docs/development/architecture.md`)
-- [ ] **Testing Guide** (`docs/development/testing.md`)
-- [ ] **Performance Guide** (`docs/development/performance.md`)
+- [x] **Contributing Guide** (`docs/development/contributing.md`)
+- [x] **Architecture Overview** (`docs/development/architecture.md`)
+- [x] **Testing Guide** (`docs/development/testing.md`)
+- [x] **Performance Guide** (`docs/development/performance.md`)
 
 ## 📝 Documentation Standards
 

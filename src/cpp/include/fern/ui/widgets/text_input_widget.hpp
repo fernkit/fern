@@ -9,10 +9,39 @@
 
 namespace Fern {
     
-    // Class-based configuration - much better than structs!
+    /**
+     * @brief Style configuration for TextInputWidget
+     * 
+     * TextInputStyle provides a fluent interface to configure the appearance
+     * of text input fields including colors, borders, fonts, and layout.
+     * Supports both bitmap and TTF fonts with focus state styling.
+     * 
+     * @example Basic input styling:
+     * @code
+     * TextInputStyle style;
+     * style.backgroundColor(Colors::White)
+     *      .borderColor(Colors::Gray)
+     *      .focusBorderColor(Colors::Blue)
+     *      .textColor(Colors::Black)
+     *      .padding(8);
+     * @endcode
+     * 
+     * @example TTF font input:
+     * @code
+     * TextInputStyle style;
+     * style.useTTFFont("arial")
+     *      .fontSize(18)
+     *      .backgroundColor(Colors::LightGray);
+     * @endcode
+     */
     class TextInputStyle {
     public:
-        // Constructor with sensible defaults
+        /**
+         * @brief Construct a new Text Input Style with default values
+         * 
+         * Default style includes white background, gray border, blue focus border,
+         * black text, and medium font size suitable for bitmap fonts.
+         */
         TextInputStyle() 
             : backgroundColor_(0xFFFFFF)    // White
             , borderColor_(0x888888)        // Gray  
@@ -26,16 +55,74 @@ namespace Fern {
             , ttfFontName_("")
         {}
         
-        // Fluent interface for easy configuration
+        /**
+         * @brief Set background color
+         * @param color Background color in ARGB format
+         * @return TextInputStyle& Reference for method chaining
+         */
         TextInputStyle& backgroundColor(uint32_t color) { backgroundColor_ = color; return *this; }
+        
+        /**
+         * @brief Set border color for normal state
+         * @param color Border color in ARGB format
+         * @return TextInputStyle& Reference for method chaining
+         */
         TextInputStyle& borderColor(uint32_t color) { borderColor_ = color; return *this; }
+        
+        /**
+         * @brief Set border color for focused state
+         * @param color Focus border color in ARGB format
+         * @return TextInputStyle& Reference for method chaining
+         */
         TextInputStyle& focusBorderColor(uint32_t color) { focusBorderColor_ = color; return *this; }
+        
+        /**
+         * @brief Set text color
+         * @param color Text color in ARGB format
+         * @return TextInputStyle& Reference for method chaining
+         */
         TextInputStyle& textColor(uint32_t color) { textColor_ = color; return *this; }
+        
+        /**
+         * @brief Set cursor color
+         * @param color Cursor color in ARGB format
+         * @return TextInputStyle& Reference for method chaining
+         */
         TextInputStyle& cursorColor(uint32_t color) { cursorColor_ = color; return *this; }
+        
+        /**
+         * @brief Set border width
+         * @param width Border width in pixels
+         * @return TextInputStyle& Reference for method chaining
+         */
         TextInputStyle& borderWidth(int width) { borderWidth_ = width; return *this; }
+        
+        /**
+         * @brief Set padding around text
+         * @param pad Padding in pixels
+         * @return TextInputStyle& Reference for method chaining
+         */
         TextInputStyle& padding(int pad) { padding_ = pad; return *this; }
+        
+        /**
+         * @brief Set font size
+         * @param size Font size (1-5 for bitmap, 16+ recommended for TTF)
+         * @return TextInputStyle& Reference for method chaining
+         */
         TextInputStyle& fontSize(int size) { fontSize_ = size; return *this; }
+        
+        /**
+         * @brief Use bitmap font rendering
+         * @return TextInputStyle& Reference for method chaining
+         */
         TextInputStyle& useBitmapFont() { fontType_ = FontType::Bitmap; return *this; }
+        
+        /**
+         * @brief Use TTF font rendering
+         * @param fontName TTF font name (empty for default)
+         * @return TextInputStyle& Reference for method chaining
+         * @note Automatically adjusts font size to 16+ if too small for TTF
+         */
         TextInputStyle& useTTFFont(const std::string& fontName = "") { 
             fontType_ = FontType::TTF; 
             ttfFontName_ = fontName;
@@ -68,6 +155,18 @@ namespace Fern {
         std::string ttfFontName_;
     };
     
+    /**
+     * @brief Configuration container for TextInputWidget positioning and setup
+     * 
+     * TextInputConfig combines position, dimensions, styling, and placeholder text
+     * into a single configuration object for easy text input widget creation.
+     * 
+     * @example Basic text input configuration:
+     * @code
+     * auto config = TextInputConfig(100, 50, 200, 30, "Enter text...")
+     *     .style(TextInputStyle().backgroundColor(Colors::White).borderColor(Colors::Gray));
+     * @endcode
+     */
     class TextInputConfig {
     public:
         TextInputConfig(int x, int y, int width, int height)

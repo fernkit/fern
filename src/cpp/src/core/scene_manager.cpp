@@ -5,7 +5,6 @@ namespace Fern {
     
     void SceneManager::registerScene(const std::string& name, std::function<std::unique_ptr<Scene>()> creator) {
         sceneCreators_[name] = creator;
-        std::cout << "Scene registered: " << name << std::endl;
     }
     
     void SceneManager::pushScene(const std::string& name) {
@@ -22,7 +21,6 @@ namespace Fern {
         
         // Create and push new scene
         auto newScene = it->second();
-        std::cout << "Pushing scene: " << name << std::endl;
         
         newScene->onCreate();
         sceneStack_.push(std::move(newScene));
@@ -35,7 +33,6 @@ namespace Fern {
             return;
         }
         
-        std::cout << "Popping scene: " << sceneStack_.top()->getName() << std::endl;
         
         // Exit and destroy current scene
         sceneStack_.top()->onExit();
@@ -64,7 +61,6 @@ namespace Fern {
         
         // Create and set new scene
         auto newScene = it->second();
-        std::cout << "Replacing with scene: " << name << std::endl;
         
         newScene->onCreate();
         sceneStack_.push(std::move(newScene));
@@ -77,7 +73,6 @@ namespace Fern {
             sceneStack_.top()->onDestroy();
             sceneStack_.pop();
         }
-        std::cout << "All scenes cleared" << std::endl;
     }
     
     void SceneManager::update(float deltaTime) {

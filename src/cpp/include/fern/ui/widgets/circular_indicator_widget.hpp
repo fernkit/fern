@@ -7,7 +7,31 @@
 #include <string>
 
 namespace Fern {
-    // Class-based configuration for circular indicator
+    /**
+     * @brief Style configuration for CircularIndicatorWidget
+     * 
+     * CircularIndicatorStyle provides a fluent interface to configure the appearance
+     * of circular progress indicators including colors, thickness, direction, and text display.
+     * 
+     * @example Basic circular indicator styling:
+     * @code
+     * CircularIndicatorStyle style;
+     * style.backgroundColor(Colors::Gray)
+     *      .fillColor(Colors::Green)
+     *      .thickness(10)
+     *      .showPercentage(true);
+     * @endcode
+     * 
+     * @example Custom circular indicator:
+     * @code
+     * CircularIndicatorStyle style;
+     * style.fillColor(Colors::Blue)
+     *      .thickness(6)
+     *      .clockwise(false)
+     *      .startAngle(90.0f)  // Start from right
+     *      .useTTFFont("arial");
+     * @endcode
+     */
     class CircularIndicatorStyle {
     public:
         CircularIndicatorStyle()

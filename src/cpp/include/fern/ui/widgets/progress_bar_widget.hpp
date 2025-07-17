@@ -7,7 +7,30 @@
 #include <string>
 
 namespace Fern {
-    // Class-based configuration for progress bar
+    /**
+     * @brief Style configuration for ProgressBarWidget
+     * 
+     * ProgressBarStyle provides a fluent interface to configure the appearance
+     * of progress bars including colors, borders, text display, and fonts.
+     * 
+     * @example Basic progress bar styling:
+     * @code
+     * ProgressBarStyle style;
+     * style.backgroundColor(Colors::Gray)
+     *      .fillColor(Colors::Green)
+     *      .showPercentage(true)
+     *      .borderWidth(2);
+     * @endcode
+     * 
+     * @example Custom color progress bar:
+     * @code
+     * ProgressBarStyle style;
+     * style.fillColor(Colors::Blue)
+     *      .textColor(Colors::White)
+     *      .useTTFFont("arial")
+     *      .fontSize(18);
+     * @endcode
+     */
     class ProgressBarStyle {
     public:
         ProgressBarStyle()

@@ -6,10 +6,38 @@
 #include <functional>
 
 namespace Fern {
-    // Class-based configuration following the modern pattern
+    /**
+     * @brief Style configuration for SliderWidget
+     * 
+     * SliderStyle provides a fluent interface to configure the appearance
+     * of sliders including track colors, thumb styling, and value display options.
+     * 
+     * @example Basic slider styling:
+     * @code
+     * SliderStyle style;
+     * style.trackColor(Colors::Gray)
+     *      .fillColor(Colors::Blue)
+     *      .thumbColor(Colors::White)
+     *      .showValue(true);
+     * @endcode
+     * 
+     * @example Custom thumb styling:
+     * @code
+     * SliderStyle style;
+     * style.thumbColor(Colors::Red)
+     *      .thumbHoverColor(Colors::LightRed)
+     *      .thumbRadius(12)
+     *      .textColor(Colors::White);
+     * @endcode
+     */
     class SliderStyle {
     public:
-        // Constructor with sensible defaults
+        /**
+         * @brief Construct a new Slider Style with default values
+         * 
+         * Default style includes gray track, blue fill, white thumb with
+         * hover effects, and visible value display.
+         */
         SliderStyle()
             : trackColor_(0xFF606060)       // Gray track
             , fillColor_(0xFF0080FF)        // Blue fill

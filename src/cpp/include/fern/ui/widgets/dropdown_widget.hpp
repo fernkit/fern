@@ -8,7 +8,30 @@
 #include <vector>
 
 namespace Fern {
-    // Class-based configuration for dropdown
+    /**
+     * @brief Style configuration for DropdownWidget
+     * 
+     * DropdownStyle provides a fluent interface to configure the appearance
+     * of dropdown menus including colors, borders, hover effects, and item display.
+     * 
+     * @example Basic dropdown styling:
+     * @code
+     * DropdownStyle style;
+     * style.backgroundColor(Colors::White)
+     *      .borderColor(Colors::Gray)
+     *      .selectedColor(Colors::Blue)
+     *      .maxVisibleItems(8);
+     * @endcode
+     * 
+     * @example Custom styled dropdown:
+     * @code
+     * DropdownStyle style;
+     * style.dropdownBackgroundColor(Colors::LightGray)
+     *      .hoverColor(Colors::Blue)
+     *      .padding(12)
+     *      .useTTFFont("arial");
+     * @endcode
+     */
     class DropdownStyle {
     public:
         DropdownStyle()

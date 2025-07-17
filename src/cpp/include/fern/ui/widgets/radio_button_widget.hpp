@@ -8,7 +8,30 @@
 #include <vector>
 
 namespace Fern {
-    // Class-based configuration for radio button
+    /**
+     * @brief Style configuration for RadioButtonWidget
+     * 
+     * RadioButtonStyle provides a fluent interface to configure the appearance
+     * of radio buttons including colors, sizing, hover effects, and text styling.
+     * 
+     * @example Basic radio button styling:
+     * @code
+     * RadioButtonStyle style;
+     * style.backgroundColor(Colors::White)
+     *      .borderColor(Colors::Gray)
+     *      .selectedColor(Colors::Blue)
+     *      .textColor(Colors::Black);
+     * @endcode
+     * 
+     * @example Custom styled radio button:
+     * @code
+     * RadioButtonStyle style;
+     * style.radius(12)
+     *      .selectedColor(Colors::Green)
+     *      .hoverColor(Colors::LightGray)
+     *      .spacing(10);
+     * @endcode
+     */
     class RadioButtonStyle {
     public:
         RadioButtonStyle()

@@ -82,7 +82,6 @@ namespace Fern {
     public:
         LinuxRenderer() : display_(nullptr), window_(0), gc_(nullptr), 
                          ximage_(nullptr), pixelBuffer_(nullptr), shouldClose_(false) {
-            std::cout << "Creating Linux X11 Renderer..." << std::endl;
         }
         
         ~LinuxRenderer() {
@@ -93,7 +92,6 @@ namespace Fern {
             width_ = width;
             height_ = height;
             
-            std::cout << "Initializing X11 display..." << std::endl;
             
             // Step 1: Connect to X Server
             display_ = XOpenDisplay(nullptr);  // nullptr means use DISPLAY environment variable
@@ -105,7 +103,6 @@ namespace Fern {
             int screen = DefaultScreen(display_);              // Usually 0 for single monitor
             Window rootWindow = RootWindow(display_, screen);   // Desktop background window
             
-            std::cout << "Connected to X server on screen " << screen << std::endl;
             
             // Step 3: Create our application window
             window_ = XCreateSimpleWindow(
@@ -122,7 +119,6 @@ namespace Fern {
                 throw std::runtime_error("Failed to create X11 window");
             }
             
-            std::cout << "Created window with ID: " << window_ << std::endl;
             
             // Step 4: Set window properties
             XStoreName(display_, window_, "Fern Application - Linux");
@@ -150,7 +146,6 @@ namespace Fern {
             XMapWindow(display_, window_);     // Show the window
             XFlush(display_);                  // Force X server to process requests
             
-            std::cout << "Linux renderer initialized successfully!" << std::endl;
         }
         
         void present(uint32_t* pixelBuffer, int width, int height) override {
@@ -262,9 +257,7 @@ namespace Fern {
                         if (event.xconfigure.width != width_ || event.xconfigure.height != height_) {
                             int newWidth = event.xconfigure.width;
                             int newHeight = event.xconfigure.height;
-                            
-                            std::cout << "Window resize detected: " << width_ << "x" << height_ 
-                                     << " -> " << newWidth << "x" << newHeight << std::endl;
+                           
                             
                             // Reallocate pixel buffer and recreate XImage for new dimensions
                             if (newWidth > 0 && newHeight > 0) {
@@ -277,7 +270,6 @@ namespace Fern {
                                         resizeCallback_(width_, height_);
                                     }
                                     
-                                    std::cout << "Window resize completed successfully" << std::endl;
                                 } catch (const std::exception& e) {
                                     std::cerr << "Error during window resize: " << e.what() << std::endl;
                                 }
@@ -336,7 +328,6 @@ namespace Fern {
         
     private:
         void setupPixelBuffer() {
-            std::cout << "Setting up pixel buffer..." << std::endl;
             
             // Validate dimensions
             if (width_ <= 0 || height_ <= 0) {
@@ -373,12 +364,9 @@ namespace Fern {
                 throw std::runtime_error("Failed to create XImage");
             }
             
-            std::cout << "Pixel buffer setup complete. Size: " << width_ << "x" << height_ 
-                     << ", Depth: " << DefaultDepth(display_, DefaultScreen(display_)) << " bits" << std::endl;
         }
         
         void resizePixelBuffer(int newWidth, int newHeight) {
-            std::cout << "Resizing pixel buffer to " << newWidth << "x" << newHeight << std::endl;
             
             // Validate dimensions
             if (newWidth <= 0 || newHeight <= 0) {
@@ -433,11 +421,9 @@ namespace Fern {
                 delete[] oldPixelBuffer;
             }
             
-            std::cout << "Pixel buffer resize complete." << std::endl;
         }
         
         void cleanup() {
-            std::cout << "Cleaning up X11 resources..." << std::endl;
             
             if (ximage_) {
                 // Important: Set data to nullptr so XDestroyImage doesn't free our buffer
@@ -466,7 +452,6 @@ namespace Fern {
                 display_ = nullptr;
             }
             
-            std::cout << "X11 cleanup complete." << std::endl;
         }
     };
 }
