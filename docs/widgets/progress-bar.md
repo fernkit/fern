@@ -1,451 +1,554 @@
-# Progress Bar Widget
+# Progress Bar Widget Guide
 
-The Progress Bar Widget provides a visual indicator of completion progress for tasks, downloads, loading operations, or any process that can be quantified as a percentage. It supports customizable styling, text display, and smooth animations.
+Progress bars are essential visual communication tools that transform abstract numerical progress into immediate, intuitive understanding. In this guide, you'll learn how to create compelling progress indicators in Fern while understanding the psychology of progress feedback and the technical challenges of smooth, responsive progress visualization.
 
-## Overview
+## Understanding Progress Visualization
 
-The Progress Bar Widget consists of:
-- **Background**: The unfilled portion of the progress bar
-- **Fill**: The colored portion indicating progress
-- **Border**: Optional border around the progress bar
-- **Text**: Optional percentage or custom text display
+Progress bars address a fundamental human need: **knowing how much work remains**. They serve multiple psychological functions:
 
-## Basic Usage
+1. **Reducing Anxiety**: Clear progress indication reduces user stress about task completion
+2. **Setting Expectations**: Users can estimate remaining time and plan accordingly
+3. **Maintaining Engagement**: Visual progress encourages users to wait for completion
+4. **Providing Feedback**: Immediate visual response confirms that systems are working
+5. **Creating Satisfaction**: Watching progress advance triggers positive psychological responses
+
+Effective progress bars require careful balance between accuracy, responsiveness, and visual appeal.
+
+## Progress Bar Philosophy in Fern
+
+Fern's progress bars embody the principle of **transparent progress**:
+
+- **Accurate Representation**: Visual fill directly corresponds to actual completion percentage
+- **Smooth Updates**: Progress changes feel natural and responsive, not jarring
+- **Clear Boundaries**: Distinct visual separation between completed and remaining work
+- **Contextual Information**: Optional text display provides precise numerical feedback
+- **Flexible Ranges**: Any numerical range can be mapped to visual progress
+
+This approach ensures progress bars feel trustworthy and informative while maintaining visual appeal.
+
+## Your First Progress Bar
+
+Let's start with the simplest possible progress bar:
 
 ```cpp
 #include <fern/fern.hpp>
 
-// Create a basic progress bar
-auto progressBar = ProgressBar(ProgressBarConfig(100, 100, 300, 20)
-    .value(45.0f)                   // 45% complete
-    .range(0.0f, 100.0f), true);
+using namespace Fern;
 
-// Update progress
-progressBar->setValue(75.0f);
-
-// Connect to progress events
-progressBar->onValueChanged.connect([](float value) {
-    std::cout << "Progress: " << value << "%" << std::endl;
-});
-```
-
-## Configuration System
-
-### ProgressBarConfig
-
-The `ProgressBarConfig` class defines the progress bar's properties:
-
-```cpp
-// Complete configuration example
-auto customProgress = ProgressBar(ProgressBarConfig(100, 150, 400, 25)
-    .value(60.0f)                   // Initial progress (0-100)
-    .range(0.0f, 100.0f)           // Value range
-    .style(ProgressBarStyle()
-        .backgroundColor(Colors::DarkGray)
-        .fillColor(Colors::Green)
-        .borderColor(Colors::Black)
-        .borderWidth(2)
-        .showPercentage(true)       // Display percentage text
-        .textColor(Colors::White)
-        .fontSize(2)
-        .useBitmapFont()), true);
-```
-
-### ProgressBarStyle
-
-The `ProgressBarStyle` class controls the visual appearance:
-
-```cpp
-ProgressBarStyle style;
-style.backgroundColor(Colors::LightGray)    // Background color
-     .fillColor(Colors::Blue)               // Progress fill color
-     .borderColor(Colors::Black)            // Border color
-     .borderWidth(1)                        // Border thickness
-     .showPercentage(true)                  // Show percentage text
-     .textColor(Colors::White)              // Text color
-     .fontSize(2)                           // Text size
-     .useBitmapFont();                      // Use bitmap font
-```
-
-## Methods
-
-### Progress Control
-
-```cpp
-// Set the current progress value
-progressBar->setValue(65.0f);
-
-// Get the current progress value
-float currentValue = progressBar->getValue();
-
-// Get progress as percentage (0-100)
-float percentage = progressBar->getPercentage();
-
-// Change the value range
-progressBar->setRange(0.0f, 200.0f);
-```
-
-### Widget Interface
-
-```cpp
-// Position and size
-progressBar->setPosition(200, 150);
-progressBar->resize(450, 30);
-
-// Get dimensions
-int width = progressBar->getWidth();
-int height = progressBar->getHeight();
-```
-
-## Events and Signals
-
-### Progress Changes
-
-```cpp
-// Respond to progress changes
-progressBar->onValueChanged.connect([](float value) {
-    updateProgressLabel(value);
-});
-```
-
-### Completion Events
-
-```cpp
-// Detect when progress reaches 100%
-progressBar->onComplete.connect([]() {
-    std::cout << "Task completed!" << std::endl;
-    showCompletionMessage();
-});
-```
-
-## Preset Configurations
-
-Fern provides several preset configurations for common use cases:
-
-### Default Progress Bar
-
-```cpp
-auto progressBar = ProgressBar(ProgressBarPresets::Default(100, 100), true);
-```
-
-### Loading Progress
-
-```cpp
-auto loadingBar = ProgressBar(ProgressBarPresets::Loading(50, 100, 250, 20), true);
-// Blue theme, suitable for loading operations
-```
-
-### Health Bar
-
-```cpp
-auto healthBar = ProgressBar(ProgressBarPresets::Health(50, 150, 200, 15), true);
-// Green theme, suitable for health/status displays
-```
-
-### Download Progress
-
-```cpp
-auto downloadBar = ProgressBar(ProgressBarPresets::Download(50, 200, 400, 30), true);
-// Green theme with percentage display, suitable for downloads
-```
-
-## Interactive Examples
-
-### File Download Progress
-
-```cpp
-void createDownloadProgress() {
-    auto downloadBar = ProgressBar(ProgressBarConfig(100, 100, 400, 25)
-        .value(0.0f)
+int main() {
+    // Initialize Fern
+    setupFern();
+    
+    // Create a basic progress bar for file download
+    auto downloadProgress = ProgressBar(ProgressBarConfig(100, 100, 300, 25)
         .range(0.0f, 100.0f)
-        .style(ProgressBarStyle()
-            .backgroundColor(Colors::LightGray)
-            .fillColor(Colors::Blue)
-            .borderColor(Colors::DarkGray)
-            .borderWidth(1)
-            .showPercentage(true)
-            .textColor(Colors::White)
-            .fontSize(2)), true);
+        .value(0.0f));
     
     // Simulate download progress
-    downloadBar->onValueChanged.connect([](float progress) {
-        std::cout << "Download: " << progress << "% complete" << std::endl;
+    float progress = 0.0f;
+    
+    // Handle completion
+    downloadProgress->onComplete.connect([]() {
+        std::cout << "Download complete!" << std::endl;
     });
     
-    downloadBar->onComplete.connect([]() {
-        std::cout << "Download completed!" << std::endl;
-    });
+    // Start the game loop with progress simulation
+    while (shouldKeepRunning() && progress < 100.0f) {
+        progress += 0.5f; // Simulate gradual progress
+        downloadProgress->setValue(progress);
+        
+        processInput();
+        render();
+        
+        // Small delay to see progress
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
     
-    // Simulate progress updates (in real app, this would be driven by actual download)
-    // downloadBar->setValue(25.0f);  // 25% complete
-    // downloadBar->setValue(50.0f);  // 50% complete
-    // downloadBar->setValue(100.0f); // Complete - triggers onComplete
+    return 0;
 }
 ```
 
-### Health/Status Display
+**What's happening here?**
+- `ProgressBarConfig(100, 100, 300, 25)`: Position (100,100) with size 300x25 pixels
+- `.range(0.0f, 100.0f)`: Progress from 0% to 100% (typical percentage range)
+- `.value(0.0f)`: Starts at 0% completion
+- `onComplete`: Signal emitted when progress reaches maximum value
+- `setValue()`: Updates progress in real-time
+
+Watch as the blue fill gradually expands from left to right, providing clear visual feedback of the simulated download progress.
+
+## Understanding Progress Bar Components
+
+A Fern progress bar consists of several coordinated visual elements:
+
+### The Background Track
+The unfilled portion that shows the total work to be completed:
 
 ```cpp
-void createHealthBar() {
-    auto healthBar = ProgressBar(ProgressBarConfig(100, 150, 200, 15)
-        .value(80.0f)               // 80% health
-        .range(0.0f, 100.0f)
-        .style(ProgressBarStyle()
-            .backgroundColor(Colors::DarkRed)
-            .fillColor(Colors::Green)
-            .borderColor(Colors::Black)
-            .borderWidth(2)
-            .showPercentage(false)  // No percentage for health
-            .textColor(Colors::White)), true);
-    
-    // Health change logic
-    healthBar->onValueChanged.connect([](float health) {
-        if (health < 25.0f) {
-            std::cout << "Health critical!" << std::endl;
-        } else if (health < 50.0f) {
-            std::cout << "Health low!" << std::endl;
-        }
-    });
-}
+// Background represents "work remaining"
+ProgressBarStyle style;
+style.backgroundColor(Colors::DarkGray);  // Subtle, unobtrusive background
+
+auto taskProgress = ProgressBar(ProgressBarConfig(100, 100, 400, 30)
+    .range(0.0f, 1000.0f)  // Large task with 1000 units of work
+    .value(250.0f)         // 25% complete
+    .style(style));
 ```
 
-### Multi-Step Process
+### The Fill Indicator
+The colored portion that represents completed work:
 
 ```cpp
-void createMultiStepProgress() {
-    auto processBar = ProgressBar(ProgressBarConfig(100, 200, 350, 25)
-        .value(0.0f)
-        .range(0.0f, 100.0f)
-        .style(ProgressBarStyle()
-            .backgroundColor(Colors::Gray)
-            .fillColor(Colors::Purple)
-            .borderColor(Colors::DarkGray)
-            .borderWidth(1)
-            .showPercentage(true)
-            .textColor(Colors::White)
-            .fontSize(2)), true);
-    
-    std::vector<std::string> steps = {
-        "Initializing...",
-        "Loading data...",
-        "Processing...",
-        "Saving results...",
-        "Complete!"
-    };
-    
-    int currentStep = 0;
-    
-    processBar->onValueChanged.connect([&](float progress) {
-        int stepIndex = static_cast<int>(progress / 25.0f);
-        if (stepIndex < steps.size() && stepIndex != currentStep) {
-            currentStep = stepIndex;
-            std::cout << steps[currentStep] << std::endl;
-        }
-    });
-    
-    processBar->onComplete.connect([&]() {
-        std::cout << steps.back() << std::endl;
-    });
-}
+// Fill color conveys meaning through color psychology
+ProgressBarStyle healthStyle;
+healthStyle.backgroundColor(Colors::DarkRed)
+           .fillColor(Colors::Green);  // Green = healthy/positive
+
+ProgressBarStyle warningStyle;
+warningStyle.backgroundColor(Colors::DarkGray)
+            .fillColor(Colors::Orange);  // Orange = caution
+
+ProgressBarStyle errorStyle;
+errorStyle.backgroundColor(Colors::DarkGray)
+          .fillColor(Colors::Red);      // Red = danger/error
 ```
 
-### Battery Level Indicator
+### Border and Definition
+Optional borders that provide visual separation and definition:
 
 ```cpp
-void createBatteryIndicator() {
-    auto batteryBar = ProgressBar(ProgressBarConfig(100, 250, 150, 20)
-        .value(65.0f)               // 65% battery
-        .range(0.0f, 100.0f)
-        .style(ProgressBarStyle()
-            .backgroundColor(Colors::Black)
-            .fillColor(Colors::Green)
-            .borderColor(Colors::White)
-            .borderWidth(2)
-            .showPercentage(true)
-            .textColor(Colors::White)
-            .fontSize(1)), true);
-    
-    // Battery level monitoring
-    batteryBar->onValueChanged.connect([](float level) {
-        if (level < 20.0f) {
-            std::cout << "Battery low: " << level << "%" << std::endl;
-        }
-    });
-    
-    // Color changes based on battery level
-    batteryBar->onValueChanged.connect([=](float level) {
-        if (level < 20.0f) {
-            // Change to red when low (would require style update method)
-            std::cout << "Battery critically low!" << std::endl;
-        } else if (level < 50.0f) {
-            // Change to yellow when medium
-            std::cout << "Battery level medium" << std::endl;
-        }
-    });
-}
-```
-
-## Advanced Usage
-
-### Custom Styling
-
-```cpp
-void createCustomStyledBar() {
-    auto customBar = ProgressBar(ProgressBarConfig(100, 300, 300, 30)
-        .value(40.0f)
-        .range(0.0f, 100.0f)
-        .style(ProgressBarStyle()
-            .backgroundColor(0xFF2C3E50)   // Dark blue-gray
-            .fillColor(0xFF3498DB)         // Bright blue
-            .borderColor(0xFF34495E)       // Darker border
-            .borderWidth(3)
-            .showPercentage(true)
-            .textColor(0xFFFFFFFF)         // White text
-            .fontSize(3)                   // Large text
-            .useBitmapFont()), true);
-    
-    customBar->onValueChanged.connect([](float value) {
-        std::cout << "Custom progress: " << value << "%" << std::endl;
-    });
-}
-```
-
-### Multiple Progress Bars
-
-```cpp
-void createProgressDashboard() {
-    // CPU usage
-    auto cpuBar = ProgressBar(ProgressBarConfig(100, 100, 200, 15)
-        .value(45.0f)
-        .style(ProgressBarStyle()
-            .backgroundColor(Colors::DarkGray)
+// Borders improve visual clarity
+ProgressBarStyle definedStyle;
+definedStyle.backgroundColor(Colors::LightGray)
             .fillColor(Colors::Blue)
-            .showPercentage(true)
-            .fontSize(1)), true);
-    
-    // Memory usage
-    auto memoryBar = ProgressBar(ProgressBarConfig(100, 130, 200, 15)
-        .value(67.0f)
-        .style(ProgressBarStyle()
-            .backgroundColor(Colors::DarkGray)
-            .fillColor(Colors::Orange)
-            .showPercentage(true)
-            .fontSize(1)), true);
-    
-    // Disk usage
-    auto diskBar = ProgressBar(ProgressBarConfig(100, 160, 200, 15)
-        .value(32.0f)
-        .style(ProgressBarStyle()
-            .backgroundColor(Colors::DarkGray)
-            .fillColor(Colors::Green)
-            .showPercentage(true)
-            .fontSize(1)), true);
-    
-    // Update system info
-    cpuBar->onValueChanged.connect([](float cpu) {
-        std::cout << "CPU: " << cpu << "%" << std::endl;
-    });
-    
-    memoryBar->onValueChanged.connect([](float memory) {
-        std::cout << "Memory: " << memory << "%" << std::endl;
-    });
-    
-    diskBar->onValueChanged.connect([](float disk) {
-        std::cout << "Disk: " << disk << "%" << std::endl;
-    });
-}
+            .borderColor(Colors::DarkGray)
+            .borderWidth(2);  // Clear visual boundaries
+
+auto definedProgress = ProgressBar(ProgressBarConfig(100, 200, 300, 25)
+    .style(definedStyle));
 ```
 
-## Best Practices
-
-### 1. Appropriate Ranges
-
-Use meaningful ranges for your progress bars:
+### Text Display and Information
+Optional numerical feedback for precise progress communication:
 
 ```cpp
-// Good - Clear 0-100 percentage
-auto progressBar = ProgressBar(ProgressBarConfig(x, y)
+// Text provides exact progress information
+ProgressBarStyle informativeStyle;
+informativeStyle.showPercentage(true)
+                .textColor(Colors::White)
+                .fontSize(2)
+                .useBitmapFont();
+
+auto informativeProgress = ProgressBar(ProgressBarConfig(100, 250, 350, 30)
     .range(0.0f, 100.0f)
-    .value(0.0f));
-
-// Good - File size in bytes
-auto downloadBar = ProgressBar(ProgressBarConfig(x, y)
-    .range(0.0f, static_cast<float>(fileSize))
-    .value(0.0f));
+    .value(67.5f)
+    .style(informativeStyle));
+// Displays "67%" inside the progress bar
 ```
 
-### 2. Visual Feedback
+## Progress Mathematics and Value Mapping
 
-Provide clear progress indication:
+Understanding how values map to visual progress helps with advanced usage:
 
+### Percentage Calculation
 ```cpp
-// Show percentage for long operations
-.showPercentage(true)
-
-// Use appropriate colors
-.fillColor(Colors::Blue)        // For normal progress
-.fillColor(Colors::Green)       // For success/health
-.fillColor(Colors::Red)         // For critical/error states
-```
-
-### 3. Completion Handling
-
-Always handle completion events:
-
-```cpp
-progressBar->onComplete.connect([]() {
-    std::cout << "Operation completed!" << std::endl;
-    // Hide progress bar, show completion message, etc.
-});
-```
-
-### 4. Smooth Updates
-
-Update progress smoothly for better user experience:
-
-```cpp
-// Update in reasonable increments
-void updateProgress(float newValue) {
-    progressBar->setValue(newValue);
-    // Don't update too frequently (e.g., every frame)
+// How Fern calculates visual progress:
+float calculatePercentage(float value, float minVal, float maxVal) {
+    // Clamp value to valid range
+    value = std::clamp(value, minVal, maxVal);
+    
+    // Calculate percentage of range completed
+    if (maxVal == minVal) return 100.0f;  // Prevent division by zero
+    
+    return ((value - minVal) / (maxVal - minVal)) * 100.0f;
 }
+
+// Example: Value 750 in range 0-1000
+// percentage = ((750 - 0) / (1000 - 0)) * 100 = 75%
 ```
 
-## Performance Tips
-
-- Update progress bars only when values actually change
-- Use appropriate precision for your use case
-- Consider using onComplete for cleanup operations
-- Avoid too frequent updates for better performance
-
-## Integration with Other Widgets
-
-Progress bars work well with other widgets:
-
+### Visual Width Calculation
 ```cpp
-// Progress bar with cancel button
-auto cancelBtn = Button(ButtonConfig(x, y, "Cancel"));
-cancelBtn->onClick.connect([=]() {
-    // Cancel operation and reset progress
-    progressBar->setValue(0.0f);
-});
+// How visual fill width is determined:
+int calculateFillWidth(float percentage, int totalWidth) {
+    return (int)((percentage / 100.0f) * totalWidth);
+}
 
-// Progress bar with status text
-auto statusText = Text(TextConfig(x, y, "Initializing..."));
-progressBar->onValueChanged.connect([=](float value) {
-    if (value < 25.0f) {
-        statusText->setText("Starting...");
-    } else if (value < 75.0f) {
-        statusText->setText("Processing...");
-    } else {
-        statusText->setText("Finishing...");
+// Example: 75% progress on 300-pixel wide bar
+// fillWidth = (75 / 100) * 300 = 225 pixels
+```
+
+### Non-Linear Progress Ranges
+```cpp
+// Progress bars can represent any numerical range
+auto temperatureProgress = ProgressBar(ProgressBarConfig(100, 100, 250, 20)
+    .range(-40.0f, 100.0f)  // Celsius temperature range
+    .value(22.0f));         // Room temperature
+
+// File size progress
+auto fileSizeProgress = ProgressBar(ProgressBarConfig(100, 150, 300, 25)
+    .range(0.0f, 2048.0f)   // 2GB file in MB
+    .value(512.0f));        // 512MB downloaded = 25%
+```
+
+## Advanced Progress Bar Styling
+
+Fern provides comprehensive styling for creating professional progress indicators:
+
+### Color Psychology in Progress Design
+```cpp
+// Health/status indicators
+ProgressBarStyle healthBar;
+healthBar.backgroundColor(Colors::DarkRed)
+         .fillColor(Colors::Green)
+         .borderColor(Colors::Black)
+         .borderWidth(1);
+
+// Download/loading indicators  
+ProgressBarStyle downloadBar;
+downloadBar.backgroundColor(Colors::LightGray)
+           .fillColor(Colors::Blue)
+           .showPercentage(true)
+           .textColor(Colors::White);
+
+// Warning/critical progress
+ProgressBarStyle warningBar;
+warningBar.backgroundColor(Colors::DarkGray)
+          .fillColor(Colors::Orange)
+          .borderColor(Colors::Red)
+          .borderWidth(2);
+```
+
+### Size and Proportion Guidelines
+```cpp
+// Compact progress for secondary information
+auto compactProgress = ProgressBar(ProgressBarConfig(100, 100, 200, 12)
+    .style(ProgressBarStyle().showPercentage(false)));
+
+// Standard progress for primary information
+auto standardProgress = ProgressBar(ProgressBarConfig(100, 150, 300, 25)
+    .style(ProgressBarStyle().showPercentage(true)));
+
+// Large progress for critical operations
+auto prominentProgress = ProgressBar(ProgressBarConfig(100, 200, 400, 40)
+    .style(ProgressBarStyle().showPercentage(true).fontSize(3)));
+```
+
+### Font Integration
+```cpp
+// Bitmap fonts for retro/game interfaces
+ProgressBarStyle pixelStyle;
+pixelStyle.useBitmapFont()
+          .fontSize(2)
+          .showPercentage(true)
+          .fillColor(Colors::LimeGreen)
+          .backgroundColor(Colors::DarkGreen);
+
+// TTF fonts for modern interfaces (requires font loading)
+ProgressBarStyle modernStyle;
+modernStyle.useTTFFont("arial")  // Must be loaded first!
+           .fontSize(16)
+           .showPercentage(true)
+           .textColor(Colors::DarkBlue);
+```
+
+## Progress Bar Events and Communication
+
+Progress bars communicate through Fern's signal system:
+
+### Value Change Events
+```cpp
+auto progress = ProgressBar(ProgressBarConfig(100, 100, 300, 25));
+
+// Monitor all progress changes
+progress->onValueChanged.connect([](float newValue) {
+    std::cout << "Progress updated: " << newValue << std::endl;
+    
+    // Update related UI elements
+    updateProgressLabel(newValue);
+    
+    // Change colors based on progress
+    if (newValue > 90.0f) {
+        // Almost complete - maybe change to green
     }
 });
 ```
 
-## See Also
+### Completion Events
+```cpp
+// Specific event for reaching 100%
+progress->onComplete.connect([]() {
+    std::cout << "Task completed!" << std::endl;
+    
+    // Trigger completion actions
+    showCompletionMessage();
+    enableNextStep();
+    saveProgressToFile();
+});
+```
 
-- [Circular Indicator Widget](circular-indicator.md) - For circular progress displays
-- [Slider Widget](slider.md) - For interactive value selection
-- [Text Widget](text.md) - For displaying progress labels
-- [Styling Guide](../graphics/styling.md) - For advanced styling options
+### Real-World Progress Tracking
+```cpp
+class FileDownloader {
+public:
+    FileDownloader(const std::string& filename, size_t totalBytes) 
+        : filename_(filename), totalBytes_(totalBytes), downloadedBytes_(0) {
+        
+        progressBar_ = ProgressBar(ProgressBarConfig(100, 100, 400, 30)
+            .range(0.0f, (float)totalBytes)
+            .value(0.0f)
+            .style(ProgressBarStyle()
+                .fillColor(Colors::Blue)
+                .showPercentage(true)
+                .textColor(Colors::White)));
+        
+        progressBar_->onComplete.connect([this]() {
+            std::cout << "Download of " << filename_ << " completed!" << std::endl;
+        });
+    }
+    
+    void updateProgress(size_t bytesDownloaded) {
+        downloadedBytes_ = bytesDownloaded;
+        progressBar_->setValue((float)downloadedBytes_);
+        
+        // Calculate and display speed, ETA, etc.
+        updateDownloadStats();
+    }
+    
+private:
+    std::shared_ptr<ProgressBarWidget> progressBar_;
+    std::string filename_;
+    size_t totalBytes_;
+    size_t downloadedBytes_;
+    
+    void updateDownloadStats() {
+        float percentage = progressBar_->getPercentage();
+        std::cout << filename_ << ": " << percentage << "% complete" << std::endl;
+    }
+};
+
+// Usage
+FileDownloader downloader("large_file.zip", 104857600);  // 100MB file
+downloader.updateProgress(52428800);  // 50MB downloaded
+```
+
+## Progress Bar Presets and Common Patterns
+
+Fern provides convenient presets for typical use cases:
+
+### Loading Operations
+```cpp
+auto loadingBar = ProgressBar(ProgressBarPresets::Loading(100, 100));
+// Pre-configured: compact size, loading-appropriate colors
+```
+
+### Health/Status Indicators
+```cpp
+auto healthBar = ProgressBar(ProgressBarPresets::Health(100, 150));
+// Pre-configured: health bar colors (red background, green fill)
+```
+
+### File Operations
+```cpp
+auto downloadBar = ProgressBar(ProgressBarPresets::Download(100, 200));
+// Pre-configured: larger size, download-appropriate styling
+```
+
+## Advanced Progress Techniques
+
+### Smooth Progress Animation
+```cpp
+class SmoothProgress {
+public:
+    SmoothProgress(ProgressBarConfig config) 
+        : targetValue_(0.0f), currentValue_(0.0f), animationSpeed_(50.0f) {
+        
+        progressBar_ = ProgressBar(config);
+    }
+    
+    void setTargetValue(float target) {
+        targetValue_ = std::clamp(target, 0.0f, 100.0f);
+    }
+    
+    void update(float deltaTime) {
+        if (abs(currentValue_ - targetValue_) > 0.1f) {
+            // Smooth interpolation toward target
+            float diff = targetValue_ - currentValue_;
+            currentValue_ += diff * animationSpeed_ * deltaTime;
+            
+            progressBar_->setValue(currentValue_);
+        }
+    }
+    
+private:
+    std::shared_ptr<ProgressBarWidget> progressBar_;
+    float targetValue_;
+    float currentValue_;
+    float animationSpeed_;
+};
+```
+
+## Performance Considerations
+
+### Update Frequency Management
+```cpp
+// Avoid excessive updates that impact performance
+class ThrottledProgress {
+public:
+    ThrottledProgress(ProgressBarConfig config, float updateThreshold = 0.1f) 
+        : updateThreshold_(updateThreshold), lastValue_(0.0f) {
+        
+        progressBar_ = ProgressBar(config);
+    }
+    
+    void setValue(float value) {
+        // Only update if change is significant
+        if (abs(value - lastValue_) >= updateThreshold_) {
+            progressBar_->setValue(value);
+            lastValue_ = value;
+        }
+    }
+    
+private:
+    std::shared_ptr<ProgressBarWidget> progressBar_;
+    float updateThreshold_;
+    float lastValue_;
+};
+
+// Usage: Only updates when progress changes by 0.1% or more
+ThrottledProgress efficientProgress(ProgressBarConfig(100, 100, 300, 25), 0.1f);
+```
+
+### Memory Management
+```cpp
+// Progress bars are automatically managed
+{
+    auto tempProgress = ProgressBar(ProgressBarConfig(100, 100, 200, 20));
+    // Automatically cleaned up when scope ends
+}
+
+// For collections of progress bars
+class ProgressManager {
+public:
+    void addProgress(const std::string& name, ProgressBarConfig config) {
+        progressBars_[name] = ProgressBar(config);
+    }
+    
+    void updateProgress(const std::string& name, float value) {
+        auto it = progressBars_.find(name);
+        if (it != progressBars_.end()) {
+            it->second->setValue(value);
+        }
+    }
+    
+    void clearProgress() {
+        progressBars_.clear();  // Automatic cleanup
+    }
+    
+private:
+    std::map<std::string, std::shared_ptr<ProgressBarWidget>> progressBars_;
+};
+```
+
+## Troubleshooting Common Issues
+
+### Progress Not Updating
+
+**Check these common problems:**
+
+1. **Value outside range**:
+```cpp
+auto progress = ProgressBar(ProgressBarConfig(100, 100, 300, 25)
+    .range(0.0f, 100.0f));
+
+// This won't show progress - value is outside range
+progress->setValue(150.0f);  // BAD: exceeds maximum
+
+// Fern will clamp to valid range
+progress->setValue(75.0f);   // GOOD: within range
+```
+
+2. **No visible change for small updates**:
+```cpp
+// Very small increments might not be visually noticeable
+for (int i = 0; i < 100; i++) {
+    progress->setValue(i + 0.01f);  // 0.01% change might not be visible
+}
+
+// Use meaningful increments
+for (int i = 0; i < 100; i++) {
+    progress->setValue(i);  // 1% increments are clearly visible
+}
+```
+
+3. **Range configuration issues**:
+```cpp
+// Invalid range
+auto badProgress = ProgressBar(ProgressBarConfig(100, 100, 300, 25)
+    .range(100.0f, 0.0f));  // BAD: max < min
+
+// Valid range
+auto goodProgress = ProgressBar(ProgressBarConfig(100, 100, 300, 25)
+    .range(0.0f, 100.0f));  // GOOD: min < max
+```
+
+### Visual Issues
+
+**Fill not appearing:**
+```cpp
+// Ensure fill color contrasts with background
+ProgressBarStyle style;
+style.backgroundColor(Colors::DarkGray)
+     .fillColor(Colors::White);  // High contrast
+
+// Avoid similar colors
+// style.backgroundColor(Colors::Blue).fillColor(Colors::DarkBlue);  // BAD: hard to see
+```
+
+**Text not readable:**
+```cpp
+// Ensure text color contrasts with both background and fill
+ProgressBarStyle style;
+style.backgroundColor(Colors::Gray)
+     .fillColor(Colors::Blue)
+     .textColor(Colors::White)  // Contrasts with both colors
+     .showPercentage(true);
+```
+
+### Performance Issues
+
+**Frequent updates causing lag:**
+```cpp
+// Avoid updating every frame if not necessary
+auto progress = ProgressBar(ProgressBarConfig(100, 100, 300, 25));
+
+// BAD: Updates every frame
+for (int frame = 0; frame < 10000; frame++) {
+    progress->setValue(frame / 100.0f);  // Excessive updates
+}
+
+// GOOD: Update only when meaningful change occurs
+float lastReportedProgress = 0.0f;
+for (int frame = 0; frame < 10000; frame++) {
+    float currentProgress = frame / 100.0f;
+    if (currentProgress - lastReportedProgress >= 1.0f) {  // 1% threshold
+        progress->setValue(currentProgress);
+        lastReportedProgress = currentProgress;
+    }
+}
+```
+
+## Summary
+
+Progress bars in Fern provide powerful tools for clear, immediate progress communication while maintaining the transparency and educational value that makes Fern special. Whether you're building file transfer interfaces, loading screens, or status indicators, understanding value mapping, visual design principles, and user psychology will help you create progress bars that inform and reassure users.
+
+Key takeaways:
+- **Clear communication**: Visual progress directly corresponds to actual completion
+- **Psychological importance**: Progress bars reduce anxiety and maintain user engagement
+- **Flexible ranges**: Any numerical range can be mapped to visual progress
+- **Rich styling**: Comprehensive appearance options for any design aesthetic
+- **Event-driven**: Clean signal-based communication for progress and completion events
+- **Performance conscious**: Consider update frequency and visual significance
+
+Progress bars showcase Fern's commitment to both functionality and understanding - they're simple to use but reveal the complex considerations behind effective progress communication. Master progress bars, and you'll have essential tools for creating interfaces that keep users informed and engaged during any duration of work.
+

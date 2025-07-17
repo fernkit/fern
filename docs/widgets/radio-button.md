@@ -1,53 +1,223 @@
-# Radio Button Widget
+# Radio Button Guide
 
-The Radio Button Widget provides a control for selecting one option from a set of mutually exclusive choices. Radio buttons are grouped together, and only one button in each group can be selected at a time.
+Radio buttons represent one of the most fundamental concepts in human decision-making: mutually exclusive choice. Named after the mechanical push buttons on car radios where pressing one button would release all others, radio buttons embody the principle that sometimes we must choose exactly one option from a set of possibilities.
 
-## Overview
+This guide explores not just how to create radio buttons in Fern, but the cognitive psychology of choice presentation, the design principles that make radio button groups immediately understandable, and the subtle interface patterns that guide users toward confident decisions.
 
-The Radio Button Widget consists of:
-- **Radio Circle**: The circular indicator showing selection state
-- **Selection Indicator**: The inner circle shown when selected
-- **Text Label**: The descriptive text next to the radio button
-- **Group Management**: Automatic mutual exclusion within groups
+## Understanding Choice Architecture
 
-## Basic Usage
+```cpp
+// Radio buttons make these exclusive relationships visually clear
+auto genderGroup = RadioGroup();
+
+auto maleOption = RadioButton(RadioButtonConfig(100, 100, "Male", "gender"), true);
+auto femaleOption = RadioButton(RadioButtonConfig(100, 130, "Female", "gender"), true);
+auto nonBinaryOption = RadioButton(RadioButtonConfig(100, 160, "Non-binary", "gender"), true);
+
+// The group ensures only one can be selected
+genderGroup->addButton(maleOption);
+genderGroup->addButton(femaleOption);
+genderGroup->addButton(nonBinaryOption);
+```
+
+### Cognitive Load and Decision Making
+
+Radio buttons reduce cognitive load by:
+
+- **Constraining Options**: Users know exactly how many choices they have
+- **Showing Current State**: The selected option is always visible
+- **Preventing Errors**: Impossible to have invalid state (no selection or multiple selections)
+- **Enabling Comparison**: All options are visible simultaneously for easy comparison
+
+## Radio Button Philosophy in Fern
+
+Fern's radio buttons follow several design principles:
+
+- **Automatic Grouping**: Radio buttons automatically manage mutual exclusion
+- **Visual Clarity**: Selection state is immediately obvious
+- **Consistent Interaction**: Click anywhere (button or label) to select
+- **Group Coordination**: Groups handle all inter-button communication
+- **Event-Driven**: Rich event system for reactive programming
+- **Flexible Styling**: Appearance adapts to different design contexts
+
+## Your First Radio Button Group
+
+Let's start with a simple example that demonstrates the core concepts:
 
 ```cpp
 #include <fern/fern.hpp>
 
-// Create radio buttons in a group
-auto option1 = RadioButton(RadioButtonConfig(100, 100, "Option 1", "group1"), true);
-auto option2 = RadioButton(RadioButtonConfig(100, 130, "Option 2", "group1"), true);
-auto option3 = RadioButton(RadioButtonConfig(100, 160, "Option 3", "group1"), true);
+using namespace Fern;
 
-// Set initial selection
-option1->setSelected(true);
-
-// Connect to selection events
-option1->onSelectionChanged.connect([](bool selected) {
-    if (selected) {
-        std::cout << "Option 1 selected" << std::endl;
+int main() {
+    setupFern();
+    
+    // Create a radio button group for theme selection
+    auto themeGroup = RadioGroup();
+    
+    // Create individual radio buttons
+    auto lightTheme = RadioButton(RadioButtonConfig(100, 100, "Light Theme", "theme")
+        .selected(true)  // Default selection
+        .style(RadioButtonStyle()
+            .backgroundColor(Colors::White)
+            .borderColor(Colors::Gray)
+            .selectedColor(Colors::Blue)
+            .textColor(Colors::Black)
+            .radius(8)
+            .spacing(10)), true);
+    
+    auto darkTheme = RadioButton(RadioButtonConfig(100, 140, "Dark Theme", "theme")
+        .style(RadioButtonStyle()
+            .backgroundColor(Colors::White)
+            .borderColor(Colors::Gray)
+            .selectedColor(Colors::Blue)
+            .textColor(Colors::Black)
+            .radius(8)
+            .spacing(10)), true);
+    
+    auto autoTheme = RadioButton(RadioButtonConfig(100, 180, "Auto Theme", "theme")
+        .style(RadioButtonStyle()
+            .backgroundColor(Colors::White)
+            .borderColor(Colors::Gray)
+            .selectedColor(Colors::Blue)
+            .textColor(Colors::Black)
+            .radius(8)
+            .spacing(10)), true);
+    
+    // Add buttons to group for mutual exclusion
+    themeGroup->addButton(lightTheme);
+    themeGroup->addButton(darkTheme);
+    themeGroup->addButton(autoTheme);
+    
+    // React to selection changes
+    themeGroup->onSelectionChanged.connect([](std::shared_ptr<RadioButtonWidget> selected) {
+        std::cout << "Theme changed to: " << selected->getText() << std::endl;
+        
+        // Apply the selected theme
+        if (selected->getText() == "Light Theme") {
+            applyLightTheme();
+        } else if (selected->getText() == "Dark Theme") {
+            applyDarkTheme();
+        } else {
+            applyAutoTheme();
+        }
+    });
+    
+    while (shouldKeepRunning()) {
+        processInput();
+        render();
     }
-});
+    
+    return 0;
+}
 ```
 
-## Configuration System
+**What's happening here?**
+- `RadioButtonConfig(x, y, text, groupName)`: Creates button at position with label and group identifier
+- `.selected(true)`: Sets the initial selection (only one should be true per group)
+- `RadioButtonStyle()`: Controls visual appearance (colors, sizing, spacing)
+- `RadioGroup()`: Manages mutual exclusion between buttons
+- `themeGroup->addButton()`: Adds buttons to the group for coordination
+- `onSelectionChanged`: Event fired when selection changes, providing the newly selected button
 
-### RadioButtonConfig
+This creates an intuitive interface where users can see all theme options and select exactly one.
 
-The `RadioButtonConfig` class defines the radio button's properties:
+## Understanding the Configuration System
+
+### RadioButtonConfig: Individual Button Setup
+
+Each radio button is configured independently but coordinates with its group:
 
 ```cpp
-// Complete configuration example
-auto customRadio = RadioButton(RadioButtonConfig(150, 200, "Custom Option", "settings")
-    .selected(false)                // Initial selection state
-    .style(RadioButtonStyle()
+// Basic configuration
+RadioButtonConfig config(x, y, "Button Text", "group_name");
+
+// Full configuration with all options
+auto advancedConfig = RadioButtonConfig(150, 200, "Advanced Option", "settings")
+    .selected(false)                    // Initial selection state
+    .style(RadioButtonStyle()           // Visual styling
         .backgroundColor(Colors::White)
         .borderColor(Colors::Gray)
-        .selectedColor(Colors::Blue)
+        .selectedColor(Colors::Green)
         .textColor(Colors::Black)
         .hoverColor(Colors::LightGray)
-        .borderWidth(2)
+        .radius(10)                     // Circle radius in pixels
+        .borderWidth(2)                 // Border thickness
+        .spacing(12)                    // Space between circle and text
+        .fontSize(2)                    // Text size
+        .useBitmapFont());              // Font type
+
+// Different group names create separate radio groups
+auto option1 = RadioButtonConfig(100, 100, "Option 1", "group_a");  // Group A
+auto option2 = RadioButtonConfig(100, 130, "Option 2", "group_a");  // Group A
+auto option3 = RadioButtonConfig(300, 100, "Choice X", "group_b");  // Group B
+auto option4 = RadioButtonConfig(300, 130, "Choice Y", "group_b");  // Group B
+```
+
+### RadioButtonStyle: Visual Customization
+
+The style system provides complete control over appearance:
+
+```cpp
+RadioButtonStyle style;
+style.backgroundColor(Colors::White)        // Circle background color
+     .borderColor(Colors::DarkGray)         // Circle border color
+     .selectedColor(Colors::Blue)           // Inner dot color when selected
+     .textColor(Colors::Black)              // Label text color
+     .hoverColor(Colors::LightBlue)         // Hover state color
+     .radius(8)                             // Circle radius (affects overall size)
+     .borderWidth(2)                        // Border thickness around circle
+     .spacing(10)                           // Pixels between circle and text
+     .fontSize(2)                           // Text size multiplier
+     .useBitmapFont();                      // Use bitmap fonts (or useTTFFont())
+
+// For high-quality text with TTF fonts:
+style.useTTFFont("arial")                  // Specify TTF font
+     .fontSize(16);                        // TTF font size (minimum 16)
+```
+
+**Understanding Style Properties:**
+
+- **backgroundColor**: The main circle color (usually light for contrast)
+- **borderColor**: Outline around the circle (provides definition)
+- **selectedColor**: The inner dot that appears when selected
+- **hoverColor**: Feedback color when mouse hovers over button
+- **radius**: Controls overall button size (larger = easier to click)
+- **spacing**: Visual separation between circle and text (affects layout)
+
+### RadioButtonGroup: Coordination and Management
+
+Groups handle the mutual exclusion logic automatically:
+
+```cpp
+// Create a group for managing related radio buttons
+auto priorityGroup = RadioGroup();
+
+// Create buttons with same group name
+auto lowPriority = RadioButton(RadioButtonConfig(100, 100, "Low Priority", "priority"), true);
+auto mediumPriority = RadioButton(RadioButtonConfig(100, 130, "Medium Priority", "priority"), true);
+auto highPriority = RadioButton(RadioButtonConfig(100, 160, "High Priority", "priority"), true);
+
+// Add to group for coordination
+priorityGroup->addButton(lowPriority);
+priorityGroup->addButton(mediumPriority);
+priorityGroup->addButton(highPriority);
+
+// Set initial selection
+priorityGroup->selectButton(mediumPriority);  // Automatically deselects others
+
+// React to group-level changes
+priorityGroup->onSelectionChanged.connect([](std::shared_ptr<RadioButtonWidget> selected) {
+    std::cout << "Priority set to: " << selected->getText() << std::endl;
+    updateTaskPriority(selected->getText());
+});
+
+// Query current selection
+auto currentSelection = priorityGroup->getSelected();
+if (currentSelection) {
+    std::cout << "Currently selected: " << currentSelection->getText() << std::endl;
+}
+```
         .radius(10)
         .spacing(12)
         .fontSize(2)
