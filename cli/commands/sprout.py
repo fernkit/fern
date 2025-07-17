@@ -31,7 +31,9 @@ class SproutCommand:
             return
         
         # Check if directory already exists
-        if Path(project_name).exists():
+        original_cwd = os.environ.get('ORIGINAL_CWD', os.getcwd())
+        project_path = Path(original_cwd) / project_name
+        if project_path.exists():
             print_error(f"Directory '{project_name}' already exists")
             return
         
@@ -54,7 +56,9 @@ class SproutCommand:
     
     def _create_project_structure(self, project_name):
         """Create the project directory structure"""
-        project_root = Path(project_name)
+        # Use the original working directory if available
+        original_cwd = os.environ.get('ORIGINAL_CWD', os.getcwd())
+        project_root = Path(original_cwd) / project_name
         
         # Create main directories
         directories = [
@@ -72,7 +76,9 @@ class SproutCommand:
     
     def _create_project_files(self, project_name):
         """Create project configuration and starter files"""
-        project_root = Path(project_name)
+        # Use the original working directory if available
+        original_cwd = os.environ.get('ORIGINAL_CWD', os.getcwd())
+        project_root = Path(original_cwd) / project_name
         
         # Create fern.yaml configuration
         config_content = f"""name: {project_name}

@@ -117,6 +117,8 @@ if [ ! -f "$CLI_DIR/terra_cli.py" ]; then
     echo "Error: Terra CLI not found at $CLI_DIR"
     exit 1
 fi
+# Set the original working directory as an environment variable
+export ORIGINAL_CWD="$(pwd)"
 cd "$CLI_DIR"
 python3 terra_cli.py "$@"
 EOF
