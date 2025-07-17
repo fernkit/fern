@@ -119,8 +119,8 @@ if [ ! -f "$CLI_DIR/terra_cli.py" ]; then
 fi
 # Set the original working directory as an environment variable
 export ORIGINAL_CWD="$(pwd)"
-cd "$CLI_DIR"
-python3 terra_cli.py "$@"
+# Run the CLI from the original working directory
+python3 "$CLI_DIR/terra_cli.py" "$@"
 EOF
     chmod +x "$HOME/.local/bin/fern"
     
@@ -174,9 +174,71 @@ setup_global_templates() {
     TEMPLATES_DIR="$HOME/.fern/templates"
     mkdir -p "$TEMPLATES_DIR"
     
-    # Copy default templates
+    # Copy default templates if they exist
     if [ -d "cli/templates" ]; then
         cp -r cli/templates/* "$TEMPLATES_DIR/"
+    else
+        # Create basic template structure if not available
+        mkdir -p "$TEMPLATES_DIR/basic"
+        
+        # Create a basic main.cpp template
+        cat > "$TEMPLATES_DIR/basic/main.cpp" << 'EOF'
+#include <fern/fern.hpp>
+#include <iostream>
+
+using namespace Fern;
+
+void draw() {
+    // Clear background
+    Draw::fill(Colors::DarkGray);
+    
+    // Draw title
+    DrawText::drawText("Welcome to {{PROJECT_NAME}}!", 50, 50, 3, Colors::White);
+    
+    // Draw subtitle  
+    DrawText::drawText("Your Fern project is ready!", 50, 100, 2, Colors::LightGray);
+    
+    // Draw instructions
+    DrawText::drawText("Edit lib/main.cpp to start coding", 50, 150, 1, Colors::Cyan);
+    DrawText::drawText("Run 'fern fire' to see changes", 50, 170, 1, Colors::Cyan);
+}
+
+int main() {
+    std::cout << "🌿 Starting {{PROJECT_NAME}}..." << std::endl;
+    
+    // Initialize Fern
+    Fern::initialize();
+    
+    // Set up render callback
+    Fern::setDrawCallback(draw);
+    
+    // Start the application
+    Fern::startRenderLoop();
+    
+    return 0;
+}
+EOF
+
+        # Create basic fern.yaml template
+        cat > "$TEMPLATES_DIR/basic/fern.yaml" << 'EOF'
+name: {{PROJECT_NAME}}
+version: 1.0.0
+description: A new Fern project
+
+dependencies:
+  fern: ^0.1.0
+
+platforms:
+  web:
+    enabled: true
+    port: 3000
+  linux:
+    enabled: true
+    
+build:
+  incremental: true
+  optimize: false
+EOF
     fi
     
     log_success "Global templates installed to $TEMPLATES_DIR"

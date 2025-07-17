@@ -119,7 +119,15 @@ class FireCommand:
         """Run a single Fern file"""
         print_header(f"Running {file_path} ({platform})")
         
-        file_path = Path(file_path)
+        # Use original working directory if available
+        original_cwd = os.environ.get('ORIGINAL_CWD', os.getcwd())
+        
+        # Resolve file path relative to original working directory
+        if not os.path.isabs(file_path):
+            file_path = Path(original_cwd) / file_path
+        else:
+            file_path = Path(file_path)
+            
         if not file_path.exists():
             print_error(f"File not found: {file_path}")
             return
@@ -140,8 +148,10 @@ class FireCommand:
         else:  # linux
             if self._build_single_file_linux(file_path):
                 print_success("Build successful!")
-                # Run the executable
-                executable = file_path.parent / (file_path.stem + "_temp")
+                # Run the executable from build directory
+                original_cwd = os.environ.get('ORIGINAL_CWD', os.getcwd())
+                build_dir = Path(original_cwd) / "build"
+                executable = build_dir / (file_path.stem + "_temp")
                 self._run_executable(executable)
             else:
                 print_error("Build failed")
@@ -278,8 +288,13 @@ class FireCommand:
                 print_info("Run './install.sh' from the Fern source directory to install")
                 return False
             
-            # Output executable name
-            output_file = file_path.parent / (file_path.stem + "_temp")
+            # Create a build directory in the original working directory
+            original_cwd = os.environ.get('ORIGINAL_CWD', os.getcwd())
+            build_dir = Path(original_cwd) / "build"
+            build_dir.mkdir(exist_ok=True)
+            
+            # Output executable name in build directory
+            output_file = build_dir / (file_path.stem + "_temp")
             
             # Build command using global configuration
             cmd = ["g++"]

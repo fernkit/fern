@@ -60,10 +60,9 @@ class SystemChecker:
         if sys.platform.startswith('linux'):
             self.check_command("pkg-config --exists x11", "X11 Development Libraries", required=False)
         
-        # Check Fern installation
-        fern_root = Path(__file__).parent.parent.parent
-        self.check_directory(fern_root / "src", "Fern Source Code")
-        self.check_directory(fern_root / "examples", "Fern Examples")
+        # Don't check for Fern source/examples in CLI mode since they're not needed
+        # when Fern is installed globally. The bloom command will check the global
+        # installation separately.
         
         return self.checks
 
@@ -77,8 +76,12 @@ class ProjectDetector:
         return (project_path / "fern.yaml").exists() or (project_path / "fern.toml").exists()
     
     @staticmethod
-    def find_project_root(start_path="."):
+    def find_project_root(start_path=None):
         """Find the root of a Fern project"""
+        if start_path is None:
+            # Use original working directory if available
+            start_path = os.environ.get('ORIGINAL_CWD', os.getcwd())
+        
         current = Path(start_path).resolve()
         while current != current.parent:
             if ProjectDetector.is_fern_project(current):
