@@ -28,7 +28,6 @@ Get started with Fern in minutes by following our comprehensive [Getting Started
 - Understanding the core concepts
 - Building and running examples
 
-
 ## Architecture
 
 Fern is built around several core subsystems that work together to provide a cohesive development experience:
