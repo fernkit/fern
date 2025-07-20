@@ -60,7 +60,7 @@ void updateCounterDisplay() {
         status = "Making progress!";
         statusColor = ModernColors::AccentGreen;
     } else if (counter > 50) {
-        status = "You're on fire! 🔥";
+        status = "You're on fire!";
         statusColor = ModernColors::AccentGreen;
     } else {
         status = "Going backwards...";

@@ -44,8 +44,10 @@ void ColumnWidget::arrangeChildren() {
 
         if (expanded) {
             totalFlex += expanded->getFlex();
-        } else if (child->getHeight() > 0) {
-            totalFixedHeight += child->getHeight();
+        } else {
+            // Count actual or default height for fixed widgets
+            int widgetHeight = child->getHeight() > 0 ? child->getHeight() : 40; // Default 40px
+            totalFixedHeight += widgetHeight;
         }
     }
     
@@ -56,8 +58,12 @@ void ColumnWidget::arrangeChildren() {
     int spacingBetween = 0; 
     int remainingSpace = height_ - totalFixedHeight - spacingWidgetsHeight;
     
+    // Add minimum spacing between widgets if no explicit spacing is provided
+    int minSpacing = 5; // 5px minimum spacing between widgets
+    
     switch (mainAxisAlignment_) {
         case MainAxisAlignment::Start:
+            spacingBetween = minSpacing;
             break;
             
         case MainAxisAlignment::Center:
@@ -105,7 +111,8 @@ void ColumnWidget::arrangeChildren() {
         if (expanded) {
             childHeight = (totalFlex > 0) ? (availableHeight * expanded->getFlex()) / totalFlex : 0;
         } else {
-            childHeight = child->getHeight() > 0 ? child->getHeight() : 0;
+            // If widget doesn't have explicit height, give it a reasonable default
+            childHeight = child->getHeight() > 0 ? child->getHeight() : 40; // Default 40px height
         }
         
         int childX = x_;
