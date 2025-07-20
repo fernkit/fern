@@ -1,5 +1,6 @@
 #include <fern/fern.hpp>
 #include <string>
+#include <iostream>
 
 using namespace Fern;
 
@@ -54,20 +55,33 @@ void setupUI() {
     inputStyle.backgroundColor(EditorColors::TextArea)
              .textColor(EditorColors::Text)
              .borderColor(EditorColors::Selection)
+             .focusBorderColor(0xFF4A90E2)  // Brighter blue for focus
              .borderWidth(2)
              .fontSize(2)
              .padding(10);
     
-    textInput = TextInput(TextInputConfig(0, 0, 500, 300)
+    textInput = TextInput(TextInputConfig(0, 0, 500, 40)  // Single line, reduced height
         .placeholder("Start typing...")
         .style(inputStyle));
     
     textInput->setText(editorText);
     
+    // Set focus to enable typing
+    textInput->setFocus(true);
+    
     // Connect to text change events
     textInput->onTextChanged.connect([](const std::string& newText) {
         editorText = newText;
         updateStatus();
+    });
+    
+    // Connect to focus events to ensure input is active
+    textInput->onFocusChanged.connect([](bool focused) {
+        if (focused) {
+            std::cout << "Text input focused - ready for typing" << std::endl;
+        } else {
+            std::cout << "Text input lost focus" << std::endl;
+        }
     });
     
     // Status bar
@@ -86,6 +100,7 @@ void setupUI() {
     clearBtn->onClick.connect([]() {
         textInput->setText("");
         editorText = "";
+        textInput->setFocus(true);  // Refocus after clearing
         updateStatus();
     });
     
@@ -98,8 +113,9 @@ void setupUI() {
     auto loadBtn = Button(ButtonConfig(0, 0, 80, 35, "Load").style(buttonStyle));
     loadBtn->onClick.connect([]() {
         // Load sample text
-        editorText = "// Sample C++ Code\n#include <iostream>\n\nint main() {\n    std::cout << \"Hello, Fern!\" << std::endl;\n    return 0;\n}";
+        editorText = "Sample text for editing";
         textInput->setText(editorText);
+        textInput->setFocus(true);  // Refocus after loading
         updateStatus();
     });
     
