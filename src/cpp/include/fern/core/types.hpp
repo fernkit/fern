@@ -52,7 +52,8 @@ namespace Fern {
         ArrowDown = 40,   ///< Down arrow key
         Shift = 16,       ///< Shift key
         Ctrl = 17,        ///< Control key
-        Alt = 18          ///< Alt key
+        Alt = 18,         ///< Alt key
+        Unknown
     };
 
     /**

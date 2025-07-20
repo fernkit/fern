@@ -75,7 +75,7 @@ namespace Fern {
                 case XK_7: return KeyCode::Num7;
                 case XK_8: return KeyCode::Num8;
                 case XK_9: return KeyCode::Num9;
-                // default: return KeyCode::Unknown;
+                default: return KeyCode::Unknown;
             }
         }
         

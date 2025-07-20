@@ -60,22 +60,28 @@ elseif(UNIX AND NOT APPLE)
 endif()
 
 # Build examples
-file(GLOB EXAMPLE_SOURCES "examples/cpp/*.cpp")
+file(GLOB_RECURSE EXAMPLE_SOURCES "examples/cpp/*.cpp")
 
 foreach(EXAMPLE_SOURCE ${EXAMPLE_SOURCES})
     get_filename_component(EXAMPLE_NAME ${EXAMPLE_SOURCE} NAME_WE)
     
-    add_executable(${EXAMPLE_NAME} ${EXAMPLE_SOURCE})
-    target_link_libraries(${EXAMPLE_NAME} fern)
-    
-    if(EMSCRIPTEN)
-        set_target_properties(${EXAMPLE_NAME} PROPERTIES
-            SUFFIX ".html"
-            LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s USE_WEBGL2=1"
-        )
+    # Check if file is not empty
+    file(SIZE ${EXAMPLE_SOURCE} FILE_SIZE)
+    if(FILE_SIZE GREATER 0)
+        add_executable(${EXAMPLE_NAME} ${EXAMPLE_SOURCE})
+        target_link_libraries(${EXAMPLE_NAME} fern)
+        
+        if(EMSCRIPTEN)
+            set_target_properties(${EXAMPLE_NAME} PROPERTIES
+                SUFFIX ".html"
+                LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s USE_WEBGL2=1"
+            )
+        endif()
+        
+        message(STATUS "Added example: ${EXAMPLE_NAME}")
+    else()
+        message(STATUS "Skipped empty example: ${EXAMPLE_NAME}")
     endif()
-    
-    message(STATUS "Added example: ${EXAMPLE_NAME}")
 endforeach()
 
 # Install targets
