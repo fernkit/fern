@@ -341,8 +341,19 @@ class FireCommand:
                 print_info("See installation tips: fern bloom")
                 return False
             
+            # Check if Fern is installed globally
+            if not config.is_fern_installed():
+                print_error("Fern C++ library is not installed globally")
+                print_info("Run './install.sh' from the Fern source directory to install")
+                return False
+            
+            # Create a build directory in the original working directory
+            original_cwd = os.environ.get('ORIGINAL_CWD', os.getcwd())
+            build_dir = Path(original_cwd) / "build"
+            build_dir.mkdir(exist_ok=True)
+            
             # Output HTML file name
-            output_file = file_path.parent / (file_path.stem + "_temp.html")
+            output_file = build_dir / (file_path.stem + "_temp.html")
             
             # Build command using Emscripten
             cmd = ["emcc"]
@@ -355,31 +366,56 @@ class FireCommand:
             cmd.extend(["-s", "EXPORTED_FUNCTIONS=['_main']"])
             cmd.extend(["-s", "EXPORTED_RUNTIME_METHODS=['ccall','cwrap']"])
             
-            # Add include paths (use fern source for web builds)
-            fern_source = Path(__file__).parent.parent.parent / "src" / "cpp"
-            if fern_source.exists():
-                cmd.extend(["-I", str(fern_source / "include")])
+            # For web builds, we'll add the include path from the source directory
+            # Don't use the installed headers as they conflict with source compilation
             
             # Add source file
             cmd.append(str(file_path))
             
-            # Add Fern source files for web
-            if fern_source.exists():
-                # Add core files
-                for pattern in ["core/*.cpp", "graphics/*.cpp", "text/*.cpp", "font/*.cpp"]:
-                    for src_file in fern_source.glob(f"src/{pattern}"):
-                        cmd.append(str(src_file))
-                
-                # Add web platform files
-                web_renderer = fern_source / "src/platform/web_renderer.cpp"
-                if web_renderer.exists():
-                    cmd.append(str(web_renderer))
-                
-                cmd.append(str(fern_source / "src/platform/platform_factory.cpp"))
-                cmd.append(str(fern_source / "src/fern.cpp"))
+            # For web builds, we need to compile Fern source files with Emscripten
+            # Try to find the source files in the global installation location
+            fern_source = None
+            
+            # Look for source files in common locations
+            potential_sources = [
+                Path(__file__).parent.parent.parent / "src" / "cpp",  # Local development
+                Path("/usr/local/src/fern/src/cpp"),  # System-wide source
+                Path("/opt/fern/src/cpp"),  # Alternative system location
+                Path.home() / ".fern" / "src" / "cpp"  # User source backup
+            ]
+            
+            for src_path in potential_sources:
+                if src_path.exists() and (src_path / "src").exists():
+                    fern_source = src_path
+                    break
+            
+            if not fern_source:
+                print_error("Fern source files not found for web compilation")
+                print_info("Web builds require access to Fern source files")
+                print_info("Please ensure you're running from the Fern source directory")
+                return False
+            
+            # Add the source include path for web builds (instead of installed headers)
+            cmd.extend(["-I", str(fern_source / "include")])
+            
+            # Add Fern source files for web compilation
+            patterns = ["core/*.cpp", "graphics/*.cpp", "text/*.cpp", "font/*.cpp", "ui/**/*.cpp"]
+            for pattern in patterns:
+                for src_file in fern_source.glob(f"src/{pattern}"):
+                    cmd.append(str(src_file))
+            
+            # Add web platform files
+            web_renderer = fern_source / "src/platform/web_renderer.cpp"
+            if web_renderer.exists():
+                cmd.append(str(web_renderer))
+            else:
+                print_warning("Web renderer not found, web build may not work correctly")
+            
+            cmd.append(str(fern_source / "src/platform/platform_factory.cpp"))
+            cmd.append(str(fern_source / "src/fern.cpp"))
             
             # Check for custom template in current directory or use default
-            local_template = file_path.parent / "template.html"
+            local_template = Path(original_cwd) / "template.html"
             global_template = Path(__file__).parent.parent.parent / "template.html"
             
             if local_template.exists():
@@ -456,7 +492,10 @@ class FireCommand:
     def _run_web_file(self, file_path):
         """Run web file by starting a local server"""
         try:
-            html_file = file_path.parent / (file_path.stem + "_temp.html")
+            # Get original working directory for build location
+            original_cwd = os.environ.get('ORIGINAL_CWD', os.getcwd())
+            build_dir = Path(original_cwd) / "build"
+            html_file = build_dir / (file_path.stem + "_temp.html")
             
             if not html_file.exists():
                 print_error(f"Web build not found: {html_file}")
@@ -476,7 +515,7 @@ class FireCommand:
             import webbrowser
             import time
             
-            os.chdir(file_path.parent)
+            os.chdir(build_dir)
             
             def start_server():
                 with socketserver.TCPServer(("", 8000), http.server.SimpleHTTPRequestHandler) as httpd:
