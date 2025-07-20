@@ -373,11 +373,15 @@ class FireCommand:
             cmd.append(str(file_path))
             
             # For web builds, we need to compile Fern source files with Emscripten
-            # Try to find the source files in the global installation location
+            # Try to find the source files in common locations
             fern_source = None
             
             # Look for source files in common locations
+            # Get the original working directory where the user ran the command
+            original_cwd = os.environ.get('ORIGINAL_CWD', os.getcwd())
+            
             potential_sources = [
+                Path(original_cwd) / "src" / "cpp",  # Running from Fern repo root
                 Path(__file__).parent.parent.parent / "src" / "cpp",  # Local development
                 Path("/usr/local/src/fern/src/cpp"),  # System-wide source
                 Path("/opt/fern/src/cpp"),  # Alternative system location
