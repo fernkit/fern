@@ -42,6 +42,24 @@ class SystemChecker:
             self.checks.append((name, False, f"Not found at {dirpath}"))
             return False
     
+    def check_pkg_config_library(self, lib_name, display_name, required=True):
+        """Check if a pkg-config library is available"""
+        try:
+            result = subprocess.run(
+                ["pkg-config", "--exists", lib_name], 
+                capture_output=True, 
+                text=True
+            )
+            if result.returncode == 0:
+                self.checks.append((display_name, True, f"pkg-config library {lib_name} found"))
+                return True
+            else:
+                self.checks.append((display_name, False, f"pkg-config library {lib_name} not found"))
+                return False
+        except FileNotFoundError:
+            self.checks.append((display_name, False, "pkg-config not available"))
+            return False
+    
     def run_all_checks(self):
         """Run all system checks"""
         print_info("Running system health checks...")
@@ -58,7 +76,7 @@ class SystemChecker:
         
         # Check X11 for Linux
         if sys.platform.startswith('linux'):
-            self.check_command("pkg-config --exists x11", "X11 Development Libraries", required=False)
+            self.check_pkg_config_library("x11", "X11 Development Libraries", required=False)
         
         # Don't check for Fern source/examples in CLI mode since they're not needed
         # when Fern is installed globally. The bloom command will check the global

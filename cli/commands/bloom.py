@@ -19,6 +19,9 @@ class BloomCommand:
     def execute(self, args):
         print_header("Fern System Health Check")
         
+        # Parse arguments
+        show_troubleshooting = "--troubleshoot" in args or "-t" in args
+        
         checker = SystemChecker()
         checks = checker.run_all_checks()
         
@@ -30,6 +33,15 @@ class BloomCommand:
         
         passed = 0
         failed = 0
+        critical_failed = 0
+        
+        # Define critical checks that prevent Fern from working
+        critical_checks = [
+            "C++ Compiler (g++)", 
+            "C++ Compiler (clang++)", 
+            "pkg-config",
+            "Fern C++ Library"
+        ]
         
         for name, success, message in checks:
             if success:
@@ -38,17 +50,25 @@ class BloomCommand:
             else:
                 print_error(f"{name}: {message}")
                 failed += 1
+                # Check if this is a critical failure
+                if any(critical in name for critical in critical_checks):
+                    critical_failed += 1
         
         print()
         print_info(f"Health Check Summary: {passed} passed, {failed} failed")
         
         if failed == 0:
-            print_success("🌿 Fern environment is healthy!")
+            print_success("🌿 Fern environment is healthy and ready to use!")
+        elif critical_failed > 0:
+            print_error("Critical dependencies missing. Fern may not work properly.")
+            print_info("Run 'fern bloom --troubleshoot' for installation help.")
         else:
-            print_warning("Some issues detected. Please install missing dependencies.")
+            print_warning("Some optional dependencies missing. Core functionality available.")
+            print_info("Run 'fern bloom --troubleshoot' for optimization tips.")
             
-        # Provide installation suggestions
-        self._show_installation_tips()
+        # Show troubleshooting only when requested or when critical issues exist
+        if show_troubleshooting or critical_failed > 0:
+            self._show_installation_tips(critical_failed > 0)
     
     def _run_fern_checks(self):
         """Run Fern-specific health checks"""
@@ -76,38 +96,57 @@ class BloomCommand:
         
         return checks
     
-    def _show_installation_tips(self):
+    def _show_installation_tips(self, critical_issues=False):
         """Show installation tips for common issues"""
         print()
-        print_header("Installation Tips")
+        if critical_issues:
+            print_header("Critical Issues - Installation Required")
+            print_error("Fern cannot function without these dependencies.")
+        else:
+            print_header("Troubleshooting & Optimization")
+            print_info("Optional improvements for better Fern experience.")
         
-        print_info("To install Fern globally:")
-        print("  cd /path/to/fern")
-        print("  ./install.sh")
+        print()
+        print_info("System Dependencies by Platform:")
         print()
         
-        print_info("System Dependencies:")
-        print()
         print_info("Ubuntu/Debian:")
         print("  sudo apt-get update")
-        print("  sudo apt-get install build-essential pkg-config cmake")
+        print("  sudo apt-get install build-essential pkg-config cmake make")
         print("  sudo apt-get install libx11-dev libxext-dev libfontconfig1-dev libfreetype6-dev")
+        print()
         
-        print_info("CentOS/RHEL:")
-        print("  sudo yum groupinstall 'Development Tools'")
-        print("  sudo yum install cmake pkgconfig libX11-devel libXext-devel fontconfig-devel freetype-devel")
+        print_info("CentOS/RHEL/Fedora:")
+        print("  sudo dnf groupinstall 'Development Tools'")
+        print("  sudo dnf install cmake pkgconfig make libX11-devel libXext-devel fontconfig-devel freetype-devel")
+        print()
         
         print_info("Arch Linux:")
-        print("  sudo pacman -S base-devel cmake pkg-config libx11 libxext fontconfig freetype2")
+        print("  sudo pacman -S base-devel cmake pkg-config make libx11 libxext fontconfig freetype2")
+        print()
         
-        print_info("Emscripten (for web builds):")
+        if critical_issues:
+            print_info("After installing system dependencies:")
+            print("  cd /path/to/fern")
+            print("  ./install.sh")
+            print()
+        
+        print_info("For Web Development (Emscripten):")
         print("  git clone https://github.com/emscripten-core/emsdk.git")
         print("  cd emsdk")
         print("  ./emsdk install latest")
         print("  ./emsdk activate latest")
         print("  source ./emsdk_env.sh")
-
         print()
-        print_info("After installing dependencies, run:")
-        print("  fern bloom")
-        print("  to verify your installation.")
+
+        print_info("Verify Installation:")
+        print("  fern bloom          # Check system health")
+        print("  fern sprout myapp   # Create test project")
+        print("  cd myapp && fern fire  # Test build and run")
+        print()
+        
+        if not critical_issues:
+            print_info("Command Line Options:")
+            print("  fern bloom --troubleshoot   # Show this help anytime")
+            print("  fern bloom -t               # Short form")
+            print("  fern --help                 # General Fern help")

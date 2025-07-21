@@ -237,23 +237,37 @@ class FireCommand:
             
             # Find the Fern source directory
             fern_source = None
-            original_cwd = os.environ.get('ORIGINAL_CWD', os.getcwd())
+            
+            # Get the directory where the CLI is located (should be the Fern repo)
+            cli_dir = Path(__file__).parent.parent.parent  # Go up from cli/commands/fire.py to repo root
             
             potential_sources = [
-                Path(original_cwd).parent / "src" / "cpp", # Running from inside a fern clone
-                Path.home() / ".fern" / "src" / "cpp"      # A potential future location
+                cli_dir,  # The Fern repository root where the CLI is located
+                Path(os.getcwd()),  # Current working directory (if run from Fern repo)
+                Path(os.environ.get('ORIGINAL_CWD', os.getcwd())).parent,  # Parent of original working dir
+                Path("/usr/local/src/fern"),  # System-wide source location
+                Path.home() / ".fern" / "src"  # User source backup
             ]
             
             for src_path in potential_sources:
-                # A simple check to see if it looks like the source directory
-                if src_path.exists() and (src_path / "include" / "fern").exists():
-                    fern_source = src_path
+                # Check if this looks like the Fern source directory
+                cpp_src = src_path / "src" / "cpp"
+                if (cpp_src.exists() and 
+                    (cpp_src / "include" / "fern").exists() and
+                    (cpp_src / "src").exists()):
+                    fern_source = cpp_src
                     print_info(f"Found Fern source for web build at: {fern_source}")
                     break
 
             if not fern_source:
                 print_error("Fern source files not found for web compilation.")
+                print_info("Searched the following locations:")
+                for src_path in potential_sources:
+                    cpp_src = src_path / "src" / "cpp"
+                    status = "✓" if cpp_src.exists() else "✗"
+                    print_info(f"  {status} {cpp_src}")
                 print_info("Ensure you are running 'fern fire' from within the cloned Fern repository for web builds to work.")
+                print_info("Or install Fern source files to a standard location.")
                 return False
 
             # Add the source include path for web builds (instead of the global installed headers)
@@ -394,30 +408,38 @@ class FireCommand:
             cmd.append(str(file_path))
             
             # For web builds, we need to compile Fern source files with Emscripten
-            # Try to find the source files in common locations
+            # Find the Fern source directory using the same logic as project builds
             fern_source = None
             
-            # Look for source files in common locations
-            # Get the original working directory where the user ran the command
-            original_cwd = os.environ.get('ORIGINAL_CWD', os.getcwd())
+            # Get the directory where the CLI is located (should be the Fern repo)
+            cli_dir = Path(__file__).parent.parent.parent  # Go up from cli/commands/fire.py to repo root
             
             potential_sources = [
-                Path(original_cwd) / "src" / "cpp",  # Running from Fern repo root
-                Path(__file__).parent.parent.parent / "src" / "cpp",  # Local development
-                Path("/usr/local/src/fern/src/cpp"),  # System-wide source
-                Path("/opt/fern/src/cpp"),  # Alternative system location
-                Path.home() / ".fern" / "src" / "cpp"  # User source backup
+                cli_dir,  # The Fern repository root where the CLI is located
+                Path(os.getcwd()),  # Current working directory (if run from Fern repo)
+                Path(os.environ.get('ORIGINAL_CWD', os.getcwd())).parent,  # Parent of original working dir
+                Path("/usr/local/src/fern"),  # System-wide source location
+                Path.home() / ".fern" / "src"  # User source backup
             ]
             
             for src_path in potential_sources:
-                if src_path.exists() and (src_path / "src").exists():
-                    fern_source = src_path
+                # Check if this looks like the Fern source directory
+                cpp_src = src_path / "src" / "cpp"
+                if (cpp_src.exists() and 
+                    (cpp_src / "include" / "fern").exists() and
+                    (cpp_src / "src").exists()):
+                    fern_source = cpp_src
                     break
             
             if not fern_source:
                 print_error("Fern source files not found for web compilation")
+                print_info("Searched the following locations:")
+                for src_path in potential_sources:
+                    cpp_src = src_path / "src" / "cpp"
+                    status = "✓" if cpp_src.exists() else "✗"
+                    print_info(f"  {status} {cpp_src}")
                 print_info("Web builds require access to Fern source files")
-                print_info("Please ensure you're running from the Fern source directory")
+                print_info("Ensure you are running from the Fern source directory or install Fern source files")
                 return False
             
             # Add the source include path for web builds (instead of installed headers)
