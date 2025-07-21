@@ -1,10 +1,24 @@
-# Fern UI Framework
-
 <p align="center">
   <img src="assets/logo.png" alt="Fern Graphics Logo" width="200"/>
 </p>
 
-A modern, cross-platform graphics library designed for building beautiful user interfaces with simplicity and performance in mind. Fern provides a comprehensive widget system, flexible layout management, and seamless cross-platform rendering capabilities.
+<h1 align="center">Fern UI Framework</h1>
+
+<p align="center">
+  A fast, minimal, cross-platform UI toolkit written in C++ with modern design principles.
+</p>
+
+
+<p align="center">
+  <a href="https://github.com/fernkit/fern/blob/main/LICENCE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" />
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/status-beta-orange" alt="Status: Beta" />
+  </a>
+</p>
+
+A cross-platform graphics library designed for building beautiful user interfaces with simplicity and performance in mind. Fern provides a comprehensive widget system, flexible layout management, and seamless cross-platform rendering capabilities.
 
 ## Overview
 
@@ -53,12 +67,15 @@ Fern provides a rich set of built-in widgets and the tools to create custom comp
 - **Padding**: Spacing and margins around widgets
 - **Center**: Widget centering and alignment
 - **Expanded**: Flexible space distribution
-
+- **Sized Box**: Constrain a widget to a fixed width and height.
+- **Center**: Align a single child widget at the center of its parent.
+  
 ### Advanced Components
 - **Slider**: Value selection with customizable ranges
 - **Progress Bar**: Visual progress indication
 - **Radio Buttons**: Single-selection option groups
 - **Dropdown**: Expandable selection menus
+- **Circular indicator**: Spinning or static indicator for loading or progress feedback.
 
 Learn more in the [Widget System Documentation](docs/core/widget-system.md).
 
@@ -81,22 +98,6 @@ Comprehensive documentation is available in the `docs/` directory:
 - [Graphics and Styling](docs/graphics/) - Colors, fonts, and visual customization
 - [Layout System](docs/layout/) - Positioning and arrangement strategies
 - [Cross-Platform Guide](docs/platform/) - Platform-specific considerations
-
-
-## Examples
-
-The `examples/` directory contains sample applications demonstrating Fern's capabilities:
-
-### C++ Examples
-- `basic_counter_example.cpp` - Simple counter with button interactions
-- `complex_layout.cpp` - Advanced layout management demonstration
-- `font_demo.cpp` - Typography and font rendering showcase
-- `responsive_example.cpp` - Adaptive layouts for different screen sizes
-
-### C Examples
-- `cyberpunk.c` - Stylized interface with custom theming
-- `life_sim.c` - Interactive simulation with real-time updates
-- `fractal_explorer.c` - Mathematical visualization with user controls
 
 ## Contributing
 
