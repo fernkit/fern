@@ -132,6 +132,16 @@ void RowWidget::arrangeChildren() {
     }
 }
 
+void RowWidget::setMainAxisAlignment(MainAxisAlignment alignment) {
+    mainAxisAlignment_ = alignment;
+    arrangeChildren(); // Trigger layout update
+}
+
+void RowWidget::setCrossAxisAlignment(CrossAxisAlignment alignment) {
+    crossAxisAlignment_ = alignment;
+    arrangeChildren(); // Trigger layout update
+}
+
 std::shared_ptr<RowWidget> Row(
     const std::vector<std::shared_ptr<Widget>>& children, 
     bool addToManager,
