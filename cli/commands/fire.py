@@ -6,6 +6,7 @@ import os
 import sys
 import subprocess
 from pathlib import Path
+import yaml
 
 # Add utils to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -13,6 +14,19 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.colors import print_header, print_success, print_error, print_warning, print_info
 from utils.system import ProjectDetector, BuildSystem
 from utils.config import config
+
+def load_project_config(project_root):
+    """Load project configuration from fern.yaml"""
+    config_file = project_root / "fern.yaml"
+    if not config_file.exists():
+        return None
+    
+    try:
+        with open(config_file, 'r') as f:
+            return yaml.safe_load(f)
+    except Exception as e:
+        print_warning(f"Failed to load fern.yaml: {e}")
+        return None
 
 class FireCommand:
     """Run Fern code - single file or project"""
@@ -87,6 +101,13 @@ class FireCommand:
             return
         
         print_info(f"Found Fern project at: {project_root}")
+        
+        # Load project configuration
+        project_config = load_project_config(project_root)
+        if project_config:
+            print_info("Loaded project configuration from fern.yaml")
+        else:
+            print_warning("No fern.yaml configuration found, using defaults")
         
         # Get project structure
         structure = ProjectDetector.get_project_structure(project_root)
@@ -243,10 +264,12 @@ class FireCommand:
             
             potential_sources = [
                 cli_dir,  # The Fern repository root where the CLI is located
+                Path("/home/rishi/git/test/fern"),  # Hardcoded development path
                 Path(os.getcwd()),  # Current working directory (if run from Fern repo)
                 Path(os.environ.get('ORIGINAL_CWD', os.getcwd())).parent,  # Parent of original working dir
                 Path("/usr/local/src/fern"),  # System-wide source location
-                Path.home() / ".fern" / "src"  # User source backup
+                Path.home() / ".fern" / "src",  # User source backup
+                Path.home() / ".fern"  # Alternative user location
             ]
             
             for src_path in potential_sources:
@@ -416,6 +439,7 @@ class FireCommand:
             
             potential_sources = [
                 cli_dir,  # The Fern repository root where the CLI is located
+                Path("/home/rishi/git/test/fern"),  # Hardcoded development path
                 Path(os.getcwd()),  # Current working directory (if run from Fern repo)
                 Path(os.environ.get('ORIGINAL_CWD', os.getcwd())).parent,  # Parent of original working dir
                 Path("/usr/local/src/fern"),  # System-wide source location
@@ -488,24 +512,30 @@ class FireCommand:
         except Exception as e:
             print_error(f"Web build error: {str(e)}")
             return False
-    
+
     def _run_web_project(self, project_root):
         """Run web project by starting a local server"""
         try:
             build_dir = project_root / "build"
             html_file = build_dir / "main.html"
-            
+
             if not html_file.exists():
                 print_error(f"Web build not found: {html_file}")
                 return
-            
+
+            # Load project configuration to get port
+            project_config = load_project_config(project_root)
+            port = 8000  # default port
+            if project_config and 'platforms' in project_config and 'web' in project_config['platforms']:
+                port = project_config['platforms']['web'].get('port', 8000)
+
             print_info("Starting local web server...")
             print_success("🔥 Fern Fire started (web)!")
             print()
-            print_info(f"Open your browser to: http://localhost:8000/main.html")
+            print_info(f"Open your browser to: http://localhost:{port}/main.html")
             print_info("Press Ctrl+C to stop the server")
             print()
-            
+
             # Start simple HTTP server
             import http.server
             import socketserver
@@ -516,15 +546,15 @@ class FireCommand:
             os.chdir(build_dir)
             
             def start_server():
-                with socketserver.TCPServer(("", 8000), http.server.SimpleHTTPRequestHandler) as httpd:
+                with socketserver.TCPServer(("", port), http.server.SimpleHTTPRequestHandler) as httpd:
                     httpd.serve_forever()
-            
+
             server_thread = threading.Thread(target=start_server, daemon=True)
             server_thread.start()
-            
+
             # Wait a moment then open browser
             time.sleep(1)
-            webbrowser.open("http://localhost:8000/main.html")
+            webbrowser.open(f"http://localhost:{port}/main.html")
             
             # Keep running until interrupted
             try:
@@ -535,7 +565,7 @@ class FireCommand:
                 
         except Exception as e:
             print_error(f"Error running web project: {str(e)}")
-    
+
     def _run_web_file(self, file_path):
         """Run web file by starting a local server"""
         try:
@@ -543,15 +573,23 @@ class FireCommand:
             original_cwd = os.environ.get('ORIGINAL_CWD', os.getcwd())
             build_dir = Path(original_cwd) / "build"
             html_file = build_dir / (file_path.stem + "_temp.html")
-            
+
             if not html_file.exists():
                 print_error(f"Web build not found: {html_file}")
                 return
-            
+
+            # Try to load project config for port, fallback to default
+            project_root = ProjectDetector.find_project_root()
+            port = 8000  # default port
+            if project_root:
+                project_config = load_project_config(project_root)
+                if project_config and 'platforms' in project_config and 'web' in project_config['platforms']:
+                    port = project_config['platforms']['web'].get('port', 8000)
+
             print_info("Starting local web server...")
             print_success("🔥 Fern Fire started (web)!")
             print()
-            print_info(f"Open your browser to: http://localhost:8000/{html_file.name}")
+            print_info(f"Open your browser to: http://localhost:{port}/{html_file.name}")
             print_info("Press Ctrl+C to stop the server")
             print()
             
@@ -565,15 +603,15 @@ class FireCommand:
             os.chdir(build_dir)
             
             def start_server():
-                with socketserver.TCPServer(("", 8000), http.server.SimpleHTTPRequestHandler) as httpd:
+                with socketserver.TCPServer(("", port), http.server.SimpleHTTPRequestHandler) as httpd:
                     httpd.serve_forever()
-            
+
             server_thread = threading.Thread(target=start_server, daemon=True)
             server_thread.start()
-            
+
             # Wait a moment then open browser
             time.sleep(1)
-            webbrowser.open(f"http://localhost:8000/{html_file.name}")
+            webbrowser.open(f"http://localhost:{port}/{html_file.name}")
             
             # Keep running until interrupted
             try:
