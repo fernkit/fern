@@ -146,13 +146,8 @@ namespace Fern {
             
             setupPixelBuffer();
             
-            // CORRECTED STARTUP SEQUENCE
-            // Step 9: Make window visible
             XMapWindow(display_, window_);
 
-            // Step 10: Wait for the window to be mapped before setting focus
-            // This loop waits for the first Expose event, which confirms the
-            // window is visible and ready to receive focus, preventing a BadMatch error.
             bool windowIsReady = false;
             while (!windowIsReady) {
                 XEvent event;
@@ -162,9 +157,8 @@ namespace Fern {
                 }
             }
 
-            // Step 11: Now that the window is confirmed to be visible, set the input focus.
             XSetInputFocus(display_, window_, RevertToParent, CurrentTime);
-            XFlush(display_); // Ensure the focus request is sent
+            XFlush(display_);
         }
         
         void present(uint32_t* pixelBuffer, int width, int height) override {
@@ -198,13 +192,12 @@ namespace Fern {
             return shouldClose_;
         }
         
-        // RESTORED, FUNCTIONAL pollEvents()
         void pollEvents() override {
             XEvent event;
             while (XPending(display_) > 0) {
                 XNextEvent(display_, &event);
                 if (XFilterEvent(&event, None)) {
-                    continue; // The input method handled this event, so we skip it.
+                    continue;
                 }
                 
                 switch (event.type) {
@@ -227,10 +220,14 @@ namespace Fern {
 
                         int len = XmbLookupString(xic_, &event.xkey, buffer, 31, &keysym, &status);
 
+                        // Handle the raw key press for all keys (e.g., Backspace, Enter, letters).
                         if (keyCallback_) {
                             keyCallback_(translateXKeyToFernKey(keysym), true);
                         }
-                        if (textInputCallback_ && len > 0) {
+                        
+                        // **FIX**: Only call the text input callback for printable characters.
+                        // Control characters like backspace (ASCII 8) are handled by the KeyCode.
+                        if (textInputCallback_ && len > 0 && buffer[0] >= 32) {
                             textInputCallback_(std::string(buffer, len));
                         }
                         break;
@@ -269,11 +266,9 @@ namespace Fern {
                         break;
                         
                     case FocusIn:
-                        // Optional: Handle focus gain
                         break;
                         
                     case FocusOut:
-                        // Optional: Handle focus loss
                         break;
                         
                     default:
@@ -340,7 +335,7 @@ namespace Fern {
                 pixelBuffer_ = new uint32_t[newWidth * newHeight];
             } catch (const std::bad_alloc& e) {
                 std::cerr << "Error: Failed to allocate new pixel buffer: " << e.what() << std::endl;
-                pixelBuffer_ = oldPixelBuffer; // Restore old buffer on failure
+                pixelBuffer_ = oldPixelBuffer;
                 return;
             }
             
