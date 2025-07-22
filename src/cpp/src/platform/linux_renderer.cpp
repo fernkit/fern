@@ -20,6 +20,9 @@ namespace Fern {
         bool shouldClose_;          // Application running state
         Atom wmDeleteMessage_;      // Window manager delete message
         
+        XIM xim_;                   // Input Method
+        XIC xic_;                   // Input Context
+        Atom wmTakeFocus_;
         // Input callbacks
         std::function<void(int, int)> mouseCallback_;
         std::function<void(bool)> clickCallback_;
@@ -92,108 +95,98 @@ namespace Fern {
             width_ = width;
             height_ = height;
             
-            
-            // Step 1: Connect to X Server
-            display_ = XOpenDisplay(nullptr);  // nullptr means use DISPLAY environment variable
+            display_ = XOpenDisplay(nullptr);
             if (!display_) {
                 throw std::runtime_error("Cannot connect to X server. Is DISPLAY set?");
             }
             
-            // Step 2: Get screen information
-            int screen = DefaultScreen(display_);              // Usually 0 for single monitor
-            Window rootWindow = RootWindow(display_, screen);   // Desktop background window
+            int screen = DefaultScreen(display_);
+            Window rootWindow = RootWindow(display_, screen);
             
-            
-            // Step 3: Create our application window
             window_ = XCreateSimpleWindow(
-                display_,                                    // X server connection
-                rootWindow,                                  // Parent window (desktop)
-                100, 100,                                    // Initial position (x, y)
-                width, height,                               // Window size
-                2,                                          // Border width
-                BlackPixel(display_, screen),               // Border color
-                WhitePixel(display_, screen)                // Background color
+                display_, rootWindow, 100, 100, width, height, 2,
+                BlackPixel(display_, screen), WhitePixel(display_, screen)
             );
             
             if (!window_) {
                 throw std::runtime_error("Failed to create X11 window");
             }
             
-            
-            // Step 4: Set window properties
             XStoreName(display_, window_, "Fern Application - Linux");
             
-            // Step 5: Enable input events
             XSelectInput(display_, window_, 
-                        ExposureMask | KeyPressMask | KeyReleaseMask |
-                        ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
-                        StructureNotifyMask);
+                ExposureMask | KeyPressMask | KeyReleaseMask |
+                ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
+                StructureNotifyMask | FocusChangeMask);
             
-            // Step 6: Set up window close event
+            xim_ = XOpenIM(display_, nullptr, nullptr, nullptr);
+            if (!xim_) {
+                throw std::runtime_error("Failed to open X Input Method");
+            }
+
+            xic_ = XCreateIC(xim_,
+                            XNInputStyle, XIMPreeditNothing | XIMStatusNothing,
+                            XNClientWindow, window_,
+                            XNFocusWindow, window_,
+                            nullptr);
+            if (!xic_) {
+                throw std::runtime_error("Failed to create X Input Context");
+            }
+            
             wmDeleteMessage_ = XInternAtom(display_, "WM_DELETE_WINDOW", False);
-            XSetWMProtocols(display_, window_, &wmDeleteMessage_, 1);
-            
-            // Step 7: Create Graphics Context (like a "drawing pen")
+            wmTakeFocus_     = XInternAtom(display_, "WM_TAKE_FOCUS", False);
+
+            Atom protocols[] = {wmDeleteMessage_, wmTakeFocus_};
+            XSetWMProtocols(display_, window_, protocols, 2);
+
             gc_ = XCreateGC(display_, window_, 0, nullptr);
             if (!gc_) {
                 throw std::runtime_error("Failed to create graphics context");
             }
             
-            // Step 8: Prepare pixel buffer and XImage
             setupPixelBuffer();
             
+            // CORRECTED STARTUP SEQUENCE
             // Step 9: Make window visible
-            XMapWindow(display_, window_);     // Show the window
-            XFlush(display_);                  // Force X server to process requests
-            
+            XMapWindow(display_, window_);
+
+            // Step 10: Wait for the window to be mapped before setting focus
+            // This loop waits for the first Expose event, which confirms the
+            // window is visible and ready to receive focus, preventing a BadMatch error.
+            bool windowIsReady = false;
+            while (!windowIsReady) {
+                XEvent event;
+                XNextEvent(display_, &event);
+                if (event.type == Expose) {
+                    windowIsReady = true;
+                }
+            }
+
+            // Step 11: Now that the window is confirmed to be visible, set the input focus.
+            XSetInputFocus(display_, window_, RevertToParent, CurrentTime);
+            XFlush(display_); // Ensure the focus request is sent
         }
         
         void present(uint32_t* pixelBuffer, int width, int height) override {
-            if (!ximage_ || !pixelBuffer_ || !display_) {
-                std::cerr << "Error: Invalid renderer state in present() - ximage_=" << ximage_ 
-                         << ", pixelBuffer_=" << pixelBuffer_ << ", display_=" << display_ << std::endl;
+            if (!ximage_ || !pixelBuffer_ || !display_ || !pixelBuffer) {
                 return;
             }
             
-            // Check input parameters
-            if (!pixelBuffer) {
-                std::cerr << "Error: Input pixelBuffer is null in present()" << std::endl;
-                return;
-            }
-            
-            if (width <= 0 || height <= 0) {
-                std::cerr << "Error: Invalid dimensions in present(): " << width << "x" << height << std::endl;
-                return;
-            }
-            
-            // Check if dimensions match our current buffer
             if (width != width_ || height != height_) {
-                std::cerr << "Warning: Present called with dimensions " << width << "x" << height 
-                         << " but renderer is " << width_ << "x" << height_ << std::endl;
-                return; // Skip this frame to prevent crashes
+                return; 
             }
             
-            // Step 1: Copy our pixel data to X11's format
-            // Note: X11 might have different byte ordering, but we'll keep it simple for now
             size_t bufferSize = width * height * sizeof(uint32_t);
             memcpy(pixelBuffer_, pixelBuffer, bufferSize);
             
-            // Step 2: Tell X11 to draw our image to the window
             XPutImage(
-                display_,        // X server connection
-                window_,         // Target window
-                gc_,             // Graphics context
-                ximage_,         // Our image data
-                0, 0,            // Source position in image (x, y)
-                0, 0,            // Destination position in window (x, y)  
-                width, height    // Size to copy
+                display_, window_, gc_, ximage_,
+                0, 0, 0, 0, width, height
             );
             
-            // Step 3: Force X11 to actually draw it (X11 batches operations)
             XFlush(display_);
         }
         
-        // Minimal implementations for interface compliance
         void setTitle(const std::string& title) override {
             if (display_ && window_) {
                 XStoreName(display_, window_, title.c_str());
@@ -205,79 +198,85 @@ namespace Fern {
             return shouldClose_;
         }
         
+        // RESTORED, FUNCTIONAL pollEvents()
         void pollEvents() override {
             XEvent event;
             while (XPending(display_) > 0) {
                 XNextEvent(display_, &event);
+                if (XFilterEvent(&event, None)) {
+                    continue; // The input method handled this event, so we skip it.
+                }
                 
                 switch (event.type) {
                     case ButtonPress:
-                        if (clickCallback_) {
-                            clickCallback_(true);
-                        }
+                        if (clickCallback_) { clickCallback_(true); }
                         break;
                         
                     case ButtonRelease:
-                        if (clickCallback_) {
-                            clickCallback_(false);
-                        }
+                        if (clickCallback_) { clickCallback_(false); }
                         break;
                         
                     case MotionNotify:
-                        if (mouseCallback_) {
-                            mouseCallback_(event.xmotion.x, event.xmotion.y);
-                        }
+                        if (mouseCallback_) { mouseCallback_(event.xmotion.x, event.xmotion.y); }
                         break;
-                        
-                    case KeyPress:
+
+                    case KeyPress: {
+                        KeySym keysym = NoSymbol;
+                        char buffer[32] = {0};
+                        Status status = 0;
+
+                        int len = XmbLookupString(xic_, &event.xkey, buffer, 31, &keysym, &status);
+
                         if (keyCallback_) {
-                            KeySym keysym = XLookupKeysym(&event.xkey, 0);
-                            KeyCode keycode = translateXKeyToFernKey(keysym);
-                            keyCallback_(keycode, true);
+                            keyCallback_(translateXKeyToFernKey(keysym), true);
+                        }
+                        if (textInputCallback_ && len > 0) {
+                            textInputCallback_(std::string(buffer, len));
                         }
                         break;
-                        
+                    }
+
                     case KeyRelease:
                         if (keyCallback_) {
                             KeySym keysym = XLookupKeysym(&event.xkey, 0);
-                            KeyCode keycode = translateXKeyToFernKey(keysym);
-                            keyCallback_(keycode, false);
+                            keyCallback_(translateXKeyToFernKey(keysym), false);
                         }
                         break;
                         
                     case ClientMessage:
-                        // Handle window close event
                         if (event.xclient.data.l[0] == (long)wmDeleteMessage_) {
                             shouldClose_ = true;
+                        }
+                        else if (event.xclient.data.l[0] == (long)wmTakeFocus_) {
+                            XSetInputFocus(display_, window_, RevertToParent, event.xclient.data.l[1]);
                         }
                         break;
                         
                     case ConfigureNotify:
-                        // Handle window resize
                         if (event.xconfigure.width != width_ || event.xconfigure.height != height_) {
                             int newWidth = event.xconfigure.width;
                             int newHeight = event.xconfigure.height;
                            
-                            
-                            // Reallocate pixel buffer and recreate XImage for new dimensions
                             if (newWidth > 0 && newHeight > 0) {
-                                try {
-                                    resizePixelBuffer(newWidth, newHeight);
-                                    width_ = newWidth;
-                                    height_ = newHeight;
-                                    
-                                    if (resizeCallback_) {
-                                        resizeCallback_(width_, height_);
-                                    }
-                                    
-                                } catch (const std::exception& e) {
-                                    std::cerr << "Error during window resize: " << e.what() << std::endl;
+                                resizePixelBuffer(newWidth, newHeight);
+                                width_ = newWidth;
+                                height_ = newHeight;
+                                if (resizeCallback_) {
+                                    resizeCallback_(width_, height_);
                                 }
-                            } else {
-                                std::cerr << "Warning: Invalid resize dimensions ignored: " 
-                                         << newWidth << "x" << newHeight << std::endl;
                             }
                         }
+                        break;
+                        
+                    case FocusIn:
+                        // Optional: Handle focus gain
+                        break;
+                        
+                    case FocusOut:
+                        // Optional: Handle focus loss
+                        break;
+                        
+                    default:
                         break;
                 }
             }
@@ -292,70 +291,36 @@ namespace Fern {
             shouldClose_ = true;
         }
         
-        // Input callback implementations
-        void setMouseCallback(std::function<void(int, int)> callback) override {
-            mouseCallback_ = callback;
-        }
-        
-        void setClickCallback(std::function<void(bool)> callback) override {
-            clickCallback_ = callback;
-        }
-        
-        void setResizeCallback(std::function<void(int, int)> callback) override {
-            resizeCallback_ = callback;
-        }
-        
-        void setKeyCallback(std::function<void(KeyCode, bool)> callback) override {
-            keyCallback_ = callback;
-        }
-        
-        void setTextInputCallback(std::function<void(const std::string&)> callback) override {
-            textInputCallback_ = callback;
-        }
+        void setMouseCallback(std::function<void(int, int)> callback) override { mouseCallback_ = callback; }
+        void setClickCallback(std::function<void(bool)> callback) override { clickCallback_ = callback; }
+        void setResizeCallback(std::function<void(int, int)> callback) override { resizeCallback_ = callback; }
+        void setKeyCallback(std::function<void(KeyCode, bool)> callback) override { keyCallback_ = callback; }
+        void setTextInputCallback(std::function<void(const std::string&)> callback) override { textInputCallback_ = callback; }
         
         void setSize(int width, int height) override {
-            if (width <= 0 || height <= 0) return;
-            
-            // Resize the X11 window
-            if (display_ && window_) {
+            if (width > 0 && height > 0 && display_ && window_) {
                 XResizeWindow(display_, window_, width, height);
                 XFlush(display_);
             }
-            
-            // The actual buffer resize will be handled by the ConfigureNotify event
-            // when X11 confirms the resize
         }
         
     private:
         void setupPixelBuffer() {
-            
-            // Validate dimensions
             if (width_ <= 0 || height_ <= 0) {
                 throw std::runtime_error("Invalid window dimensions for pixel buffer");
             }
             
-            // Allocate our local pixel buffer
             try {
                 pixelBuffer_ = new uint32_t[width_ * height_];
-                // Initialize buffer to black
                 memset(pixelBuffer_, 0, width_ * height_ * sizeof(uint32_t));
             } catch (const std::bad_alloc& e) {
                 throw std::runtime_error("Failed to allocate pixel buffer: " + std::string(e.what()));
             }
             
-            // Create XImage structure - this is X11's way of handling image data
             int screen = DefaultScreen(display_);
-            
             ximage_ = XCreateImage(
-                display_,                           // X server connection
-                DefaultVisual(display_, screen),    // Color format info
-                DefaultDepth(display_, screen),     // Bits per pixel (usually 24 or 32)
-                ZPixmap,                            // Image format (raw pixels)
-                0,                                  // Offset in data
-                (char*)pixelBuffer_,                // Our pixel data
-                width_, height_,                    // Image dimensions
-                32,                                 // Bitmap padding (32-bit alignment)
-                0                                   // Bytes per line (0 = auto-calculate)
+                display_, DefaultVisual(display_, screen), DefaultDepth(display_, screen),
+                ZPixmap, 0, (char*)pixelBuffer_, width_, height_, 32, 0
             );
             
             if (!ximage_) {
@@ -363,70 +328,50 @@ namespace Fern {
                 pixelBuffer_ = nullptr;
                 throw std::runtime_error("Failed to create XImage");
             }
-            
         }
         
         void resizePixelBuffer(int newWidth, int newHeight) {
+            if (newWidth <= 0 || newHeight <= 0) return;
             
-            // Validate dimensions
-            if (newWidth <= 0 || newHeight <= 0) {
-                std::cerr << "Error: Invalid resize dimensions: " << newWidth << "x" << newHeight << std::endl;
-                return;
-            }
-            
-            // Store old values for cleanup
             XImage* oldXImage = ximage_;
             uint32_t* oldPixelBuffer = pixelBuffer_;
             
-            // Allocate new pixel buffer first
             try {
                 pixelBuffer_ = new uint32_t[newWidth * newHeight];
             } catch (const std::bad_alloc& e) {
                 std::cerr << "Error: Failed to allocate new pixel buffer: " << e.what() << std::endl;
+                pixelBuffer_ = oldPixelBuffer; // Restore old buffer on failure
                 return;
             }
             
-            // Create new XImage with new dimensions
             int screen = DefaultScreen(display_);
-            
             ximage_ = XCreateImage(
-                display_,                           // X server connection
-                DefaultVisual(display_, screen),    // Color format info
-                DefaultDepth(display_, screen),     // Bits per pixel (usually 24 or 32)
-                ZPixmap,                            // Image format (raw pixels)
-                0,                                  // Offset in data
-                (char*)pixelBuffer_,                // Our pixel data
-                newWidth, newHeight,                // New image dimensions
-                32,                                 // Bitmap padding (32-bit alignment)
-                0                                   // Bytes per line (0 = auto-calculate)
+                display_, DefaultVisual(display_, screen), DefaultDepth(display_, screen),
+                ZPixmap, 0, (char*)pixelBuffer_, newWidth, newHeight, 32, 0
             );
             
             if (!ximage_) {
                 std::cerr << "Error: Failed to create resized XImage" << std::endl;
-                // Restore old state
                 delete[] pixelBuffer_;
                 pixelBuffer_ = oldPixelBuffer;
                 ximage_ = oldXImage;
                 return;
             }
             
-            // Now it's safe to clean up old resources
             if (oldXImage) {
-                // Important: Set data to nullptr so XDestroyImage doesn't free our buffer
                 oldXImage->data = nullptr;
                 XDestroyImage(oldXImage);
             }
-            
             if (oldPixelBuffer) {
                 delete[] oldPixelBuffer;
             }
-            
         }
         
         void cleanup() {
+            if (xic_) { XDestroyIC(xic_); xic_ = nullptr; }
+            if (xim_) { XCloseIM(xim_); xim_ = nullptr; }
             
             if (ximage_) {
-                // Important: Set data to nullptr so XDestroyImage doesn't free our buffer
                 ximage_->data = nullptr;
                 XDestroyImage(ximage_);
                 ximage_ = nullptr;
@@ -451,7 +396,6 @@ namespace Fern {
                 XCloseDisplay(display_);
                 display_ = nullptr;
             }
-            
         }
     };
 }

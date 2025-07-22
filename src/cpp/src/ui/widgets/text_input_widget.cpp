@@ -6,6 +6,7 @@
 #include "../../../include/fern/font/font.hpp"
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -174,7 +175,9 @@ namespace Fern {
     
     void TextInputWidget::handleTextInput(const InputState& input) {
         if (input.hasTextInput && !input.textInput.empty()) {
-            // Debug output
+            // Debug output for all platforms
+            std::cout << "TextInputWidget received text: '" << input.textInput << "'" << std::endl;
+            
 #ifdef __EMSCRIPTEN__
             EM_ASM({
                 console.log("TextInputWidget received text: " + UTF8ToString($0));
@@ -309,6 +312,9 @@ namespace Fern {
         if (isFocused_ != focused) {
             isFocused_ = focused;
             showCursor_ = focused;
+            
+            std::cout << "TextInputWidget focus changed to: " << (focused ? "focused" : "unfocused") << std::endl;
+            
 #ifdef __EMSCRIPTEN__
             EM_ASM({
                 console.log("TextInputWidget focus changed to: " + ($0 ? "focused" : "unfocused"));

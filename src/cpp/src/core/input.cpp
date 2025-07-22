@@ -1,5 +1,6 @@
 #include "../../include/fern/core/input.hpp"
 #include <algorithm>
+#include <iostream>
 
 namespace Fern {
     InputState Input::state_ = {};
@@ -58,6 +59,7 @@ namespace Fern {
     }
     
     void Input::updateTextInput(const std::string& text) {
+        std::cout << "Input::updateTextInput called with: '" << text << "'" << std::endl;
         state_.textInput = text;
         state_.hasTextInput = true;
     }
