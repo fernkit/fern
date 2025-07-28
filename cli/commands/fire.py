@@ -6,7 +6,6 @@ import os
 import sys
 import subprocess
 from pathlib import Path
-import yaml
 
 # Add utils to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -14,6 +13,56 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.colors import print_header, print_success, print_error, print_warning, print_info
 from utils.system import ProjectDetector, BuildSystem
 from utils.config import config
+
+def parse_simple_yaml(content):
+    """Simple YAML parser for basic key-value and nested structures"""
+    result = {}
+    lines = content.strip().split('\n')
+    
+    current_dict = result
+    dict_stack = [result]
+    indent_stack = [0]
+    
+    for line in lines:
+        # Skip empty lines and comments
+        stripped = line.strip()
+        if not stripped or stripped.startswith('#'):
+            continue
+        
+        # Calculate indentation
+        indent = len(line) - len(line.lstrip())
+        
+        # Handle indentation changes
+        while indent < indent_stack[-1]:
+            dict_stack.pop()
+            indent_stack.pop()
+        
+        current_dict = dict_stack[-1]
+        
+        # Parse key-value pairs
+        if ':' in stripped:
+            key, value = stripped.split(':', 1)
+            key = key.strip()
+            value = value.strip()
+            
+            if value:
+                # Simple value
+                # Try to convert to appropriate type
+                if value.lower() == 'true':
+                    current_dict[key] = True
+                elif value.lower() == 'false':
+                    current_dict[key] = False
+                elif value.isdigit():
+                    current_dict[key] = int(value)
+                else:
+                    current_dict[key] = value
+            else:
+                # Nested object
+                current_dict[key] = {}
+                dict_stack.append(current_dict[key])
+                indent_stack.append(indent)
+    
+    return result
 
 def load_project_config(project_root):
     """Load project configuration from fern.yaml"""
@@ -23,7 +72,8 @@ def load_project_config(project_root):
     
     try:
         with open(config_file, 'r') as f:
-            return yaml.safe_load(f)
+            content = f.read()
+        return parse_simple_yaml(content)
     except Exception as e:
         print_warning(f"Failed to load fern.yaml: {e}")
         return None
@@ -530,7 +580,7 @@ class FireCommand:
                 port = project_config['platforms']['web'].get('port', 8000)
 
             print_info("Starting local web server...")
-            print_success("🔥 Fern Fire started (web)!")
+            print_success("Fern Fire started (web)!")
             print()
             print_info(f"Open your browser to: http://localhost:{port}/main.html")
             print_info("Press Ctrl+C to stop the server")
