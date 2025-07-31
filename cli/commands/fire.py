@@ -19,9 +19,8 @@ def parse_simple_yaml(content):
     result = {}
     lines = content.strip().split('\n')
     
-    current_dict = result
-    dict_stack = [result]
-    indent_stack = [0]
+    stack = [result]
+    indent_levels = [0]
     
     for line in lines:
         # Skip empty lines and comments
@@ -29,15 +28,15 @@ def parse_simple_yaml(content):
         if not stripped or stripped.startswith('#'):
             continue
         
-        # Calculate indentation
+        # Calculate indentation level
         indent = len(line) - len(line.lstrip())
         
-        # Handle indentation changes
-        while indent < indent_stack[-1]:
-            dict_stack.pop()
-            indent_stack.pop()
+        # Handle indentation changes - pop stack until we find right level
+        while len(indent_levels) > 1 and indent <= indent_levels[-1]:
+            stack.pop()
+            indent_levels.pop()
         
-        current_dict = dict_stack[-1]
+        current_dict = stack[-1]
         
         # Parse key-value pairs
         if ':' in stripped:
@@ -46,8 +45,7 @@ def parse_simple_yaml(content):
             value = value.strip()
             
             if value:
-                # Simple value
-                # Try to convert to appropriate type
+                # Simple value - convert type
                 if value.lower() == 'true':
                     current_dict[key] = True
                 elif value.lower() == 'false':
@@ -59,8 +57,8 @@ def parse_simple_yaml(content):
             else:
                 # Nested object
                 current_dict[key] = {}
-                dict_stack.append(current_dict[key])
-                indent_stack.append(indent)
+                stack.append(current_dict[key])
+                indent_levels.append(indent)
     
     return result
 
