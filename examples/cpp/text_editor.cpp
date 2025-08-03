@@ -96,7 +96,7 @@ void setupUI() {
               .textScale(2)
               .borderRadius(4);
     
-    auto clearBtn = Button(ButtonConfig(0, 0, 80, 35, "Clear").style(buttonStyle));
+    auto clearBtn = Button(ButtonConfig(0, 0, 90, 35, "Clear").style(buttonStyle));
     clearBtn->onClick.connect([]() {
         textInput->setText("");
         editorText = "";

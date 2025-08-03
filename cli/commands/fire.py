@@ -311,13 +311,13 @@ class FireCommand:
             cli_dir = Path(__file__).parent.parent.parent  # Go up from cli/commands/fire.py to repo root
             
             potential_sources = [
+                Path.home() / ".fern",  # Global source installation (primary location)
                 cli_dir,  # The Fern repository root where the CLI is located
                 Path("/home/rishi/git/test/fern"),  # Hardcoded development path
                 Path(os.getcwd()),  # Current working directory (if run from Fern repo)
                 Path(os.environ.get('ORIGINAL_CWD', os.getcwd())).parent,  # Parent of original working dir
                 Path("/usr/local/src/fern"),  # System-wide source location
-                Path.home() / ".fern" / "src",  # User source backup
-                Path.home() / ".fern"  # Alternative user location
+                Path.home() / ".fern" / "src"  # Alternative user location
             ]
             
             for src_path in potential_sources:
@@ -338,7 +338,7 @@ class FireCommand:
                     status = "✓" if cpp_src.exists() else "✗"
                     print_info(f"  {status} {cpp_src}")
                 print_info("Ensure you are running 'fern fire' from within the cloned Fern repository for web builds to work.")
-                print_info("Or install Fern source files to a standard location.")
+                print_info("Or run './install.sh' to install Fern source files globally for web builds.")
                 return False
 
             # Add the source include path for web builds (instead of the global installed headers)
@@ -486,12 +486,13 @@ class FireCommand:
             cli_dir = Path(__file__).parent.parent.parent  # Go up from cli/commands/fire.py to repo root
             
             potential_sources = [
+                Path.home() / ".fern",  # Global source installation (primary location)
                 cli_dir,  # The Fern repository root where the CLI is located
                 Path("/home/rishi/git/test/fern"),  # Hardcoded development path
                 Path(os.getcwd()),  # Current working directory (if run from Fern repo)
                 Path(os.environ.get('ORIGINAL_CWD', os.getcwd())).parent,  # Parent of original working dir
                 Path("/usr/local/src/fern"),  # System-wide source location
-                Path.home() / ".fern" / "src"  # User source backup
+                Path.home() / ".fern" / "src"  # Alternative user location
             ]
             
             for src_path in potential_sources:
@@ -511,7 +512,7 @@ class FireCommand:
                     status = "✓" if cpp_src.exists() else "✗"
                     print_info(f"  {status} {cpp_src}")
                 print_info("Web builds require access to Fern source files")
-                print_info("Ensure you are running from the Fern source directory or install Fern source files")
+                print_info("Run './install.sh' from the Fern repository to install source files globally")
                 return False
             
             # Add the source include path for web builds (instead of installed headers)

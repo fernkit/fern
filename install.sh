@@ -138,6 +138,29 @@ EOF
         log_warning "Add the following line to your ~/.bashrc or ~/.zshrc:"
         echo "export PATH=\"\$HOME/.local/bin:\$PATH\""
         
+        # Automatically add to both ~/.bashrc and ~/.zshrc if they exist
+        PATH_EXPORT='export PATH="$HOME/.local/bin:$PATH"'
+        
+        if [ -f "$HOME/.bashrc" ]; then
+            # Check if it's already in .bashrc
+            if ! grep -q "$HOME/.local/bin" "$HOME/.bashrc"; then
+                echo "" >> "$HOME/.bashrc"
+                echo "# Added by Fern installation script" >> "$HOME/.bashrc"
+                echo "$PATH_EXPORT" >> "$HOME/.bashrc"
+                log_success "Added PATH to ~/.bashrc"
+            fi
+        fi
+        
+        if [ -f "$HOME/.zshrc" ]; then
+            # Check if it's already in .zshrc
+            if ! grep -q "$HOME/.local/bin" "$HOME/.zshrc"; then
+                echo "" >> "$HOME/.zshrc"
+                echo "# Added by Fern installation script" >> "$HOME/.zshrc"
+                echo "$PATH_EXPORT" >> "$HOME/.zshrc"
+                log_success "Added PATH to ~/.zshrc"
+            fi
+        fi
+        
         # Temporarily add to PATH for this session
         export PATH="$HOME/.local/bin:$PATH"
     fi
@@ -165,6 +188,31 @@ install_cpp_library() {
     cd ..
     
     log_success "Fern C++ library installed successfully"
+}
+
+# Install Fern source files for web builds
+install_fern_sources() {
+    log_info "Installing Fern source files for web builds..."
+    
+    SOURCE_DIR="$HOME/.fern"
+    mkdir -p "$SOURCE_DIR"
+    
+    # Copy the entire src directory for web compilation
+    if [ -d "src" ]; then
+        cp -r src "$SOURCE_DIR/"
+        log_success "Fern source files installed to $SOURCE_DIR/src"
+    else
+        log_error "Source directory not found. Please run this script from the Fern repository root."
+        return 1
+    fi
+    
+    # Copy template.html for web builds
+    if [ -f "template.html" ]; then
+        cp template.html "$SOURCE_DIR/"
+        log_success "Web template installed"
+    fi
+    
+    log_success "Fern source files installed for web builds"
 }
 
 # Create global templates directory
@@ -454,6 +502,9 @@ main() {
     
     # Install C++ library
     install_cpp_library
+    
+    # Install Fern source files for web builds
+    install_fern_sources
     
     # Install Gleeb LSP
     install_gleeb_lsp

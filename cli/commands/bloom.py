@@ -38,7 +38,6 @@ class BloomCommand:
         # Define critical checks that prevent Fern from working
         critical_checks = [
             "C++ Compiler (g++)", 
-            "C++ Compiler (clang++)", 
             "pkg-config",
             "Fern C++ Library"
         ]
@@ -48,11 +47,13 @@ class BloomCommand:
                 print_success(f"{name}: {message}")
                 passed += 1
             else:
-                print_error(f"{name}: {message}")
-                failed += 1
                 # Check if this is a critical failure
                 if any(critical in name for critical in critical_checks):
+                    print_error(f"{name}: {message}")
                     critical_failed += 1
+                else:
+                    print_warning(f"{name}: {message} (optional)")
+                failed += 1
         
         print()
         print_info(f"Health Check Summary: {passed} passed, {failed} failed")

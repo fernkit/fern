@@ -54,7 +54,7 @@ void updateCounterDisplay() {
         status = "Start counting!";
         statusColor = ModernColors::TextMuted;
     } else if (counter > 0 && counter <= 10) {
-        status = "Getting started...";
+        status = "Getting started";
         statusColor = ModernColors::AccentBlue;
     } else if (counter > 10 && counter <= 50) {
         status = "Making progress!";
@@ -63,7 +63,7 @@ void updateCounterDisplay() {
         status = "You're on fire!";
         statusColor = ModernColors::AccentGreen;
     } else {
-        status = "Going backwards...";
+        status = "Going backwards";
         statusColor = ModernColors::AccentRed;
     }
     
@@ -177,10 +177,10 @@ void setupUI() {
         subtitleText,
         SizedBox(0, 60),      // Large spacing before counter
         counterDisplay,
-        SizedBox(0, 20),      // Spacing after counter
+        SizedBox(0, 50),      // Spacing after counter
         statusText,
         SizedBox(0, 50),      // Spacing before buttons
-        Row(buttonRow),
+        Row(buttonRow, false, MainAxisAlignment::Center, CrossAxisAlignment::Center),
         SizedBox(0, 30),      // Spacing before reset
         resetButton,
         SizedBox(0, 40)       // Bottom spacing

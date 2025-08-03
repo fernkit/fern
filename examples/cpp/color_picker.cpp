@@ -57,6 +57,7 @@ std::shared_ptr<ButtonWidget> createColorButton(const std::string& label,
              .borderRadius(6);
     
     auto button = Button(ButtonConfig(0, 0, 80, 35, label).style(colorStyle));
+    button->autoSizeToContent(10);
     button->onClick.connect(onClick);
     return button;
 }
