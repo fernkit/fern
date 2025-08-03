@@ -245,7 +245,7 @@ void setup_event_listeners() {
             Module._update_mouse_button(0);
         });
         
-        console.log("Fern: Event listeners initialized");
+
     });
 }
 

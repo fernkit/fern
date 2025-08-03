@@ -27,21 +27,9 @@ uint32_t TTFReader::swapUint32(uint32_t val) {
 }
 
 bool TTFReader::openFont(const std::string& filename) {
-#ifdef __EMSCRIPTEN__
-    EM_ASM({
-        console.log("🌿 TTFReader: Attempting to open font: " + UTF8ToString($0));
-    }, filename.c_str());
-#endif
     
     file.open(filename, std::ios::binary);
     bool success = file.is_open();
-    
-#ifdef __EMSCRIPTEN__
-    EM_ASM({
-        console.log("🌿 TTFReader: Font open " + (($0) ? "SUCCESS" : "FAILED"));
-    }, success ? 1 : 0);
-#endif
-    
     return success;
 }
 

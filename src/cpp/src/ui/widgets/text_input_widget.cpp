@@ -156,11 +156,6 @@ namespace Fern {
         }
         if (input.isKeyJustPressed(KeyCode::Backspace)) {
             deleteCharacter(false);
-#ifdef __EMSCRIPTEN__
-            EM_ASM({
-                console.log("Backspace pressed, text now: " + UTF8ToString($0));
-            }, text_.c_str());
-#endif
         }
         if (input.isKeyJustPressed(KeyCode::Delete)) {
             deleteCharacter(true);
@@ -178,11 +173,6 @@ namespace Fern {
             // Debug output for all platforms
             std::cout << "TextInputWidget received text: '" << input.textInput << "'" << std::endl;
             
-#ifdef __EMSCRIPTEN__
-            EM_ASM({
-                console.log("TextInputWidget received text: " + UTF8ToString($0));
-            }, input.textInput.c_str());
-#endif
             insertText(input.textInput);
         }
     }
@@ -314,12 +304,6 @@ namespace Fern {
             showCursor_ = focused;
             
             std::cout << "TextInputWidget focus changed to: " << (focused ? "focused" : "unfocused") << std::endl;
-            
-#ifdef __EMSCRIPTEN__
-            EM_ASM({
-                console.log("TextInputWidget focus changed to: " + ($0 ? "focused" : "unfocused"));
-            }, focused);
-#endif
             onFocusChanged.emit(focused);
         }
     }

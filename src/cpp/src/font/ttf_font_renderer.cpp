@@ -82,12 +82,6 @@ void TTFFontRenderer::rasterizeGlyphOutline(const SimpleGlyph& glyph, int fontSi
     int glyphWidth = glyph.header.xMax - glyph.header.xMin;
     int glyphHeight = glyph.header.yMax - glyph.header.yMin;
     
-#ifdef __EMSCRIPTEN__
-    EM_ASM({
-        console.log("🌿 Glyph bounds: width=" + $0 + ", height=" + $1 + ", scale=" + $2 + ", unitsPerEm=" + $3);
-    }, glyphWidth, glyphHeight, scale, ttfReader_->getUnitsPerEm());
-#endif
-    
 
     int scaledWidth = std::max(2, static_cast<int>(glyphWidth * scale));
     int scaledHeight = std::max(2, static_cast<int>(glyphHeight * scale)); 
@@ -100,12 +94,6 @@ void TTFFontRenderer::rasterizeGlyphOutline(const SimpleGlyph& glyph, int fontSi
     
     // Create bitmap
     output.bitmap.resize(output.width * output.height, 0);
-    
-#ifdef __EMSCRIPTEN__
-    EM_ASM({
-        console.log("🌿 Rasterizing glyph: outputW=" + $0 + ", outputH=" + $1 + ", bearingY=" + $2 + ", advance=" + $3);
-    }, output.width, output.height, output.bearingY, output.advance);
-#endif
     
     // If no points, create fallback
     if (glyph.points.empty()) {

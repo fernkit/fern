@@ -44,7 +44,6 @@ namespace Fern {
             setValue($0, availWidth, 'i32');
             setValue($1, availHeight, 'i32');
             
-            console.log("Fern C++: Auto-detected canvas size: " + availWidth + "x" + availHeight);
         }, &width, &height);
 #else
         width = 800;
@@ -102,7 +101,6 @@ namespace Fern {
                 lastWidth = width;
                 lastHeight = height;
                 
-                std::cout << "Canvas resized and cleared: " << width << "x" << height << std::endl;
                 
                 // Force a complete redraw by clearing everything and re-rendering
                 // The draw callback will be called in the next frame

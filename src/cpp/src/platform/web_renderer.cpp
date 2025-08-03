@@ -109,7 +109,6 @@ namespace Fern {
                     var ctx = canvas.getContext('2d');
                     ctx.clearRect(0, 0, $0, $1);
                     
-                    console.log("Canvas resized to: " + $0 + "x" + $1);
                 }
             }, width, height);
         }
@@ -175,7 +174,6 @@ namespace Fern {
                 
                 // Canvas keyboard events (when canvas has focus)
                 canvas.addEventListener('keydown', function(e) {
-                    console.log('Canvas keydown:', e.keyCode);
                     Module._webRendererKeyEvent(renderer, e.keyCode, 1);
                     
                     // Prevent default for special keys
@@ -186,13 +184,11 @@ namespace Fern {
                 });
                 
                 canvas.addEventListener('keyup', function(e) {
-                    console.log('Canvas keyup:', e.keyCode);
                     Module._webRendererKeyEvent(renderer, e.keyCode, 0);
                 });
                 
                 // Text input events for character input
                 canvas.addEventListener('keypress', function(e) {
-                    console.log('Canvas keypress:', e.charCode);
                     if (e.charCode >= 32 && e.charCode <= 126) { // Printable ASCII characters
                         var char = String.fromCharCode(e.charCode);
                         // Use a simpler approach - pass the character code directly
