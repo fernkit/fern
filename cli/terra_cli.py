@@ -11,6 +11,7 @@ Commands:
   install <package>        Install Fern packages
   templates               Manage project templates
   lsp <subcommand>        Manage Language Server Protocol
+  web-cache <action>      Manage web build cache
   help                    Show this help message
 """
 
@@ -31,6 +32,7 @@ from commands.prepare import PrepareCommand
 from commands.install import InstallCommand
 from commands.templates import TemplatesCommand
 from commands.lsp import LSPCommand
+from commands.web_cache import WebCacheCommand
 from utils.colors import Colors, print_colored
 
 class FernCLI:
@@ -43,6 +45,7 @@ class FernCLI:
             'install': InstallCommand(),
             'templates': TemplatesCommand(),
             'lsp': LSPCommand(),
+            'web-cache': WebCacheCommand(),
         }
     
     def run(self, args):
@@ -78,6 +81,8 @@ class FernCLI:
         print("  fern prepare linux            # Build for linux")
         print("  fern lsp start                # Start LSP server")
         print("  fern lsp config               # Configure VS Code")
+        print("  fern web-cache status         # Check web build cache")
+        print("  fern web-cache clear          # Clear web build cache")
 
 def main():
     cli = FernCLI()

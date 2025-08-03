@@ -290,7 +290,17 @@ class FireCommand:
             build_dir = build_system.project_root / "build"
             build_dir.mkdir(exist_ok=True)
             
-            # Build command using Emscripten
+            # Find the Fern source directory
+            fern_source = self._find_fern_source()
+            if not fern_source:
+                return False
+
+            # Check if we have a precompiled Fern web library, or build one
+            fern_web_lib = self._ensure_fern_web_library(fern_source)
+            if not fern_web_lib:
+                return False
+            
+            # Build command using Emscripten - now only compiles user code + links to precompiled library
             cmd = ["emcc"]
             
             # Add Emscripten flags
@@ -301,64 +311,14 @@ class FireCommand:
             cmd.extend(["-s", "EXPORTED_FUNCTIONS=['_main']"])
             cmd.extend(["-s", "EXPORTED_RUNTIME_METHODS=['ccall','cwrap']"])
             
-            # === START OF FIX ===
-            # For web builds, we need to compile Fern source files with Emscripten
-            
-            # Find the Fern source directory
-            fern_source = None
-            
-            # Get the directory where the CLI is located (should be the Fern repo)
-            cli_dir = Path(__file__).parent.parent.parent  # Go up from cli/commands/fire.py to repo root
-            
-            potential_sources = [
-                Path.home() / ".fern",  # Global source installation (primary location)
-                cli_dir,  # The Fern repository root where the CLI is located
-                Path("/home/rishi/git/test/fern"),  # Hardcoded development path
-                Path(os.getcwd()),  # Current working directory (if run from Fern repo)
-                Path(os.environ.get('ORIGINAL_CWD', os.getcwd())).parent,  # Parent of original working dir
-                Path("/usr/local/src/fern"),  # System-wide source location
-                Path.home() / ".fern" / "src"  # Alternative user location
-            ]
-            
-            for src_path in potential_sources:
-                # Check if this looks like the Fern source directory
-                cpp_src = src_path / "src" / "cpp"
-                if (cpp_src.exists() and 
-                    (cpp_src / "include" / "fern").exists() and
-                    (cpp_src / "src").exists()):
-                    fern_source = cpp_src
-                    print_info(f"Found Fern source for web build at: {fern_source}")
-                    break
-
-            if not fern_source:
-                print_error("Fern source files not found for web compilation.")
-                print_info("Searched the following locations:")
-                for src_path in potential_sources:
-                    cpp_src = src_path / "src" / "cpp"
-                    status = "✓" if cpp_src.exists() else "✗"
-                    print_info(f"  {status} {cpp_src}")
-                print_info("Ensure you are running 'fern fire' from within the cloned Fern repository for web builds to work.")
-                print_info("Or run './install.sh' to install Fern source files globally for web builds.")
-                return False
-
-            # Add the source include path for web builds (instead of the global installed headers)
+            # Add the source include path for web builds
             cmd.extend(["-I", str(fern_source / "include")])
 
             # Add the project's own source file
             cmd.append(str(main_file))
 
-            # Add Fern library source files to be compiled
-            patterns = ["core/*.cpp", "graphics/*.cpp", "text/*.cpp", "font/*.cpp", "ui/**/*.cpp"]
-            for pattern in patterns:
-                for src_file in fern_source.glob(f"src/{pattern}"):
-                    cmd.append(str(src_file))
-            
-            # Add platform-specific files for web
-            cmd.append(str(fern_source / "src/platform/web_renderer.cpp"))
-            cmd.append(str(fern_source / "src/platform/platform_factory.cpp"))
-            cmd.append(str(fern_source / "src/fern.cpp"))
-
-            # === END OF FIX ===
+            # Link against the precompiled Fern web library instead of recompiling all sources
+            cmd.append(str(fern_web_lib))
             
             # Check for custom template
             project_template = build_system.project_root / "web" / "template.html"
@@ -461,7 +421,17 @@ class FireCommand:
             # Output HTML file name
             output_file = build_dir / (file_path.stem + "_temp.html")
             
-            # Build command using Emscripten
+            # Find the Fern source directory
+            fern_source = self._find_fern_source()
+            if not fern_source:
+                return False
+
+            # Check if we have a precompiled Fern web library, or build one
+            fern_web_lib = self._ensure_fern_web_library(fern_source)
+            if not fern_web_lib:
+                return False
+            
+            # Build command using Emscripten - now only compiles user code + links to precompiled library
             cmd = ["emcc"]
             
             # Add Emscripten flags
@@ -472,67 +442,14 @@ class FireCommand:
             cmd.extend(["-s", "EXPORTED_FUNCTIONS=['_main']"])
             cmd.extend(["-s", "EXPORTED_RUNTIME_METHODS=['ccall','cwrap']"])
             
-            # For web builds, we'll add the include path from the source directory
-            # Don't use the installed headers as they conflict with source compilation
+            # Add the source include path for web builds
+            cmd.extend(["-I", str(fern_source / "include")])
             
             # Add source file
             cmd.append(str(file_path))
             
-            # For web builds, we need to compile Fern source files with Emscripten
-            # Find the Fern source directory using the same logic as project builds
-            fern_source = None
-            
-            # Get the directory where the CLI is located (should be the Fern repo)
-            cli_dir = Path(__file__).parent.parent.parent  # Go up from cli/commands/fire.py to repo root
-            
-            potential_sources = [
-                Path.home() / ".fern",  # Global source installation (primary location)
-                cli_dir,  # The Fern repository root where the CLI is located
-                Path("/home/rishi/git/test/fern"),  # Hardcoded development path
-                Path(os.getcwd()),  # Current working directory (if run from Fern repo)
-                Path(os.environ.get('ORIGINAL_CWD', os.getcwd())).parent,  # Parent of original working dir
-                Path("/usr/local/src/fern"),  # System-wide source location
-                Path.home() / ".fern" / "src"  # Alternative user location
-            ]
-            
-            for src_path in potential_sources:
-                # Check if this looks like the Fern source directory
-                cpp_src = src_path / "src" / "cpp"
-                if (cpp_src.exists() and 
-                    (cpp_src / "include" / "fern").exists() and
-                    (cpp_src / "src").exists()):
-                    fern_source = cpp_src
-                    break
-            
-            if not fern_source:
-                print_error("Fern source files not found for web compilation")
-                print_info("Searched the following locations:")
-                for src_path in potential_sources:
-                    cpp_src = src_path / "src" / "cpp"
-                    status = "✓" if cpp_src.exists() else "✗"
-                    print_info(f"  {status} {cpp_src}")
-                print_info("Web builds require access to Fern source files")
-                print_info("Run './install.sh' from the Fern repository to install source files globally")
-                return False
-            
-            # Add the source include path for web builds (instead of installed headers)
-            cmd.extend(["-I", str(fern_source / "include")])
-            
-            # Add Fern source files for web compilation
-            patterns = ["core/*.cpp", "graphics/*.cpp", "text/*.cpp", "font/*.cpp", "ui/**/*.cpp"]
-            for pattern in patterns:
-                for src_file in fern_source.glob(f"src/{pattern}"):
-                    cmd.append(str(src_file))
-            
-            # Add web platform files
-            web_renderer = fern_source / "src/platform/web_renderer.cpp"
-            if web_renderer.exists():
-                cmd.append(str(web_renderer))
-            else:
-                print_warning("Web renderer not found, web build may not work correctly")
-            
-            cmd.append(str(fern_source / "src/platform/platform_factory.cpp"))
-            cmd.append(str(fern_source / "src/fern.cpp"))
+            # Link against the precompiled Fern web library instead of recompiling all sources
+            cmd.append(str(fern_web_lib))
             
             # Check for custom template in current directory or use default
             local_template = Path(original_cwd) / "template.html"
@@ -578,6 +495,9 @@ class FireCommand:
             if project_config and 'platforms' in project_config and 'web' in project_config['platforms']:
                 port = project_config['platforms']['web'].get('port', 8000)
 
+            # Find an available port if the default is in use
+            port = self._find_available_port(port)
+
             print_info("Starting local web server...")
             print_success("Fern Fire started (web)!")
             print()
@@ -585,20 +505,49 @@ class FireCommand:
             print_info("Press Ctrl+C to stop the server")
             print()
 
-            # Start simple HTTP server
+            # Start HTTP server with proper cleanup
             import http.server
             import socketserver
             import threading
             import webbrowser
             import time
+            import signal
             
             os.chdir(build_dir)
             
+            # Create server with socket reuse
+            class ReusableTCPServer(socketserver.TCPServer):
+                allow_reuse_address = True
+                
+                def server_close(self):
+                    super().server_close()
+                    # Give the socket time to close properly
+                    time.sleep(0.1)
+            
+            httpd = None
+            
             def start_server():
-                with socketserver.TCPServer(("", port), http.server.SimpleHTTPRequestHandler) as httpd:
+                nonlocal httpd
+                try:
+                    httpd = ReusableTCPServer(("", port), http.server.SimpleHTTPRequestHandler)
                     httpd.serve_forever()
+                except OSError as e:
+                    if e.errno == 98:  # Address already in use
+                        print_error(f"Port {port} is already in use")
+                        return
+                    raise
+            
+            def signal_handler(signum, frame):
+                if httpd:
+                    print_info("\\nGracefully shutting down web server...")
+                    httpd.shutdown()
+                    httpd.server_close()
 
-            server_thread = threading.Thread(target=start_server, daemon=True)
+            # Set up signal handlers for graceful shutdown
+            signal.signal(signal.SIGINT, signal_handler)
+            signal.signal(signal.SIGTERM, signal_handler)
+
+            server_thread = threading.Thread(target=start_server, daemon=False)
             server_thread.start()
 
             # Wait a moment then open browser
@@ -607,11 +556,14 @@ class FireCommand:
             
             # Keep running until interrupted
             try:
-                while True:
-                    time.sleep(1)
+                while server_thread.is_alive():
+                    time.sleep(0.1)
             except KeyboardInterrupt:
-                print_info("\\nStopping web server...")
-                
+                if httpd:
+                    print_info("\\nStopping web server...")
+                    httpd.shutdown()
+                    httpd.server_close()
+                    
         except Exception as e:
             print_error(f"Error running web project: {str(e)}")
 
@@ -635,6 +587,9 @@ class FireCommand:
                 if project_config and 'platforms' in project_config and 'web' in project_config['platforms']:
                     port = project_config['platforms']['web'].get('port', 8000)
 
+            # Find an available port if the default is in use
+            port = self._find_available_port(port)
+
             print_info("Starting local web server...")
             print_success("🔥 Fern Fire started (web)!")
             print()
@@ -642,20 +597,49 @@ class FireCommand:
             print_info("Press Ctrl+C to stop the server")
             print()
             
-            # Start simple HTTP server
+            # Start HTTP server with proper cleanup
             import http.server
             import socketserver
             import threading
             import webbrowser
             import time
+            import signal
             
             os.chdir(build_dir)
             
+            # Create server with socket reuse
+            class ReusableTCPServer(socketserver.TCPServer):
+                allow_reuse_address = True
+                
+                def server_close(self):
+                    super().server_close()
+                    # Give the socket time to close properly
+                    time.sleep(0.1)
+            
+            httpd = None
+            
             def start_server():
-                with socketserver.TCPServer(("", port), http.server.SimpleHTTPRequestHandler) as httpd:
+                nonlocal httpd
+                try:
+                    httpd = ReusableTCPServer(("", port), http.server.SimpleHTTPRequestHandler)
                     httpd.serve_forever()
+                except OSError as e:
+                    if e.errno == 98:  # Address already in use
+                        print_error(f"Port {port} is already in use")
+                        return
+                    raise
+            
+            def signal_handler(signum, frame):
+                if httpd:
+                    print_info("\\nGracefully shutting down web server...")
+                    httpd.shutdown()
+                    httpd.server_close()
 
-            server_thread = threading.Thread(target=start_server, daemon=True)
+            # Set up signal handlers for graceful shutdown
+            signal.signal(signal.SIGINT, signal_handler)
+            signal.signal(signal.SIGTERM, signal_handler)
+
+            server_thread = threading.Thread(target=start_server, daemon=False)
             server_thread.start()
 
             # Wait a moment then open browser
@@ -664,10 +648,13 @@ class FireCommand:
             
             # Keep running until interrupted
             try:
-                while True:
-                    time.sleep(1)
+                while server_thread.is_alive():
+                    time.sleep(0.1)
             except KeyboardInterrupt:
-                print_info("\\nStopping web server...")
+                if httpd:
+                    print_info("\\nStopping web server...")
+                    httpd.shutdown()
+                    httpd.server_close()
                 
         except Exception as e:
             print_error(f"Error running web file: {str(e)}")
@@ -693,6 +680,166 @@ class FireCommand:
         except Exception as e:
             print_error(f"Error running executable: {str(e)}")
     
+    def _find_fern_source(self):
+        """Find the Fern source directory for web builds"""
+        # Get the directory where the CLI is located (should be the Fern repo)
+        cli_dir = Path(__file__).parent.parent.parent  # Go up from cli/commands/fire.py to repo root
+        
+        potential_sources = [
+            Path.home() / ".fern",  # Global source installation (primary location)
+            cli_dir,  # The Fern repository root where the CLI is located
+            Path("/home/rishi/git/test/fern"),  # Hardcoded development path
+            Path(os.getcwd()),  # Current working directory (if run from Fern repo)
+            Path(os.environ.get('ORIGINAL_CWD', os.getcwd())).parent,  # Parent of original working dir
+            Path("/usr/local/src/fern"),  # System-wide source location
+            Path.home() / ".fern" / "src"  # Alternative user location
+        ]
+        
+        for src_path in potential_sources:
+            # Check if this looks like the Fern source directory
+            cpp_src = src_path / "src" / "cpp"
+            if (cpp_src.exists() and 
+                (cpp_src / "include" / "fern").exists() and
+                (cpp_src / "src").exists()):
+                print_info(f"Found Fern source for web build at: {cpp_src}")
+                return cpp_src
+
+        print_error("Fern source files not found for web compilation.")
+        print_info("Searched the following locations:")
+        for src_path in potential_sources:
+            cpp_src = src_path / "src" / "cpp"
+            status = "✓" if cpp_src.exists() else "✗"
+            print_info(f"  {status} {cpp_src}")
+        print_info("Web builds require access to Fern source files.")
+        print_info("Run './install.sh' from the Fern repository to install source files globally.")
+        return None
+
+    def _ensure_fern_web_library(self, fern_source):
+        """Ensure a precompiled Fern web library exists, building it if necessary"""
+        # Create a cache directory for precompiled web libraries
+        cache_dir = Path.home() / ".fern" / "cache" / "web"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Check if we need to rebuild by comparing source timestamps
+        lib_file = cache_dir / "libfern_web.a"
+        needs_rebuild = True
+        
+        if lib_file.exists():
+            lib_mtime = lib_file.stat().st_mtime
+            
+            # Check if any source file is newer than the library
+            source_newer = False
+            patterns = ["core/*.cpp", "graphics/*.cpp", "text/*.cpp", "font/*.cpp", "ui/**/*.cpp"]
+            
+            for pattern in patterns:
+                for src_file in fern_source.glob(f"src/{pattern}"):
+                    if src_file.stat().st_mtime > lib_mtime:
+                        source_newer = True
+                        break
+                if source_newer:
+                    break
+            
+            # Also check platform files
+            platform_files = [
+                fern_source / "src/platform/web_renderer.cpp",
+                fern_source / "src/platform/platform_factory.cpp", 
+                fern_source / "src/fern.cpp"
+            ]
+            
+            for platform_file in platform_files:
+                if platform_file.exists() and platform_file.stat().st_mtime > lib_mtime:
+                    source_newer = True
+                    break
+            
+            needs_rebuild = source_newer
+        
+        if needs_rebuild:
+            print_info("Building Fern web library (this may take a moment)...")
+            
+            # Collect all source files
+            source_files = []
+            patterns = ["core/*.cpp", "graphics/*.cpp", "text/*.cpp", "font/*.cpp", "ui/**/*.cpp"]
+            for pattern in patterns:
+                for src_file in fern_source.glob(f"src/{pattern}"):
+                    source_files.append(src_file)
+            
+            # Add platform files
+            platform_files = [
+                fern_source / "src/platform/web_renderer.cpp",
+                fern_source / "src/platform/platform_factory.cpp",
+                fern_source / "src/fern.cpp"
+            ]
+            
+            for platform_file in platform_files:
+                if platform_file.exists():
+                    source_files.append(platform_file)
+            
+            # Compile each source file to an object file
+            object_files = []
+            
+            try:
+                for i, src_file in enumerate(source_files):
+                    obj_file = cache_dir / f"obj_{i}.o"
+                    object_files.append(obj_file)
+                    
+                    # Compile individual source file
+                    cmd = [
+                        "emcc", "-std=c++17", "-O2", "-c",
+                        "-I", str(fern_source / "include"),
+                        str(src_file),
+                        "-o", str(obj_file)
+                    ]
+                    
+                    result = subprocess.run(cmd, capture_output=True, text=True)
+                    if result.returncode != 0:
+                        print_error(f"Failed to compile {src_file.name}:")
+                        print(result.stderr)
+                        return None
+                
+                # Create static library from object files
+                cmd = ["emar", "rcs", str(lib_file)] + [str(obj) for obj in object_files]
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                
+                if result.returncode != 0:
+                    print_error("Failed to create Fern web library:")
+                    print(result.stderr)
+                    return None
+                
+                # Clean up object files
+                for obj_file in object_files:
+                    if obj_file.exists():
+                        obj_file.unlink()
+                        
+                print_success("Fern web library built successfully!")
+                
+            except Exception as e:
+                print_error(f"Error building Fern web library: {str(e)}")
+                return None
+        else:
+            print_info("Using cached Fern web library")
+        
+        return lib_file
+
+    def _find_available_port(self, start_port, max_attempts=10):
+        """Find an available port starting from start_port"""
+        import socket
+        
+        for i in range(max_attempts):
+            port = start_port + i
+            try:
+                # Try to bind to the port to check if it's available
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                    s.bind(('', port))
+                    return port
+            except OSError:
+                # Port is in use, try the next one
+                continue
+        
+        # If we can't find any available port, use the original and let it fail gracefully
+        print_warning(f"Could not find available port starting from {start_port}, using {start_port}")
+        return start_port
+
     def _cleanup_temp_files(self, file_path):
         """Clean up temporary files"""
         temp_file = file_path.parent / (file_path.stem + "_temp")
