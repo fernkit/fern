@@ -5,7 +5,7 @@
 <h1 align="center">Fern UI Framework</h1>
 
 <p align="center">
-  A fast, minimal, cross-platform UI toolkit written in C++ with modern design principles.
+  A fast, minimal and cross-platform UI toolkit written in C++ with modern design principles.
 </p>
 
 
