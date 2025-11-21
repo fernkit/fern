@@ -53,12 +53,7 @@
     
     CGImageRef image = CGBitmapContextCreateImage(bitmapContext);
     
-    // Draw the image (flipped vertically for correct orientation)
-    CGContextSaveGState(context);
-    CGContextTranslateCTM(context, 0, self.bounds.size.height);
-    CGContextScaleCTM(context, 1.0, -1.0);
     CGContextDrawImage(context, self.bounds, image);
-    CGContextRestoreGState(context);
     
     // Cleanup
     CGImageRelease(image);
