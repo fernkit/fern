@@ -61,7 +61,19 @@ if(EMSCRIPTEN)
 elseif(APPLE)
     # macOS requires Cocoa framework
     find_library(COCOA_FRAMEWORK Cocoa REQUIRED)
-    target_link_libraries(fern ${COCOA_FRAMEWORK})
+    target_link_libraries(fern PUBLIC ${COCOA_FRAMEWORK})
+    
+    # Find fontconfig and freetype on macOS
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
+    pkg_check_modules(FREETYPE REQUIRED freetype2)
+    
+    # Add library directories to global search path
+    link_directories(${FONTCONFIG_LIBRARY_DIRS} ${FREETYPE_LIBRARY_DIRS})
+    
+    target_link_libraries(fern PUBLIC ${FONTCONFIG_LIBRARIES} ${FREETYPE_LIBRARIES})
+    target_include_directories(fern PUBLIC ${FONTCONFIG_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS})
+    target_compile_options(fern PUBLIC ${FONTCONFIG_CFLAGS_OTHER} ${FREETYPE_CFLAGS_OTHER})
     
     # Set Objective-C++ flags for .mm files
     set_source_files_properties(
@@ -70,8 +82,20 @@ elseif(APPLE)
     )
 elseif(UNIX AND NOT APPLE)
     find_package(X11 REQUIRED)
-    target_link_libraries(fern ${X11_LIBRARIES})
-    target_include_directories(fern PRIVATE ${X11_INCLUDE_DIR})
+    target_link_libraries(fern PUBLIC ${X11_LIBRARIES})
+    target_include_directories(fern PUBLIC ${X11_INCLUDE_DIR})
+    
+    # Find fontconfig and freetype on Linux
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
+    pkg_check_modules(FREETYPE REQUIRED freetype2)
+    
+    # Add library directories to global search path
+    link_directories(${FONTCONFIG_LIBRARY_DIRS} ${FREETYPE_LIBRARY_DIRS})
+    
+    target_link_libraries(fern PUBLIC ${FONTCONFIG_LIBRARIES} ${FREETYPE_LIBRARIES})
+    target_include_directories(fern PUBLIC ${FONTCONFIG_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS})
+    target_compile_options(fern PUBLIC ${FONTCONFIG_CFLAGS_OTHER} ${FREETYPE_CFLAGS_OTHER})
 endif()
 
 # Build examples

@@ -525,10 +525,30 @@ class FireCommand:
             for lib_path in config.get_library_paths():
                 cmd.extend(["-L", lib_path])
             
-            # Add libraries (filter out X11 libraries and add Cocoa)
-            for lib in config.get_libraries():
-                if lib not in ["X11", "Xext"]:  # Skip X11 libraries on macOS
-                    cmd.extend(["-l", lib])
+            # Use pkg-config for fontconfig and freetype on macOS
+            try:
+                # Get fontconfig flags
+                fontconfig_result = subprocess.run(["pkg-config", "--libs", "fontconfig"], 
+                                                 capture_output=True, text=True)
+                if fontconfig_result.returncode == 0:
+                    fontconfig_libs = fontconfig_result.stdout.strip().split()
+                    cmd.extend(fontconfig_libs)
+                
+                # Get freetype flags
+                freetype_result = subprocess.run(["pkg-config", "--libs", "freetype2"], 
+                                                capture_output=True, text=True)
+                if freetype_result.returncode == 0:
+                    freetype_libs = freetype_result.stdout.strip().split()
+                    cmd.extend(freetype_libs)
+            except Exception as e:
+                print_info(f"Warning: Could not get pkg-config info: {e}")
+                # Fallback to manual library linking
+                for lib in config.get_libraries():
+                    if lib not in ["X11", "Xext"]:  # Skip X11 libraries on macOS
+                        cmd.extend(["-l", lib])
+            
+            # Add fern library manually (not handled by pkg-config)
+            cmd.extend(["-l", "fern"])
             
             # Add macOS-specific frameworks
             cmd.extend(["-framework", "Cocoa"])
@@ -584,10 +604,30 @@ class FireCommand:
             for lib_path in config.get_library_paths():
                 cmd.extend(["-L", lib_path])
             
-            # Add libraries (filter out X11 libraries and add Cocoa)
-            for lib in config.get_libraries():
-                if lib not in ["X11", "Xext"]:  # Skip X11 libraries on macOS
-                    cmd.extend(["-l", lib])
+            # Use pkg-config for fontconfig and freetype on macOS
+            try:
+                # Get fontconfig flags
+                fontconfig_result = subprocess.run(["pkg-config", "--libs", "fontconfig"], 
+                                                 capture_output=True, text=True)
+                if fontconfig_result.returncode == 0:
+                    fontconfig_libs = fontconfig_result.stdout.strip().split()
+                    cmd.extend(fontconfig_libs)
+                
+                # Get freetype flags
+                freetype_result = subprocess.run(["pkg-config", "--libs", "freetype2"], 
+                                                capture_output=True, text=True)
+                if freetype_result.returncode == 0:
+                    freetype_libs = freetype_result.stdout.strip().split()
+                    cmd.extend(freetype_libs)
+            except Exception as e:
+                print_info(f"Warning: Could not get pkg-config info: {e}")
+                # Fallback to manual library linking
+                for lib in config.get_libraries():
+                    if lib not in ["X11", "Xext"]:  # Skip X11 libraries on macOS
+                        cmd.extend(["-l", lib])
+            
+            # Add fern library manually (not handled by pkg-config)
+            cmd.extend(["-l", "fern"])
             
             # Add macOS-specific frameworks
             cmd.extend(["-framework", "Cocoa"])
