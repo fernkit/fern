@@ -4,7 +4,7 @@ Global configuration management for Fern CLI
 """
 
 import os
-import yaml
+import json
 from pathlib import Path
 from typing import Dict, Any, Optional
 
@@ -13,7 +13,7 @@ class FernConfig:
     
     def __init__(self):
         self.config_dir = Path.home() / ".fern"
-        self.config_file = self.config_dir / "config.yaml"
+        self.config_file = self.config_dir / "config.json"
         self.templates_dir = self.config_dir / "templates"
         
         # Default configuration
@@ -40,7 +40,7 @@ class FernConfig:
         
         if not self.config_file.exists():
             with open(self.config_file, 'w') as f:
-                yaml.dump(self.default_config, f, default_flow_style=False)
+                json.dump(self.default_config, f, indent=2)
     
     def load_config(self) -> Dict[str, Any]:
         """Load configuration from file"""
@@ -49,8 +49,8 @@ class FernConfig:
             
             try:
                 with open(self.config_file, 'r') as f:
-                    self._config = yaml.safe_load(f)
-            except (FileNotFoundError, yaml.YAMLError):
+                    self._config = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
                 self._config = self.default_config.copy()
         
         return self._config
@@ -60,7 +60,7 @@ class FernConfig:
         self.ensure_config_exists()
         
         with open(self.config_file, 'w') as f:
-            yaml.dump(config, f, default_flow_style=False)
+            json.dump(config, f, indent=2)
         
         self._config = config
     

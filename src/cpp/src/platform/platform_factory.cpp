@@ -5,16 +5,25 @@
 #include <emscripten.h>
 #elif defined(__linux__)
 #include "linux_renderer.cpp"
+#elif defined(__APPLE__)
+// Forward declare the MacOSRenderer class (defined in macos_renderer.mm)
+namespace Fern {
+    class MacOSRenderer;
+}
 #endif
 
 namespace Fern {
     std::unique_ptr<PlatformRenderer> createRenderer() {
 #ifdef __EMSCRIPTEN__
         return std::make_unique<WebRenderer>();
+#elif defined(__APPLE__)
+        // Extern function defined in macos_renderer.mm
+        extern std::unique_ptr<PlatformRenderer> createMacOSRenderer();
+        return createMacOSRenderer();
 #elif defined(__linux__)
         return std::make_unique<LinuxRenderer>();
 #else
-        #error "Only Web and Linux platforms supported currently"
+        #error "Only Web, macOS, and Linux platforms supported currently"
 #endif
     }
 }

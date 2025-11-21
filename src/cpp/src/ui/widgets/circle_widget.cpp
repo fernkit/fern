@@ -10,7 +10,7 @@ namespace Fern {
     }
     
     // don't use positions!! 
-    // the position of each widget is now maintaine by the parent class!
+    // the position of each widget is now maintained by the parent class!
     void CircleWidget::render() {
         Draw::circle(x_ + radius_, y_ + radius_, radius_, color_);
     }

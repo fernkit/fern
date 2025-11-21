@@ -93,7 +93,7 @@ class FireCommand:
                     platform = args[i + 1]
                     i += 2
                 else:
-                    print_error("--platform requires a value (linux, web)")
+                    print_error("--platform requires a value (linux, web, macos)")
                     return
             elif arg in ["--help", "-h"]:
                 self._show_help()
@@ -104,9 +104,9 @@ class FireCommand:
                 i += 1
         
         # Validate platform
-        if platform not in ["linux", "web"]:
+        if platform not in ["linux", "web", "macos"]:
             print_error(f"Unsupported platform: {platform}")
-            print_info("Supported platforms: linux, web")
+            print_info("Supported platforms: linux, web, macos")
             return
         
         if file_path:
@@ -124,7 +124,7 @@ class FireCommand:
         print("  fern fire [options] [file]")
         print()
         print_info("Options:")
-        print("  -p, --platform <platform>   Target platform (linux, web)")
+        print("  -p, --platform <platform>   Target platform (linux, web, macos)")
         print("  -h, --help                  Show this help message")
         print()
         print_info("Examples:")
@@ -177,6 +177,12 @@ class FireCommand:
                 self._run_web_project(project_root)
             else:
                 print_error("Build failed")
+        elif platform == "macos":
+            if self._build_project_macos(build_system, main_file):
+                print_success("Build successful!")
+                self._run_executable(project_root / "build" / "main")
+            else:
+                print_error("Build failed")
         else:  # linux
             if self._build_project_linux(build_system, main_file):
                 print_success("Build successful!")
@@ -212,6 +218,16 @@ class FireCommand:
             if self._build_single_file_web(file_path):
                 print_success("Build successful!")
                 self._run_web_file(file_path)
+            else:
+                print_error("Build failed")
+        elif platform == "macos":
+            if self._build_single_file_macos(file_path):
+                print_success("Build successful!")
+                # Run the executable from build directory
+                original_cwd = os.environ.get('ORIGINAL_CWD', os.getcwd())
+                build_dir = Path(original_cwd) / "build"
+                executable = build_dir / (file_path.stem + "_temp")
+                self._run_executable(executable)
             else:
                 print_error("Build failed")
         else:  # linux
@@ -477,6 +493,120 @@ class FireCommand:
             
         except Exception as e:
             print_error(f"Web build error: {str(e)}")
+            return False
+
+    def _build_project_macos(self, build_system, main_file):
+        """Build a Fern project for macOS"""
+        try:
+            # Check if Fern is installed globally
+            if not config.is_fern_installed():
+                print_error("Fern C++ library is not installed globally")
+                print_info("Run './install.sh' from the Fern source directory to install")
+                return False
+            
+            # Create build directory
+            build_dir = build_system.project_root / "build"
+            build_dir.mkdir(exist_ok=True)
+            
+            # Build command using clang++ for macOS
+            cmd = ["clang++"]
+            
+            # Add build flags
+            cmd.extend(config.get_build_flags())
+            
+            # Add include paths
+            for include_path in config.get_include_paths():
+                cmd.extend(["-I", include_path])
+            
+            # Add source file
+            cmd.append(str(main_file))
+            
+            # Add library paths
+            for lib_path in config.get_library_paths():
+                cmd.extend(["-L", lib_path])
+            
+            # Add libraries (filter out X11 libraries and add Cocoa)
+            for lib in config.get_libraries():
+                if lib not in ["X11", "Xext"]:  # Skip X11 libraries on macOS
+                    cmd.extend(["-l", lib])
+            
+            # Add macOS-specific frameworks
+            cmd.extend(["-framework", "Cocoa"])
+            
+            # Add output
+            cmd.extend(["-o", str(build_dir / "main")])
+            
+            print_info("Compiling for macOS...")
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode != 0:
+                print_error("macOS compilation failed:")
+                print(result.stderr)
+                return False
+            
+            return True
+            
+        except Exception as e:
+            print_error(f"macOS build error: {str(e)}")
+            return False
+
+    def _build_single_file_macos(self, file_path):
+        """Build a single Fern file for macOS"""
+        try:
+            # Check if Fern is installed globally
+            if not config.is_fern_installed():
+                print_error("Fern C++ library is not installed globally")
+                print_info("Run './install.sh' from the Fern source directory to install")
+                return False
+            
+            # Create a build directory in the original working directory
+            original_cwd = os.environ.get('ORIGINAL_CWD', os.getcwd())
+            build_dir = Path(original_cwd) / "build"
+            build_dir.mkdir(exist_ok=True)
+            
+            # Output executable name in build directory
+            output_file = build_dir / (file_path.stem + "_temp")
+            
+            # Build command using clang++ for macOS
+            cmd = ["clang++"]
+            
+            # Add build flags
+            cmd.extend(config.get_build_flags())
+            
+            # Add include paths
+            for include_path in config.get_include_paths():
+                cmd.extend(["-I", include_path])
+            
+            # Add source file
+            cmd.append(str(file_path))
+            
+            # Add library paths
+            for lib_path in config.get_library_paths():
+                cmd.extend(["-L", lib_path])
+            
+            # Add libraries (filter out X11 libraries and add Cocoa)
+            for lib in config.get_libraries():
+                if lib not in ["X11", "Xext"]:  # Skip X11 libraries on macOS
+                    cmd.extend(["-l", lib])
+            
+            # Add macOS-specific frameworks
+            cmd.extend(["-framework", "Cocoa"])
+            
+            # Add output
+            cmd.extend(["-o", str(output_file)])
+            
+            print_info("Compiling for macOS...")
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode != 0:
+                print_error("macOS compilation failed:")
+                print(result.stderr)
+                return False
+            
+            return True
+            
+        except Exception as e:
+            print_error(f"macOS build error: {str(e)}")
             return False
 
     def _run_web_project(self, project_root):

@@ -179,8 +179,14 @@ install_cpp_library() {
     # Configure with CMake
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$HOME/.local" ..
     
-    # Build
-    make -j$(nproc)
+    # Build (detect cores based on platform)
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        make -j$(sysctl -n hw.ncpu)
+    else
+        # Linux
+        make -j$(nproc)
+    fi
     
     # Install
     make install

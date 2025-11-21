@@ -13,6 +13,9 @@ endif()
 if(EMSCRIPTEN)
     set(PLATFORM_NAME "Web")
     add_definitions(-D__EMSCRIPTEN__)
+elseif(APPLE)
+    set(PLATFORM_NAME "macOS")
+    add_definitions(-D__APPLE__)
 elseif(UNIX AND NOT APPLE)
     set(PLATFORM_NAME "Linux")
     add_definitions(-D__linux__)
@@ -40,6 +43,8 @@ set(PLATFORM_SOURCES
 
 if(EMSCRIPTEN)
     list(APPEND PLATFORM_SOURCES src/cpp/src/platform/web_renderer.cpp)
+elseif(APPLE)
+    list(APPEND PLATFORM_SOURCES src/cpp/src/platform/macos_renderer.mm)
 elseif(UNIX AND NOT APPLE)
     list(APPEND PLATFORM_SOURCES src/cpp/src/platform/linux_renderer.cpp)
 endif()
@@ -52,6 +57,16 @@ if(EMSCRIPTEN)
     set_target_properties(fern PROPERTIES
         COMPILE_FLAGS "-s USE_WEBGL2=1"
         LINK_FLAGS "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s USE_WEBGL2=1 -s EXPORTED_FUNCTIONS='[_main]' -s EXPORTED_RUNTIME_METHODS='[ccall,cwrap]'"
+    )
+elseif(APPLE)
+    # macOS requires Cocoa framework
+    find_library(COCOA_FRAMEWORK Cocoa REQUIRED)
+    target_link_libraries(fern ${COCOA_FRAMEWORK})
+    
+    # Set Objective-C++ flags for .mm files
+    set_source_files_properties(
+        src/cpp/src/platform/macos_renderer.mm
+        PROPERTIES COMPILE_FLAGS "-x objective-c++ -fobjc-arc"
     )
 elseif(UNIX AND NOT APPLE)
     find_package(X11 REQUIRED)

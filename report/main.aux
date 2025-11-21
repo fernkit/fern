@@ -1,0 +1,125 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Motivation and Context}{1}{subsection.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Problem Definition}{1}{subsection.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}Core Contributions}{2}{subsection.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work and Positioning}{2}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}UI Framework Evolution}{2}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Educational Graphics Systems}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}System Architecture}{2}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Architectural Philosophy}{2}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Complete System Architecture}{3}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Data Flow and Execution Model}{3}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Object-Oriented Principles in Practice}{3}{section.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Complete Fern architecture showing all five layers and their interactions. Arrows indicate dependency direction—upper layers call into lower layers, never the reverse. This strict layering enables independent testing and modification of each layer.}}{4}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:complete-arch}{{1}{4}{Complete Fern architecture showing all five layers and their interactions. Arrows indicate dependency direction—upper layers call into lower layers, never the reverse. This strict layering enables independent testing and modification of each layer}{figure.caption.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Encapsulation: Information Hiding and Interface Design}{4}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.1}Canvas Encapsulation}{4}{subsubsection.4.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2}Input State Management}{4}{subsubsection.4.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Inheritance: Code Reuse Through Hierarchies}{4}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Widget Hierarchy Design}{4}{subsubsection.4.2.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Complete widget class hierarchy showing 15+ concrete widgets inheriting from abstract base. LayoutWidget provides intermediate abstraction for container widgets. All widgets implement render() and handleInput() virtual methods, enabling polymorphic collections in WidgetManager.}}{5}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:widget-hierarchy}{{2}{5}{Complete widget class hierarchy showing 15+ concrete widgets inheriting from abstract base. LayoutWidget provides intermediate abstraction for container widgets. All widgets implement render() and handleInput() virtual methods, enabling polymorphic collections in WidgetManager}{figure.caption.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2}Platform Abstraction Through Inheritance}{5}{subsubsection.4.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Polymorphism: Uniform Interfaces, Diverse Implementations}{5}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.1}Runtime Polymorphism in Widget Management}{5}{subsubsection.4.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.3.2}Compile-Time Polymorphism in Event Handling}{5}{subsubsection.4.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Core System Architectures: Deep Technical Analysis}{5}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.1}Signal-Slot System: Type-Safe Observer Pattern}{6}{subsubsection.4.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.2}Widget Manager: Lifecycle Orchestration and Z-Order Management}{6}{subsubsection.4.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.3}Scene Manager: Stack-Based Navigation System}{6}{subsubsection.4.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Abstraction: Hiding Complexity Behind Interfaces}{7}{subsection.4.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.1}Graphics Primitive Abstraction}{7}{subsubsection.4.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.2}Layout System Abstraction}{7}{subsubsection.4.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Implementation Highlights}{7}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}The Rendering Pipeline}{7}{subsection.5.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Signal-Slot architecture implementing the Observer pattern. Button widget emits onClick signal, triggering all connected callbacks without direct coupling. Type safety enforced at compile-time through templates.}}{8}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:signal-slot}{{3}{8}{Signal-Slot architecture implementing the Observer pattern. Button widget emits onClick signal, triggering all connected callbacks without direct coupling. Type safety enforced at compile-time through templates}{figure.caption.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.1.1}Pixel Buffer Architecture}{8}{subsubsection.5.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.1.2}Primitive Rendering Algorithms}{8}{subsubsection.5.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Event Handling and Input Distribution}{8}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.1}Input State Normalization}{8}{subsubsection.5.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.2.2}Z-Order Event Routing}{8}{subsubsection.5.2.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Scene Manager stack-based navigation. Scenes push/pop in LIFO order with automatic lifecycle management. Active scene (top) renders and updates; background scenes pause until reactivated.}}{9}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:scene-manager}{{4}{9}{Scene Manager stack-based navigation. Scenes push/pop in LIFO order with automatic lifecycle management. Active scene (top) renders and updates; background scenes pause until reactivated}{figure.caption.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces WidgetManager Z-order handling. Rendering proceeds forward (back-to-front), input distribution proceeds reverse (top-to-front). Dialog receives input first; if consumed, underlying widgets never process the event.}}{9}{figure.caption.5}\protected@file@percent }
+\newlabel{fig:widget-manager-zorder}{{5}{9}{WidgetManager Z-order handling. Rendering proceeds forward (back-to-front), input distribution proceeds reverse (top-to-front). Dialog receives input first; if consumed, underlying widgets never process the event}{figure.caption.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Typography System: Dual Font Rendering Architecture}{9}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.1}The Typography Challenge}{9}{subsubsection.5.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.2}TrueType Font Parsing and Rendering}{10}{subsubsection.5.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.3}Bitmap Font System}{10}{subsubsection.5.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.4}Typography Engineering Insights}{10}{subsubsection.5.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Layout System Design}{11}{subsection.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.1}Flexbox-Inspired Positioning}{11}{subsubsection.5.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.2}Responsive Layout Support}{11}{subsubsection.5.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Cross-Platform Abstraction: Platform-Specific Renderers}{11}{subsection.5.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.5.1}The Platform Renderer Interface}{11}{subsubsection.5.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.5.2}Linux Renderer: X11 Integration}{11}{subsubsection.5.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.5.3}Web Renderer: WebAssembly and JavaScript Interop}{12}{subsubsection.5.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.5.4}Platform Abstraction Benefits and Trade-offs}{12}{subsubsection.5.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}Expanded TrueType Font Rendering: Bézier Curves and Scanline Algorithms}{13}{subsection.5.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.6.1}Quadratic Bézier Curve Evaluation}{13}{subsubsection.5.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.6.2}Contour Generation and On-Curve/Off-Curve Points}{13}{subsubsection.5.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.6.3}Scanline Rasterization and Interior Filling}{13}{subsubsection.5.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.6.4}Anti-Aliasing and Subpixel Accuracy}{13}{subsubsection.5.6.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}Layout System Design}{14}{subsection.5.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.7.1}The Platform Renderer Interface}{14}{subsubsection.5.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.7.2}WebAssembly Integration}{14}{subsubsection.5.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Evaluation and Use Cases}{14}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Performance Characteristics}{14}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.1}Rendering Performance Analysis}{14}{subsubsection.6.1.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Rendering performance vs. widget count. Linear scaling maintains 60 FPS up to ~200 widgets, acceptable interactivity (30+ FPS) up to ~400 widgets. Performance degrades predictably beyond this threshold due to software rendering overhead.}}{14}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:performance}{{6}{14}{Rendering performance vs. widget count. Linear scaling maintains 60 FPS up to ~200 widgets, acceptable interactivity (30+ FPS) up to ~400 widgets. Performance degrades predictably beyond this threshold due to software rendering overhead}{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.2}Memory Footprint}{14}{subsubsection.6.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Real-World Applications}{15}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.1}Particle Physics Simulator}{15}{subsubsection.6.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.2}Interactive Calculator}{15}{subsubsection.6.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.3}Educational Effectiveness}{15}{subsubsection.6.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion and Reflection}{15}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Design Decisions and Trade-offs}{15}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.1.1}Software Rendering vs GPU Acceleration}{15}{subsubsection.7.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.1.2}C++ vs Modern Languages}{15}{subsubsection.7.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}The FernKit Ecosystem: Integrated Development Toolchain}{16}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.1}Terra: The Command-Line Interface}{16}{subsubsection.7.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.2}Gleeb: Language Server Protocol Implementation}{16}{subsubsection.7.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.3}Conduit: Synchronous Networking Library}{17}{subsubsection.7.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.2.4}Ecosystem Integration Benefits}{17}{subsubsection.7.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Limitations and Future Directions}{17}{subsection.7.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.1}Platform Coverage}{17}{subsubsection.7.3.1}\protected@file@percent }
+\bibcite{myers1995ui}{1}
+\bibcite{imgui}{2}
+\bibcite{processing}{3}
+\bibcite{gamma1995design}{4}
+\bibcite{bresenham}{5}
+\bibcite{flutter}{6}
+\bibcite{stroustrup}{7}
+\bibcite{emscripten}{8}
+\bibcite{ttf-spec}{9}
+\bibcite{opentype-spec}{10}
+\bibcite{freetype}{11}
+\bibcite{bezier-curves}{12}
+\bibcite{farin-curves}{13}
+\bibcite{gupta-sproull}{14}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.2}Advanced Text Rendering}{18}{subsubsection.7.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusion}{18}{section.8}\protected@file@percent }
+\bibcite{kilgard-gpu-text}{15}
+\bibcite{hinting-truetype}{16}
+\bibcite{rasterization-rules}{17}
+\bibcite{antialiasing-techniques}{18}
+\bibcite{subpixel-rendering}{19}
+\bibcite{harfbuzz}{20}
+\bibcite{knuth-tex}{21}
+\bibcite{unicode-standard}{22}
+\bibcite{cmap-subtable}{23}
+\bibcite{glyph-metrics}{24}
+\bibcite{font-rasterization}{25}
+\bibcite{x11-programming}{26}
+\bibcite{wasm-spec}{27}
+\bibcite{signal-slot-qt}{28}
+\bibcite{observer-pattern}{29}
+\bibcite{composite-pattern}{30}
+\gdef \@abspage@last{19}

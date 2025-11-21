@@ -5,7 +5,6 @@ Fern Install Command - Install packages and dependencies
 import os
 import sys
 import subprocess
-import requests
 from pathlib import Path
 
 # Add utils to path
